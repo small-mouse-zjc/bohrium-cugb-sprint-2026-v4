@@ -1,0 +1,235 @@
+{
+  "@context": {
+    "np": "http://www.nanopub.org/nschema#",
+    "rel": "https://example.org/rel/",
+    "prov": "http://www.w3.org/ns/prov#",
+    "oa": "http://www.w3.org/ns/oa#"
+  },
+  "@graph": [
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A1",
+      "@type": "np:Nanopublication",
+      "np:hasAssertion": {
+        "@id": "https://example.org/np/demo-nanopub-01/A1/assertion"
+      },
+      "np:hasProvenance": {
+        "@id": "https://example.org/np/demo-nanopub-01/A1/provenance"
+      },
+      "np:hasPublicationInfo": {
+        "@id": "https://example.org/np/demo-nanopub-01/A1/pubinfo"
+      }
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A1/assertion",
+      "@type": "np:Assertion",
+      "rel:subject": {
+        "label": "gas hydrate",
+        "type": "material"
+      },
+      "rel:relation": "located_in",
+      "rel:object": {
+        "label": "marine sediment",
+        "type": "environment"
+      },
+      "rel:qualifier": "site CUG-3",
+      "rel:text": "Gas hydrate occurs in marine sediment at site CUG-3."
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A1/provenance",
+      "@type": "np:Provenance",
+      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
+      "rel:sourceYear": 2026,
+      "rel:paragraphId": "JATS-3",
+      "rel:quote": "Gas hydrate occurs in marine sediment at site CUG-3.",
+      "rel:derivation": "direct"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A1/pubinfo",
+      "@type": "np:PublicationInfo",
+      "rel:caseId": "demo-nanopub-01",
+      "rel:creator": "skill:nanopub-assertion-export",
+      "rel:license": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A2",
+      "@type": "np:Nanopublication",
+      "np:hasAssertion": {
+        "@id": "https://example.org/np/demo-nanopub-01/A2/assertion"
+      },
+      "np:hasProvenance": {
+        "@id": "https://example.org/np/demo-nanopub-01/A2/provenance"
+      },
+      "np:hasPublicationInfo": {
+        "@id": "https://example.org/np/demo-nanopub-01/A2/pubinfo"
+      }
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A2/assertion",
+      "@type": "np:Assertion",
+      "rel:subject": {
+        "label": "hydrate stability zone",
+        "type": "boundary"
+      },
+      "rel:relation": "located_in",
+      "rel:object": {
+        "label": "seafloor",
+        "type": "boundary"
+      },
+      "rel:qualifier": "base at 12 m",
+      "rel:text": "The hydrate stability zone extends 12 m below the seafloor."
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A2/provenance",
+      "@type": "np:Provenance",
+      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
+      "rel:sourceYear": 2026,
+      "rel:paragraphId": "JATS-3",
+      "rel:quote": "The hydrate stability zone extends 12 m below the seafloor.",
+      "rel:derivation": "direct"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A2/pubinfo",
+      "@type": "np:PublicationInfo",
+      "rel:caseId": "demo-nanopub-01",
+      "rel:creator": "skill:nanopub-assertion-export",
+      "rel:license": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A3",
+      "@type": "np:Nanopublication",
+      "np:hasAssertion": {
+        "@id": "https://example.org/np/demo-nanopub-01/A3/assertion"
+      },
+      "np:hasProvenance": {
+        "@id": "https://example.org/np/demo-nanopub-01/A3/provenance"
+      },
+      "np:hasPublicationInfo": {
+        "@id": "https://example.org/np/demo-nanopub-01/A3/pubinfo"
+      }
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A3/assertion",
+      "@type": "np:Assertion",
+      "rel:subject": {
+        "label": "dissociation pressure",
+        "type": "property"
+      },
+      "rel:relation": "increases",
+      "rel:object": {
+        "label": "salinity",
+        "type": "property"
+      },
+      "rel:qualifier": "4 °C; 0→3.5 wt%; +0.9 MPa",
+      "rel:text": "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A3/provenance",
+      "@type": "np:Provenance",
+      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
+      "rel:sourceYear": 2026,
+      "rel:paragraphId": "JATS-6",
+      "rel:quote": "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C.",
+      "rel:derivation": "direct"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A3/pubinfo",
+      "@type": "np:PublicationInfo",
+      "rel:caseId": "demo-nanopub-01",
+      "rel:creator": "skill:nanopub-assertion-export",
+      "rel:license": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A4",
+      "@type": "np:Nanopublication",
+      "np:hasAssertion": {
+        "@id": "https://example.org/np/demo-nanopub-01/A4/assertion"
+      },
+      "np:hasProvenance": {
+        "@id": "https://example.org/np/demo-nanopub-01/A4/provenance"
+      },
+      "np:hasPublicationInfo": {
+        "@id": "https://example.org/np/demo-nanopub-01/A4/pubinfo"
+      }
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A4/assertion",
+      "@type": "np:Assertion",
+      "rel:subject": {
+        "label": "permeability of the sandy layer",
+        "type": "property"
+      },
+      "rel:relation": "exceeds",
+      "rel:object": {
+        "label": "permeability of the clay",
+        "type": "property"
+      },
+      "rel:qualifier": "by one order of magnitude",
+      "rel:text": "Permeability of the sandy layer is one order of magnitude higher than that of the clay."
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A4/provenance",
+      "@type": "np:Provenance",
+      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
+      "rel:sourceYear": 2026,
+      "rel:paragraphId": "JATS-6",
+      "rel:quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay.",
+      "rel:derivation": "direct"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A4/pubinfo",
+      "@type": "np:PublicationInfo",
+      "rel:caseId": "demo-nanopub-01",
+      "rel:creator": "skill:nanopub-assertion-export",
+      "rel:license": "https://creativecommons.org/licenses/by/4.0/"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A5",
+      "@type": "np:Nanopublication",
+      "np:hasAssertion": {
+        "@id": "https://example.org/np/demo-nanopub-01/A5/assertion"
+      },
+      "np:hasProvenance": {
+        "@id": "https://example.org/np/demo-nanopub-01/A5/provenance"
+      },
+      "np:hasPublicationInfo": {
+        "@id": "https://example.org/np/demo-nanopub-01/A5/pubinfo"
+      }
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A5/assertion",
+      "@type": "np:Assertion",
+      "rel:subject": {
+        "label": "pore-water salinity",
+        "type": "property"
+      },
+      "rel:relation": "has_value",
+      "rel:object": {
+        "label": "3.5 wt% NaCl equivalent",
+        "type": "value"
+      },
+      "rel:qualifier": "site CUG-3",
+      "rel:text": "Pore-water salinity is 3.5 wt% NaCl equivalent."
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A5/provenance",
+      "@type": "np:Provenance",
+      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
+      "rel:sourceYear": 2026,
+      "rel:paragraphId": "JATS-3",
+      "rel:quote": "Pore-water salinity is 3.5 wt% NaCl equivalent.",
+      "rel:derivation": "direct"
+    },
+    {
+      "@id": "https://example.org/np/demo-nanopub-01/A5/pubinfo",
+      "@type": "np:PublicationInfo",
+      "rel:caseId": "demo-nanopub-01",
+      "rel:creator": "skill:nanopub-assertion-export",
+      "rel:license": "https://creativecommons.org/licenses/by/4.0/"
+    }
+  ]
+}

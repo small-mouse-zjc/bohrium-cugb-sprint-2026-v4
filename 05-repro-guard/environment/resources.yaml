@@ -1,0 +1,21 @@
+entry: SKILL.md
+runtime: python>=3.9
+scripts:
+  - path: scripts/param_align.py
+    role: 参数别名对齐（正文/配置/日志/代码）+ 无源数值泛扫
+  - path: scripts/repro_check.py
+    role: 复现九项 + 步骤四要素 + 限制具体率
+inputs:
+  draft: methods.md
+  params: params.json
+  manifest: manifest.json
+  steps: steps.json
+outputs:
+  required: [params.csv, audit.json, repro.json, repro.md, result.json]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048
+notes:
+  - 参数四状态：sourced / unsourced / conflict / omitted
+  - 无源数值只报不猜

@@ -1,0 +1,65 @@
+{
+  "works": 6,
+  "dimensions": [
+    "problem",
+    "route",
+    "data",
+    "metric",
+    "limit"
+  ],
+  "coverage": {
+    "problem": 1.0,
+    "route": 1.0,
+    "data": 1.0,
+    "metric": 1.0,
+    "limit": 1.0
+  },
+  "gap_cells": [],
+  "gaps": [
+    {
+      "limitation": "长期监测",
+      "support_wids": [
+        "W4",
+        "W6"
+      ],
+      "support_count": 2,
+      "reason": "2 篇均指出「长期监测」，且无一篇覆盖"
+    }
+  ],
+  "conflicts": [
+    {
+      "claim": "CO2 提高露点",
+      "supports": [
+        "W1",
+        "W3"
+      ],
+      "opposes": [
+        "W2"
+      ]
+    }
+  ],
+  "groups": {
+    "实验测量": {
+      "n": 2,
+      "wids": [
+        "W1",
+        "W4"
+      ]
+    },
+    "模拟与建模": {
+      "n": 2,
+      "wids": [
+        "W2",
+        "W3"
+      ]
+    },
+    "现场与综述": {
+      "n": 2,
+      "wids": [
+        "W5",
+        "W6"
+      ]
+    }
+  },
+  "thin_groups": []
+}

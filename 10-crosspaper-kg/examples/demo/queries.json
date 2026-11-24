@@ -1,0 +1,13 @@
+{
+  "note": "四条可执行查询：跨篇归一、按关系过滤、路径连通、非合并判定。",
+  "queries": [
+    {"id": "Q1", "kind": "node", "label": "gas hydrate",
+     "question": "两篇独立论文里的“gas hydrate / GH”是否归一为同一节点，证据分别在哪段？"},
+    {"id": "Q2", "kind": "edges", "predicate": "increases",
+     "question": "哪些论文报告了 dissociation pressure 随 salinity 上升，各自引文是什么？"},
+    {"id": "Q3", "kind": "path", "from": "salinity", "to": "dissociation pressure",
+     "question": "salinity 与 dissociation pressure 之间能否走出证据链？"},
+    {"id": "Q4", "kind": "nonmerge",
+     "question": "哪些同名术语因限定冲突不得合并，依据是什么？"}
+  ]
+}

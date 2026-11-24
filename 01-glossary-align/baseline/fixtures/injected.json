@@ -1,0 +1,27 @@
+{
+  "note": "缺陷注入夹具：在自建演示译文上做单点破坏，验证 qc.py 能命中，不代表任何真实跑分。",
+  "fixtures": [
+    {
+      "name": "F1_term_drift",
+      "expect_types": ["term_drift"],
+      "mutations": [
+        {"id": "P0002", "op": "replace", "from": "分解压力", "to": "解离压力"}
+      ]
+    },
+    {
+      "name": "F2_missing_paragraph",
+      "expect_types": ["missing_para"],
+      "mutations": [
+        {"id": "P0003", "op": "drop"}
+      ]
+    },
+    {
+      "name": "F3_number_and_citation",
+      "expect_types": ["number_lost", "citation_lost"],
+      "mutations": [
+        {"id": "P0004", "op": "replace", "from": "6 m", "to": "若干米"},
+        {"id": "P0003", "op": "replace", "from": "Fig. 2", "to": "图 2"}
+      ]
+    }
+  ]
+}

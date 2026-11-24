@@ -1,0 +1,12 @@
+{
+  "steps": [
+    {"id": 1, "name": "数据预处理", "input": "原始 CT 切片（v2.3）", "operation": "按 8:1:1 划分并做灰度归一化",
+     "output": "train/val/test 三个索引文件", "decision": "单张切片体素缺失超过 5% 时剔除"},
+    {"id": 2, "name": "模型训练", "input": "train 索引 + config.yaml", "operation": "AdamW 优化，余弦衰减",
+     "output": "checkpoint 与训练日志", "decision": "验证集 MSE 连续 5 轮不降则停止"},
+    {"id": 3, "name": "测试集评估", "input": "test 索引 + 最优 checkpoint", "operation": "前向推理并计算 MSE",
+     "output": "test_mse.json", "decision": "重复 3 次取均值，标准差超 0.01 则重跑"},
+    {"id": 4, "name": "结果汇总", "input": "test_mse.json", "operation": "汇总为表格并绘图",
+     "output": "Table 1 与 Fig. 2", "decision": "数值与日志不一致时以日志为准"}
+  ]
+}

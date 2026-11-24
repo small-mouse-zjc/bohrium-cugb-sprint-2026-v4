@@ -1,0 +1,32 @@
+\documentclass[10pt]{article}
+\usepackage{graphicx}
+
+\title{A Demo Manuscript}
+\author{Demo Author}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+Figure~\ref{fig:res} summarises the main result, which is discussed below.
+The text also contains an inline formula-like symbol: x_1 is written without math mode.
+
+\section{Methods}
+\begin{table}[h]
+\centering
+\begin{tabular}{lcr}
+\toprule
+setting & value & unit \\
+temperature & 25 & C \\
+pressure & 12 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\section{Results}
+The method is compared with earlier work \cite{wang2020}.
+
+\includegraphics[width=0.8\linewidth]{figs/result.pdf}
+
+\end{document}

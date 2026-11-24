@@ -1,0 +1,22 @@
+{
+  "project": "fixed",
+  "main": "main.tex",
+  "inputs_sha256": {
+    "main.tex": "34ab3215c4b9193069a8e904f94eddceda3c8e7f9ab0f4f886adeb331785ca6b",
+    "refs.bib": "192f1d6527573b8e733f97743cc82ce840879e6033c2a3b87056bfccdaffccb8"
+  },
+  "engine": "pdfTeX 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian)",
+  "command": [
+    "pdflatex -interaction=nonstopmode -file-line-error -output-directory=<OUT> main.tex",
+    "bibtex main",
+    "pdflatex ... (rerun x2)"
+  ],
+  "rounds": 3,
+  "status": "success",
+  "errors": 0,
+  "undefined": 0,
+  "rerun": false,
+  "pages": 2,
+  "note": "在云主机 TeX Live 2022 实编（本机 Windows 无 TeX，static_only 结果见 build_manifest.static_only.json）；日志与证据见 examples/demo/compile_evidence.md",
+  "pdf": "main.pdf"
+}

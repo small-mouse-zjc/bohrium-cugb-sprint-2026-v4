@@ -1,0 +1,17 @@
+{
+  "note": "构造演示关系：每条均带段落号与逐字引文；非真实文献结论。",
+  "relations": [
+    {"id": "e1", "paper_id": "P1", "subject": "Gas hydrate", "predicate": "located_in", "object": "marine sediment",
+     "paragraph_id": "JATS-1", "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."},
+    {"id": "e2", "paper_id": "P1", "subject": "Dissociation pressure", "predicate": "increases", "object": "salinity",
+     "paragraph_id": "JATS-2", "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."},
+    {"id": "e3", "paper_id": "P1", "subject": "Permeability", "predicate": "exceeds", "object": "clay",
+     "paragraph_id": "JATS-3", "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."},
+    {"id": "e4", "paper_id": "P2", "subject": "Gas hydrate", "predicate": "located_in", "object": "sediment sample",
+     "paragraph_id": "JATS-1", "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."},
+    {"id": "e5", "paper_id": "P2", "subject": "Dissociation pressure", "predicate": "increases", "object": "salinity",
+     "paragraph_id": "JATS-2", "quote": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C."},
+    {"id": "e6", "paper_id": "P2", "subject": "Permeability", "predicate": "exceeds", "object": "clay",
+     "paragraph_id": "JATS-3", "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."}
+  ]
+}

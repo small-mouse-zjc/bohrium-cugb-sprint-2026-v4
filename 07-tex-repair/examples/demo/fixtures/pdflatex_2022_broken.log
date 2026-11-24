@@ -1,0 +1,35 @@
+% 真实日志片段：TeX Live 2022 / pdfTeX 3.141592653-2.6-1.40.22
+% 来源：本包 broken/main.tex 在 pdflatex -interaction=nonstopmode -file-line-error 下两轮编译的真实输出，仅截取诊断相关行。
+% 用途：logdiag.py 的回归样本，不是编造的报错。
+
+LaTeX Warning: Reference `fig:res' on page 1 undefined on input line 12.
+
+./main.tex:13: Missing $ inserted.
+<inserted text>
+                $
+l.13 ...contains an inline formula-like symbol: x_
+                                                  1 is written without math ...
+I've inserted a begin-math/end-math symbol since I think
+you left one out. Proceed, with fingers crossed.
+
+./main.tex:14: Missing $ inserted.
+<inserted text>
+                $
+l.14
+
+./main.tex:19: Undefined control sequence.
+l.19 \toprule
+
+./main.tex:23: Undefined control sequence.
+<recently read> \bottomrule
+l.23 \bottomrule
+
+LaTeX Warning: Citation `wang2020' on page 1 undefined on input line 28.
+
+LaTeX Warning: File `figs/result.pdf' not found on input line 30.
+
+./main.tex:30: Package pdftex.def Error: File `figs/result.pdf' not found: using draft setting.
+
+l.30 ...hics[width=0.8\linewidth]{figs/result.pdf}
+
+LaTeX Warning: There were undefined references.

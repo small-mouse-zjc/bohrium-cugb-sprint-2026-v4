@@ -1,0 +1,27 @@
+{
+  "pdf": "demo.pdf",
+  "pages": 2,
+  "paragraphs": 23,
+  "layout": "single",
+  "dropped_headers_footers": [
+    {
+      "page": 1,
+      "text": "Demo Journal of Reflow 2026 - preprint"
+    },
+    {
+      "page": 1,
+      "text": "Demo preprint, not for citation"
+    },
+    {
+      "page": 2,
+      "text": "Demo Journal of Reflow 2026 - preprint"
+    },
+    {
+      "page": 2,
+      "text": "Demo preprint, not for citation"
+    }
+  ],
+  "suspicious": [],
+  "mode": "baseline",
+  "chars": 3622
+}

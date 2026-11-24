@@ -1,0 +1,13 @@
+{
+  "note": "缺陷注入夹具：在演示材料上做单点破坏，验证两个核对脚本能命中。",
+  "fixtures": [
+    {"name": "F1_param_conflict", "kind": "text", "expect_types": ["param_conflict"],
+     "replace": [["学习率为 0.001", "学习率为 0.01"]]},
+    {"name": "F2_unsourced_number", "kind": "text", "expect_types": ["unsourced_number"],
+     "append": "\n\n实验环境温度为 25 °C。\n"},
+    {"name": "F3_repro_missing", "kind": "manifest", "expect_types": ["repro_field_missing"],
+     "drop_keys": ["hardware"]},
+    {"name": "F4_step_incomplete", "kind": "steps", "expect_types": ["step_incomplete"],
+     "drop_step_fields": [{"id": 2, "fields": ["decision"]}]}
+  ]
+}

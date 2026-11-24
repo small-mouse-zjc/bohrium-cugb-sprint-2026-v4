@@ -1,0 +1,15 @@
+{
+  "project": "fixed",
+  "main": "main.tex",
+  "inputs_sha256": {
+    "main.tex": "34ab3215c4b91930",
+    "refs.bib": "192f1d6527573b8e"
+  },
+  "engine": "none",
+  "command": [],
+  "rounds": 0,
+  "status": "static_only",
+  "note": "本机无 latexmk/pdflatex/xelatex，未执行真实编译；只做静态检查，不得声称编译通过",
+  "pdf": null,
+  "log": null
+}

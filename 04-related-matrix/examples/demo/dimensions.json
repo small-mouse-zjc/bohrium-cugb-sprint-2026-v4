@@ -1,0 +1,9 @@
+{
+  "dimensions": [
+    {"key": "problem", "name": "问题设定"},
+    {"key": "route", "name": "方法路线"},
+    {"key": "data", "name": "数据与尺度"},
+    {"key": "metric", "name": "评价与指标"},
+    {"key": "limit", "name": "局限"}
+  ]
+}

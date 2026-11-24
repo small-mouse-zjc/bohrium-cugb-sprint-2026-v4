@@ -1,0 +1,28 @@
+{
+  "case_id": "demo-hydrate-01",
+  "counts": {
+    "source_paras": 7,
+    "translated_paras": 7,
+    "glossary_terms": 16,
+    "term_checks": 35,
+    "number_checks": 28,
+    "citation_checks": 7
+  },
+  "rates": {
+    "coverage": 1.0,
+    "term_consistency": 1.0,
+    "number_preservation": 1.0,
+    "citation_preservation": 1.0,
+    "uncertain_flagging": 1.0
+  },
+  "thresholds": {
+    "coverage": 0.98,
+    "term_consistency": 1.0,
+    "number_preservation": 0.95,
+    "citation_preservation": 1.0,
+    "uncertain_flagging": 1.0
+  },
+  "failed": [],
+  "pass": true,
+  "violations": []
+}

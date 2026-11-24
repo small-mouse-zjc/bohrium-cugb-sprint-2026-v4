@@ -1,0 +1,18 @@
+{
+  "rates": {
+    "assertions": 5,
+    "atomic_rate": 1.0,
+    "verbatim_rate": 1.0,
+    "provenance_rate": 1.0,
+    "export_roundtrip": true,
+    "violations": 0
+  },
+  "roundtrip": {
+    "named_graphs": 5,
+    "assertion_nodes": 5,
+    "quotes": 5,
+    "ok": true
+  },
+  "violations": [],
+  "pass": true
+}

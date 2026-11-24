@@ -1,0 +1,13 @@
+{
+  "note": "缺陷注入夹具：对演示草稿做单点破坏，验证 claim_bind.py 能命中；不代表真实跑分。",
+  "fixtures": [
+    {"name": "F1_claim_uncited", "expect_types": ["claim_uncited"],
+     "replace": [["注入后数月内持续下降 [W5]", "注入后数月内持续下降"]]},
+    {"name": "F2_dangling", "expect_types": ["dangling_citation"],
+     "replace": [["改变方向，目前没有统一口径 [W1][W2][W5]", "改变方向，目前没有统一口径 [W1][W2][W5][W9]"]]},
+    {"name": "F3_gap_single", "expect_types": ["gap_unsupported"],
+     "replace": [["均未覆盖长期监测 [W4][W6]", "均未覆盖长期监测 [W4]"]]},
+    {"name": "F4_contrib_evidence", "expect_types": ["contribution_evidence_missing"],
+     "replace": [["字段与单位见 Table 1", "字段与单位见 Table 3"]]}
+  ]
+}

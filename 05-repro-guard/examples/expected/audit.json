@@ -1,0 +1,39 @@
+{
+  "rates": {
+    "declared_params": 3,
+    "sourced_rate": 1.0,
+    "unsourced": 0,
+    "conflicts": 0
+  },
+  "rows": [
+    {
+      "key": "learning_rate",
+      "value": "0.001",
+      "unit": "",
+      "source": "config.yaml",
+      "source_locator": "config.yaml:1",
+      "status": "sourced",
+      "note": ""
+    },
+    {
+      "key": "batch_size",
+      "value": "32",
+      "unit": "",
+      "source": "config.yaml",
+      "source_locator": "config.yaml:2",
+      "status": "sourced",
+      "note": ""
+    },
+    {
+      "key": "seed",
+      "value": "42",
+      "unit": "",
+      "source": "config.yaml",
+      "source_locator": "config.yaml:4",
+      "status": "sourced",
+      "note": ""
+    }
+  ],
+  "violations": [],
+  "pass": true
+}

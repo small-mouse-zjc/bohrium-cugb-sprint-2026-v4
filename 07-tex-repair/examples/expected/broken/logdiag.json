@@ -1,0 +1,72 @@
+{
+  "errors": [
+    {
+      "code": "E10",
+      "file": "./main.tex",
+      "line": 13,
+      "message": "Missing $ inserted.",
+      "root_cause": "文本里出现 _ ^ 等数学符号",
+      "fix": "给符号加 $...$ 或转义"
+    },
+    {
+      "code": "E10",
+      "file": "./main.tex",
+      "line": 14,
+      "message": "Missing $ inserted.",
+      "root_cause": "文本里出现 _ ^ 等数学符号",
+      "fix": "给符号加 $...$ 或转义",
+      "cascade_of": 0
+    },
+    {
+      "code": "E01",
+      "file": "./main.tex",
+      "line": 19,
+      "message": "Undefined control sequence.",
+      "root_cause": "命令名拼错，或缺少对应宏包；查是否漏 \\usepackage",
+      "fix": "核对拼写；补加载宏包"
+    },
+    {
+      "code": "E01",
+      "file": "./main.tex",
+      "line": 23,
+      "message": "Undefined control sequence.",
+      "root_cause": "命令名拼错，或缺少对应宏包；查是否漏 \\usepackage",
+      "fix": "核对拼写；补加载宏包"
+    },
+    {
+      "code": "E02",
+      "file": "./main.tex",
+      "line": 30,
+      "message": "Package pdftex.def Error: File `figs/result.pdf' not found: using draft setting.",
+      "root_cause": "宏包/图片/子文件路径错误或未安装",
+      "fix": "装包或修正相对路径；图片补扩展名",
+      "detail_file": "figs/result.pdf"
+    }
+  ],
+  "warnings": [
+    {
+      "code": "E05",
+      "file": "",
+      "line": 0,
+      "message": "LaTeX Warning: Reference `fig:res' on page 1 undefined on input line 12.",
+      "root_cause": "\\label 缺失、拼错，或编译轮次不足",
+      "fix": "补 \\label 或多编一轮"
+    },
+    {
+      "code": "E06",
+      "file": "",
+      "line": 0,
+      "message": "LaTeX Warning: Citation `wang2020' on page 1 undefined on input line 28.",
+      "root_cause": "键不在 .bib，或未跑 bibtex/biber",
+      "fix": "核对键名；执行 bib 处理后再编"
+    }
+  ],
+  "warning_count": 2,
+  "rerun_required": true,
+  "counts": {
+    "E10": 2,
+    "E01": 2,
+    "E02": 1
+  },
+  "converged": false
+}

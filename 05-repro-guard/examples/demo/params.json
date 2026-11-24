@@ -1,0 +1,7 @@
+{
+  "params": [
+    {"key": "learning_rate", "aliases": ["学习率", "lr"], "unit": ""},
+    {"key": "batch_size", "aliases": ["批大小", "batch"], "unit": ""},
+    {"key": "seed", "aliases": ["随机种子", "seed"], "unit": ""}
+  ]
+}

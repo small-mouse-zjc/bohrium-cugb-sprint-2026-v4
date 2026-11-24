@@ -1,0 +1,13 @@
+{
+  "rates": {
+    "repro_coverage": 1.0,
+    "step_completeness": 1.0,
+    "limitation_specificity": 1.0,
+    "unsourced_params": 0
+  },
+  "missing": [],
+  "bad_steps": [],
+  "vague_limits": [],
+  "pass": true,
+  "violations": []
+}

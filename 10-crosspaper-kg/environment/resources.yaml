@@ -1,0 +1,18 @@
+entry: SKILL.md
+runtime: python>=3.9
+scripts:
+  - path: scripts/kg.py
+    role: 归一键 + 缩写解析 + 合并/非合并判定 + 引文校验 + 四类查询（标准库）
+inputs:
+  corpus: corpus.json
+  relations: relations.json
+  queries: queries.json
+outputs:
+  required: [kg.json, queries_result.json, validation.json]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048
+notes:
+  - paragraph_id 为 JATS 段落号，不输出页码
+  - 空查询结果必须报 K04，不得编造

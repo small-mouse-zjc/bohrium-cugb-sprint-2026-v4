@@ -1,0 +1,13 @@
+{
+  "code_version": "repo@abc1234",
+  "env": {"os": "Ubuntu 22.04", "python": "3.10.12", "cuda": "12.1"},
+  "deps": ["torch==2.1.0", "numpy==1.26.4"],
+  "hardware": "1×A100 80GB",
+  "data": {"access": "公开数据集，DOI 页面下载", "name": "CUG-CT", "version": "v2.3", "split": "8:1:1", "seed": 42},
+  "command": ["python train.py --config configs/ct.yaml"],
+  "runtime": {"rounds": 50, "hours": 0.7},
+  "limitations": [
+    "仅适用于体素分辨率不低于 2 μm 的 CT 图像",
+    "样本岩心少于 50 个时验证集不足，指标波动超过 0.005"
+  ]
+}

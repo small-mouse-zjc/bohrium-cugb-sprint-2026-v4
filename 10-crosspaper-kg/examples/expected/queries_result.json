@@ -1,0 +1,171 @@
+[
+  {
+    "found": true,
+    "node_id": "n01",
+    "label": "Gas hydrate",
+    "type": "material",
+    "papers": [
+      "P1",
+      "P2"
+    ],
+    "evidence": [
+      {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p1",
+        "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+      },
+      {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p1",
+        "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+      },
+      {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p2",
+        "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+      },
+      {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p2",
+        "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+      }
+    ],
+    "id": "Q1",
+    "kind": "node",
+    "question": "两篇独立论文里的“gas hydrate / GH”是否归一为同一节点，证据分别在哪段？"
+  },
+  {
+    "predicate": "increases",
+    "count": 2,
+    "edges": [
+      {
+        "id": "e2",
+        "subject": "n05",
+        "subject_label": "dissociation pressure",
+        "predicate": "increases",
+        "object": "n06",
+        "object_label": "salinity",
+        "evidence": {
+          "paper_id": "P1",
+          "paragraph_id": "JATS-2",
+          "doi": "10.0000/demo.p1",
+          "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+        }
+      },
+      {
+        "id": "e5",
+        "subject": "n05",
+        "subject_label": "dissociation pressure",
+        "predicate": "increases",
+        "object": "n06",
+        "object_label": "salinity",
+        "evidence": {
+          "paper_id": "P2",
+          "paragraph_id": "JATS-2",
+          "doi": "10.0000/demo.p2",
+          "quote": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C."
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-2",
+        "doi": "10.0000/demo.p1",
+        "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+      },
+      {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-2",
+        "doi": "10.0000/demo.p2",
+        "quote": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C."
+      }
+    ],
+    "id": "Q2",
+    "kind": "edges",
+    "question": "哪些论文报告了 dissociation pressure 随 salinity 上升，各自引文是什么？"
+  },
+  {
+    "from": "salinity",
+    "to": "dissociation pressure",
+    "found": true,
+    "hops": 1,
+    "edges": [
+      {
+        "id": "e2",
+        "subject": "n05",
+        "subject_label": "dissociation pressure",
+        "predicate": "increases",
+        "object": "n06",
+        "object_label": "salinity",
+        "evidence": {
+          "paper_id": "P1",
+          "paragraph_id": "JATS-2",
+          "doi": "10.0000/demo.p1",
+          "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+        }
+      }
+    ],
+    "evidence": [
+      {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-2",
+        "doi": "10.0000/demo.p1",
+        "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+      }
+    ],
+    "id": "Q3",
+    "kind": "path",
+    "question": "salinity 与 dissociation pressure 之间能否走出证据链？"
+  },
+  {
+    "count": 1,
+    "records": [
+      {
+        "key": "sediment sample",
+        "type": "material",
+        "node_ids": [
+          "n07",
+          "n08"
+        ],
+        "reason": "同名但限定冲突：site: CUG-3 vs 未给；sample_id: 未给 vs S2",
+        "rule": "相同通用方法/材料术语不等于同一物理样品、模型实例或数据集",
+        "evidence": [
+          {
+            "paper_id": "P1",
+            "paragraph_id": "JATS-3",
+            "doi": "10.0000/demo.p1",
+            "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+          },
+          {
+            "paper_id": "P2",
+            "paragraph_id": "JATS-1",
+            "doi": "10.0000/demo.p2",
+            "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+          }
+        ]
+      }
+    ],
+    "evidence": [
+      {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-3",
+        "doi": "10.0000/demo.p1",
+        "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+      },
+      {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p2",
+        "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+      }
+    ],
+    "id": "Q4",
+    "kind": "nonmerge",
+    "question": "哪些同名术语因限定冲突不得合并，依据是什么？"
+  }
+]

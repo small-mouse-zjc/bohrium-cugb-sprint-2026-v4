@@ -1,0 +1,19 @@
+entry: SKILL.md
+runtime: python>=3.9
+deps: [pymupdf]
+scripts:
+  - path: scripts/reflow.py
+    role: 版面判定 + 通栏分带 + 栏内排序 + 页眉页脚剔除 + 串栏审计
+  - path: examples/tools/make_demo.py
+    role: 生成带真值标记的双栏样本（自检用）
+inputs:
+  pdf: 真实 PDF（不得用预抽取文本冒充）
+outputs:
+  required: [paragraphs.jsonl, reflow.json, reflow.md, result.json]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048
+notes:
+  - 无可靠双栏证据时 layout=single，不硬分栏
+  - 扫描件需先 OCR

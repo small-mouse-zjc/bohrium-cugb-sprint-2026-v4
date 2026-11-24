@@ -1,0 +1,15 @@
+{
+  "pass": true,
+  "rates": {
+    "mentions": 19,
+    "unresolved_aliases": 0,
+    "mention_coverage": 1.0,
+    "nodes": 11,
+    "cross_paper_nodes": 6,
+    "non_merge": 1,
+    "edges": 6,
+    "edge_evidence_rate": 1.0,
+    "query_provenance_rate": 1.0
+  },
+  "violations": []
+}

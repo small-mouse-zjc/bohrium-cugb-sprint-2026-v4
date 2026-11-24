@@ -1,0 +1,23 @@
+{
+  "case_id": "demo-related-01",
+  "mode": "self-demo",
+  "note": "示例运行的平台契约样例：输入为自建演示材料，非平台案例。",
+  "status": "success",
+  "artifacts": [
+    "matrix.md",
+    "matrix.json",
+    "intro_draft.md",
+    "bind.json"
+  ],
+  "metrics": {
+    "works": 6,
+    "gaps": 1,
+    "conflicts": 1,
+    "groups": 3,
+    "claim_citation_rate": 1.0,
+    "gap_support_rate": 1.0,
+    "key_work_coverage": 1.0,
+    "contribution_evidence_rate": 1.0
+  },
+  "uncertainties": []
+}

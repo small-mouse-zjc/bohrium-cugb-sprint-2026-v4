@@ -1,0 +1,19 @@
+entry: SKILL.md
+runtime: python>=3.9
+scripts:
+  - path: scripts/texfit.py
+    role: 模板合规静态检查 T01–T08（标准库；YAML 模板需 PyYAML，否则用 JSON）
+  - path: scripts/logdiag.py
+    role: 编译日志 → E01–E10 结构化诊断（标准库）
+  - path: scripts/build.py
+    role: 编译至收敛并写构建清单；无 TeX 时 static_only
+inputs:
+  project: main.tex + 子文件 + .bib + 图片
+  template: template.yaml（documentclass/class_options/required_commands/required_sections/bibliography_style）
+outputs:
+  required: [result.json, texfit.json, logdiag.json, build_manifest.json]
+  optional: [run.log, main.pdf]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048

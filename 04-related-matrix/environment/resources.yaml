@@ -1,0 +1,17 @@
+entry: SKILL.md
+runtime: python>=3.9
+scripts:
+  - path: scripts/matrix.py
+    role: 建矩阵、算维度填充率、推空白与冲突（标准库）
+  - path: scripts/claim_bind.py
+    role: 论断-引用绑定、空白支撑、贡献证据核对（标准库）
+inputs:
+  works: works.json（wid/route/problem/data/metric/limit/limits/addresses/evidence）
+  dims: dimensions.json
+  manuscript: manuscript.json（sections/figures/tables）
+outputs:
+  required: [result.json, matrix.md, matrix.json, intro_draft.md, bind.json]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048

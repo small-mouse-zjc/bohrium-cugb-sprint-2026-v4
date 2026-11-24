@@ -1,0 +1,6 @@
+name: cugb-article
+documentclass: article
+class_options: ["11pt"]
+required_commands: ["\\title", "\\author", "\\maketitle", "\\bibliographystyle"]
+bibliography_style: plain
+required_sections: ["Introduction", "Methods", "Results", "Conclusions"]

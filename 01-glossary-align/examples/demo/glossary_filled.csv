@@ -1,0 +1,17 @@
+source,translation,pos,acronym,freq,paragraphs,paragraph_ids,note,lock
+gas hydrate,天然气水合物,n,0,6,3,P0001;P0004;P0005,,locked
+hydrate stability zone,水合物稳定带,n,0,4,2,P0001;P0004,,locked
+HSZ,HSZ,abbr,1,3,3,P0001;P0004;P0005,缩写保持原形,locked
+bottom-simulating reflector,似海底反射,n,0,2,2,P0001;P0004,,locked
+BSR,BSR,abbr,1,3,3,P0001;P0003;P0004,缩写保持原形,locked
+clathrate,笼型化合物,n,0,1,1,P0001,,locked
+methane,甲烷,n,0,2,2,P0001;P0002,,locked
+pore-water salinity,孔隙水盐度,n,0,3,2,P0001;P0002;P0005,,locked
+salinity,盐度,n,0,5,4,P0001;P0002;P0003;P0004,,locked
+dissociation,分解,n,0,3,3,P0002;P0003;P0005,,locked
+dissociation pressure,分解压力,n,0,3,2,P0002;P0003,,locked
+hydrate saturation,水合物饱和度,n,0,1,1,P0003,,locked
+permeability,渗透率,n,0,2,2,P0002;P0004,,locked
+porosity,孔隙度,n,0,1,1,P0002,,locked
+water depth,水深,n,0,1,1,P0002,,locked
+heat-flow anomaly,热流异常,n,0,1,1,P0004,,locked

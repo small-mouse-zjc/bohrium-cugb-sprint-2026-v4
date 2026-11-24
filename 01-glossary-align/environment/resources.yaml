@@ -1,0 +1,17 @@
+entry: SKILL.md
+runtime: python>=3.9
+scripts:
+  - path: scripts/pdf_to_paras.py
+    role: 段落与版面提取（PyMuPDF 优先，pypdf 兜底，纯文本直读）
+    optional_deps: [PyMuPDF, pypdf]
+  - path: scripts/glossary.py
+    role: 术语候选抽取与锁定校验（标准库）
+  - path: scripts/qc.py
+    role: 五项比率质检（标准库）
+outputs:
+  required: [result.json, bilingual.json, bilingual.md, glossary.csv, qc.json]
+  optional: [qc_report.md]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048

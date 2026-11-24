@@ -1,0 +1,14 @@
+entry: SKILL.md
+runtime: python>=3.9
+scripts:
+  - path: scripts/nanopub.py
+    role: 断言校验（N01–N07）+ JSON-LD/TriG 导出 + 回解析（标准库）
+inputs:
+  assertions: assertions.json
+  sources: sources.json
+outputs:
+  required: [result.json, assertions.json, nanopub.jsonld, nanopub.trig, validation.json]
+limits:
+  max_files: 50
+  max_file_kb: 500
+  max_total_kb: 2048

@@ -1,0 +1,9 @@
+{
+  "note": "构造演示源段落（JATS 段落号），非真实论文；用于验证断言-证据绑定与导出。",
+  "sources": [
+    {"source_id": "demo-01", "paragraph_id": "JATS-3",
+     "text": "Gas hydrate occurs in marine sediment at site CUG-3. Pore-water salinity is 3.5 wt% NaCl equivalent. The hydrate stability zone extends 12 m below the seafloor."},
+    {"source_id": "demo-01", "paragraph_id": "JATS-6",
+     "text": "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C. Permeability of the sandy layer is one order of magnitude higher than that of the clay."}
+  ]
+}

@@ -1,0 +1,391 @@
+{
+  "nodes": [
+    {
+      "id": "n01",
+      "label": "Gas hydrate",
+      "key": "gas hydrate",
+      "type": "material",
+      "aliases": [
+        "gas hydrate",
+        "GH"
+      ],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "Gas hydrate",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3.",
+          "paper_id": "P1",
+          "key": "gas hydrate"
+        },
+        {
+          "surface": "GH",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3.",
+          "paper_id": "P1",
+          "key": "gas hydrate"
+        },
+        {
+          "surface": "gas hydrate",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C.",
+          "paper_id": "P2",
+          "key": "gas hydrate"
+        },
+        {
+          "surface": "GH",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C.",
+          "paper_id": "P2",
+          "key": "gas hydrate"
+        }
+      ]
+    },
+    {
+      "id": "n02",
+      "label": "marine sediment",
+      "key": "marine sediment",
+      "type": "environment",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "marine sediment",
+          "type": "environment",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3.",
+          "paper_id": "P1",
+          "key": "marine sediment"
+        }
+      ]
+    },
+    {
+      "id": "n03",
+      "label": "site CUG-3",
+      "key": "site cug 3",
+      "type": "location",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "site CUG-3",
+          "type": "location",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3.",
+          "paper_id": "P1",
+          "key": "site cug 3"
+        }
+      ]
+    },
+    {
+      "id": "n04",
+      "label": "pore-water salinity",
+      "key": "pore water salinity",
+      "type": "property",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "pore-water salinity",
+          "type": "property",
+          "paragraph_id": "JATS-1",
+          "quote": "Pore-water salinity is 3.5 wt% NaCl equivalent.",
+          "paper_id": "P1",
+          "key": "pore water salinity"
+        }
+      ]
+    },
+    {
+      "id": "n05",
+      "label": "dissociation pressure",
+      "key": "dissociation pressure",
+      "type": "property",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "dissociation pressure",
+          "type": "property",
+          "paragraph_id": "JATS-2",
+          "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C.",
+          "paper_id": "P1",
+          "key": "dissociation pressure"
+        },
+        {
+          "surface": "dissociation pressure",
+          "type": "property",
+          "paragraph_id": "JATS-2",
+          "quote": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C.",
+          "paper_id": "P2",
+          "key": "dissociation pressure"
+        }
+      ]
+    },
+    {
+      "id": "n06",
+      "label": "salinity",
+      "key": "salinity",
+      "type": "property",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "salinity",
+          "type": "property",
+          "paragraph_id": "JATS-2",
+          "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C.",
+          "paper_id": "P1",
+          "key": "salinity"
+        },
+        {
+          "surface": "salinity",
+          "type": "property",
+          "paragraph_id": "JATS-1",
+          "quote": "Salinity was set to 3.5 wt%.",
+          "paper_id": "P2",
+          "key": "salinity"
+        }
+      ]
+    },
+    {
+      "id": "n07",
+      "label": "sediment sample",
+      "key": "sediment sample",
+      "type": "material",
+      "aliases": [],
+      "attrs": {
+        "site": "CUG-3"
+      },
+      "mentions": [
+        {
+          "surface": "sediment sample",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3.",
+          "attrs": {
+            "site": "CUG-3"
+          },
+          "paper_id": "P1",
+          "key": "sediment sample"
+        }
+      ]
+    },
+    {
+      "id": "n08",
+      "label": "sediment sample",
+      "key": "sediment sample",
+      "type": "material",
+      "aliases": [],
+      "attrs": {
+        "sample_id": "S2"
+      },
+      "mentions": [
+        {
+          "surface": "sediment sample",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C.",
+          "attrs": {
+            "sample_id": "S2"
+          },
+          "paper_id": "P2",
+          "key": "sediment sample"
+        }
+      ]
+    },
+    {
+      "id": "n09",
+      "label": "sandy layer",
+      "key": "sandy layer",
+      "type": "material",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "sandy layer",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3.",
+          "paper_id": "P1",
+          "key": "sandy layer"
+        },
+        {
+          "surface": "sandy layer",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2.",
+          "paper_id": "P2",
+          "key": "sandy layer"
+        }
+      ]
+    },
+    {
+      "id": "n10",
+      "label": "clay",
+      "key": "clay",
+      "type": "material",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "clay",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3.",
+          "paper_id": "P1",
+          "key": "clay"
+        },
+        {
+          "surface": "clay",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2.",
+          "paper_id": "P2",
+          "key": "clay"
+        }
+      ]
+    },
+    {
+      "id": "n11",
+      "label": "permeability",
+      "key": "permeability",
+      "type": "property",
+      "aliases": [],
+      "attrs": {},
+      "mentions": [
+        {
+          "surface": "permeability",
+          "type": "property",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3.",
+          "paper_id": "P1",
+          "key": "permeability"
+        },
+        {
+          "surface": "permeability",
+          "type": "property",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2.",
+          "paper_id": "P2",
+          "key": "permeability"
+        }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "e1",
+      "subject": "n01",
+      "subject_label": "Gas hydrate",
+      "predicate": "located_in",
+      "object": "n02",
+      "object_label": "marine sediment",
+      "evidence": {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p1",
+        "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+      }
+    },
+    {
+      "id": "e2",
+      "subject": "n05",
+      "subject_label": "dissociation pressure",
+      "predicate": "increases",
+      "object": "n06",
+      "object_label": "salinity",
+      "evidence": {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-2",
+        "doi": "10.0000/demo.p1",
+        "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+      }
+    },
+    {
+      "id": "e3",
+      "subject": "n11",
+      "subject_label": "permeability",
+      "predicate": "exceeds",
+      "object": "n10",
+      "object_label": "clay",
+      "evidence": {
+        "paper_id": "P1",
+        "paragraph_id": "JATS-3",
+        "doi": "10.0000/demo.p1",
+        "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+      }
+    },
+    {
+      "id": "e4",
+      "subject": "n01",
+      "subject_label": "Gas hydrate",
+      "predicate": "located_in",
+      "object": "n08",
+      "object_label": "sediment sample",
+      "evidence": {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-1",
+        "doi": "10.0000/demo.p2",
+        "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+      }
+    },
+    {
+      "id": "e5",
+      "subject": "n05",
+      "subject_label": "dissociation pressure",
+      "predicate": "increases",
+      "object": "n06",
+      "object_label": "salinity",
+      "evidence": {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-2",
+        "doi": "10.0000/demo.p2",
+        "quote": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C."
+      }
+    },
+    {
+      "id": "e6",
+      "subject": "n11",
+      "subject_label": "permeability",
+      "predicate": "exceeds",
+      "object": "n10",
+      "object_label": "clay",
+      "evidence": {
+        "paper_id": "P2",
+        "paragraph_id": "JATS-3",
+        "doi": "10.0000/demo.p2",
+        "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."
+      }
+    }
+  ],
+  "non_merge": [
+    {
+      "key": "sediment sample",
+      "type": "material",
+      "node_ids": [
+        "n07",
+        "n08"
+      ],
+      "reason": "同名但限定冲突：site: CUG-3 vs 未给；sample_id: 未给 vs S2",
+      "rule": "相同通用方法/材料术语不等于同一物理样品、模型实例或数据集",
+      "evidence": [
+        {
+          "paper_id": "P1",
+          "paragraph_id": "JATS-3",
+          "doi": "10.0000/demo.p1",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+        },
+        {
+          "paper_id": "P2",
+          "paragraph_id": "JATS-1",
+          "doi": "10.0000/demo.p2",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+        }
+      ]
+    }
+  ]
+}

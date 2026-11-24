@@ -1,0 +1,24 @@
+{
+  "claims": 8,
+  "claim_cited": 8,
+  "gap_sentences": 1,
+  "gap_supported": 1,
+  "contributions": 3,
+  "contributions_with_evidence": 3,
+  "cited_wids": [
+    "W1",
+    "W2",
+    "W3",
+    "W4",
+    "W5",
+    "W6"
+  ],
+  "rates": {
+    "claim_citation_rate": 1.0,
+    "gap_support_rate": 1.0,
+    "key_work_coverage": 1.0,
+    "contribution_evidence_rate": 1.0
+  },
+  "pass": true,
+  "violations": []
+}

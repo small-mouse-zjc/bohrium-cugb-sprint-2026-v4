@@ -1,0 +1,76 @@
+{
+  "pass": false,
+  "violations": [
+    {
+      "rule": "T01",
+      "file": "main.tex",
+      "line": 1,
+      "detail": "缺少类选项 11pt"
+    },
+    {
+      "rule": "T02",
+      "file": "main.tex",
+      "line": 0,
+      "detail": "缺少必填命令 \\bibliographystyle"
+    },
+    {
+      "rule": "T02",
+      "file": "main.tex",
+      "line": 0,
+      "detail": "缺少参考文献样式 plain"
+    },
+    {
+      "rule": "T03",
+      "file": "main.tex",
+      "line": 19,
+      "detail": "用了 \\toprule，但未加载 booktabs"
+    },
+    {
+      "rule": "T03",
+      "file": "main.tex",
+      "line": 23,
+      "detail": "用了 \\bottomrule，但未加载 booktabs"
+    },
+    {
+      "rule": "T04",
+      "file": "main.tex",
+      "line": 12,
+      "detail": "\\ref{fig:res} 没有对应 \\label"
+    },
+    {
+      "rule": "T05",
+      "file": "main.tex",
+      "line": 28,
+      "detail": "\\cite{wang2020} 不在 .bib 中"
+    },
+    {
+      "rule": "T06",
+      "file": "main.tex",
+      "line": 22,
+      "detail": "列格式 3 列，该行有 2 列"
+    },
+    {
+      "rule": "T07",
+      "file": "main.tex",
+      "line": 30,
+      "detail": "图片不存在: figs/result.pdf"
+    },
+    {
+      "rule": "T08",
+      "file": "main.tex",
+      "line": 0,
+      "detail": "缺少章节 Conclusions"
+    }
+  ],
+  "counts": {
+    "T01": 1,
+    "T02": 2,
+    "T03": 2,
+    "T04": 1,
+    "T05": 1,
+    "T06": 1,
+    "T07": 1,
+    "T08": 1
+  },
+  "main": "main.tex"
+}
