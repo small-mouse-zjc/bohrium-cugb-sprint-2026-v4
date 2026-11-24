@@ -1,0 +1,12 @@
+{
+  "pass": true,
+  "rates": {
+    "queries": 4,
+    "query_provenance_rate": 1.0,
+    "nodes": 11,
+    "edges": 6
+  },
+  "failed_gates": [],
+  "violations": [],
+  "mode": "query-only"
+}

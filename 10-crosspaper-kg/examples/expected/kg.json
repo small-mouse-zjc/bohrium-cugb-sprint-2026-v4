@@ -387,5 +387,179 @@
         }
       ]
     }
-  ]
+  ],
+  "papers": [
+    {
+      "paper_id": "P1",
+      "doi": "10.0000/demo.p1",
+      "title": "Demo marine gas hydrate study (constructed)",
+      "year": 2026,
+      "paragraphs": [
+        {
+          "paragraph_id": "JATS-1",
+          "text": "Gas hydrate (GH) occurs in marine sediment at site CUG-3. Pore-water salinity is 3.5 wt% NaCl equivalent."
+        },
+        {
+          "paragraph_id": "JATS-2",
+          "text": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+        },
+        {
+          "paragraph_id": "JATS-3",
+          "text": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+        }
+      ],
+      "mentions": [
+        {
+          "surface": "Gas hydrate",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+        },
+        {
+          "surface": "GH",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+        },
+        {
+          "surface": "marine sediment",
+          "type": "environment",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+        },
+        {
+          "surface": "site CUG-3",
+          "type": "location",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."
+        },
+        {
+          "surface": "pore-water salinity",
+          "type": "property",
+          "paragraph_id": "JATS-1",
+          "quote": "Pore-water salinity is 3.5 wt% NaCl equivalent."
+        },
+        {
+          "surface": "dissociation pressure",
+          "type": "property",
+          "paragraph_id": "JATS-2",
+          "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+        },
+        {
+          "surface": "salinity",
+          "type": "property",
+          "paragraph_id": "JATS-2",
+          "quote": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
+        },
+        {
+          "surface": "sediment sample",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3.",
+          "attrs": {
+            "site": "CUG-3"
+          }
+        },
+        {
+          "surface": "sandy layer",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+        },
+        {
+          "surface": "clay",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+        },
+        {
+          "surface": "permeability",
+          "type": "property",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3."
+        }
+      ]
+    },
+    {
+      "paper_id": "P2",
+      "doi": "10.0000/demo.p2",
+      "title": "Demo laboratory hydrate synthesis study (constructed)",
+      "year": 2026,
+      "paragraphs": [
+        {
+          "paragraph_id": "JATS-1",
+          "text": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C. Salinity was set to 3.5 wt%."
+        },
+        {
+          "paragraph_id": "JATS-2",
+          "text": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C."
+        },
+        {
+          "paragraph_id": "JATS-3",
+          "text": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."
+        }
+      ],
+      "mentions": [
+        {
+          "surface": "gas hydrate",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+        },
+        {
+          "surface": "GH",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C."
+        },
+        {
+          "surface": "sediment sample",
+          "type": "material",
+          "paragraph_id": "JATS-1",
+          "quote": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C.",
+          "attrs": {
+            "sample_id": "S2"
+          }
+        },
+        {
+          "surface": "salinity",
+          "type": "property",
+          "paragraph_id": "JATS-1",
+          "quote": "Salinity was set to 3.5 wt%."
+        },
+        {
+          "surface": "dissociation pressure",
+          "type": "property",
+          "paragraph_id": "JATS-2",
+          "quote": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C."
+        },
+        {
+          "surface": "sandy layer",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."
+        },
+        {
+          "surface": "clay",
+          "type": "material",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."
+        },
+        {
+          "surface": "permeability",
+          "type": "property",
+          "paragraph_id": "JATS-3",
+          "quote": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."
+        }
+      ]
+    }
+  ],
+  "para": {
+    "P1|JATS-1": "Gas hydrate (GH) occurs in marine sediment at site CUG-3. Pore-water salinity is 3.5 wt% NaCl equivalent.",
+    "P1|JATS-2": "Dissociation pressure of GH increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C.",
+    "P1|JATS-3": "Permeability of the sandy layer is one order of magnitude higher than that of the clay at site CUG-3.",
+    "P2|JATS-1": "Gas hydrate (GH) was synthesized in a sediment sample (S2) at 4 °C. Salinity was set to 3.5 wt%.",
+    "P2|JATS-2": "Dissociation pressure of the lab hydrate increases by 0.6 MPa between 0 and 3.5 wt% salinity at 4 °C.",
+    "P2|JATS-3": "Permeability of the sandy layer exceeds that of the clay by a factor of 8 in sample S2."
+  }
 }

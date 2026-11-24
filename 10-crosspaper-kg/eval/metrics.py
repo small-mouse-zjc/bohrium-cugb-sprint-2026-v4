@@ -1,5 +1,10 @@
 #!/usr/bin/env python3
-"""10 包指标：读取 validation.json + kg.json 汇总。"""
+"""10 包指标：读取 validation.json 汇总，并与基线对照。
+
+  python eval/metrics.py --out_dir out --base_dir base
+
+缺 validation.json 时该侧字段记 None（不崩溃）；差值只在两侧都有数时计算。
+"""
 from __future__ import annotations
 
 import argparse
@@ -12,10 +17,26 @@ ROWS = [("实体提及数", "mentions"), ("归一覆盖率", "mention_coverage")
 
 
 def load(d):
-    v = json.loads((Path(d) / "validation.json").read_text(encoding="utf-8"))
-    r = dict(v["rates"])
-    r["pass"] = bool(v["pass"])
+    p = Path(d) / "validation.json"
+    r = {k: None for _, k in ROWS}
+    r["pass"] = False
+    r["missing"] = None
+    if not p.exists():
+        r["missing"] = str(p)
+        return r
+    v = json.loads(p.read_text(encoding="utf-8"))
+    r.update({k: v.get("rates", {}).get(k) for _, k in ROWS})
+    r["pass"] = bool(v.get("pass"))
+    r["failed_gates"] = v.get("failed_gates", [])
     return r
+
+
+def fmt(v):
+    if v is None:
+        return "—"
+    if isinstance(v, float):
+        return f"{v:.4f}"
+    return str(v)
 
 
 def main():
@@ -24,15 +45,23 @@ def main():
     ap.add_argument("--base_dir")
     a = ap.parse_args()
     s = load(a.out_dir)
-    print(json.dumps({"skill": s}, ensure_ascii=False, indent=2))
-    md = ["| 指标 | Skill | 基础 |", "|---|---|---|"]
+    res = {"skill": s}
+    md = ["| 指标 | Skill | 基线 | 差值 |", "|---|---|---|---|"]
     if a.base_dir:
         b = load(a.base_dir)
+        res["base"] = b
+        res["delta"] = {}
         for n, k in ROWS:
-            md.append("| %s | %s | %s |" % (n, s[k], b[k]))
+            sv, bv = s.get(k), b.get(k)
+            dv = round(sv - bv, 4) if isinstance(sv, (int, float)) and isinstance(bv, (int, float)) else None
+            res["delta"][k] = dv
+            md.append(f"| {n} | {fmt(sv)} | {fmt(bv)} | {'—' if dv is None else dv} |")
+        res["pass_gap"] = bool(s["pass"] and not b["pass"])
+        md.append(f"| 判定 pass | {s['pass']} | {b['pass']} | — |")
     else:
         for n, k in ROWS:
-            md.append("| %s | %s | — |" % (n, s[k]))
+            md.append(f"| {n} | {fmt(s.get(k))} | — | — |")
+    print(json.dumps(res, ensure_ascii=False, indent=2))
     print("\n".join(md))
 
 

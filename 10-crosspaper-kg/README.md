@@ -16,7 +16,7 @@ v3 因此把优先级倒过来：**不错误合并 > 引文逐字 > 查询覆盖
 
 | 文件 | 内容 |
 |---|---|
-| `result.json` | 契约字段 + `status` + `artifacts` + `metrics`（取自 `validation.json`） |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，**由 `scripts/run.py` 产出**（取自 `validation.json` 与 `query_validation.json`） |
 | `kg.json` | 节点（别名、`attrs`、逐条提及）+ 边（含 `evidence`）+ `non_merge` 判定 |
 | `queries_result.json` | 每条查询的问题、结果、证据列表 |
 | `validation.json` | 六类违规码 + 覆盖率/引文率/查询有证据率 |
@@ -86,7 +86,8 @@ python scripts/kg.py build --corpus work/corpus.json --relations work/relations.
 3. `salinity` 与 `dissociation pressure` 之间能否走出证据链？
 4. 哪些同名术语因限定冲突不得合并，依据是什么？
 
-缺陷注入自检（`python examples/selftest.py`）要求五类破坏全部命中或正确拒绝：
+缺陷注入自检（`python scripts/run.py                      # 平台入口：/input → /app/output（含 build + query）
+python examples/selftest.py`）要求五类破坏全部命中或正确拒绝：
 
 | 注入 | 预期 |
 |---|---|
@@ -96,7 +97,7 @@ python scripts/kg.py build --corpus work/corpus.json --relations work/relations.
 | D4 空查询 | K04 |
 | D5 缩写无篇内全称 | K05 |
 
-6 条断言全绿。
+自检 **12 条**全绿，另覆盖：平台入口（`case.json → result.json`，`status=success` 且 query-only 独立跑通）、query 只读 `kg.json`（哨兵标签未被覆盖，证明没有重跑 build）、少于 3 条查询 → `K07` + `pass=false`、零边时 `edge_evidence_rate=None`（不把"没数据"记成 0）、基线对照（边引文率 1.0 vs 0.0、非合并 1 vs 0、`pass_gap=true`）、缺 `validation.json` 的基线段记 `None` 不崩溃。
 
 ## 7. 异常与降级
 
@@ -115,6 +116,7 @@ python scripts/kg.py build --corpus work/corpus.json --relations work/relations.
 python scripts/kg.py build --corpus work/corpus.json --relations work/relations.json \
   --queries work/queries.json --out out
 python eval/metrics.py --out_dir out
+python scripts/run.py                      # 平台入口：/input → /app/output（含 build + query）
 python examples/selftest.py
 ```
 

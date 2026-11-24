@@ -9,7 +9,9 @@
     "non_merge": 1,
     "edges": 6,
     "edge_evidence_rate": 1.0,
-    "query_provenance_rate": 1.0
+    "query_provenance_rate": 1.0,
+    "queries": 4
   },
+  "failed_gates": [],
   "violations": []
 }

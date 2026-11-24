@@ -113,6 +113,66 @@ def main():
         assert "K05" in codes(v5), codes(v5)
         ok.append("D5_unresolved_abbr → K05")
 
+        # 平台入口：case.json → result.json
+        ein, eout = tmp / "entry_in", tmp / "entry_out"
+        ein.mkdir()
+        for f in ("corpus.json", "relations.json", "queries.json"):
+            shutil.copy(DEMO / f, ein / f)
+        (ein / "case.json").write_text(json.dumps({"case_id": "demo-crosspaper-01", "corpus": "corpus.json",
+                                                   "relations": "relations.json", "queries": "queries.json"},
+                                                  ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/run.py", "--input", ein, "--output", eout])
+        rj = json.loads((eout / "result.json").read_text(encoding="utf-8"))
+        assert rj["status"] == "success" and rj["metrics"]["pass"] is True, rj
+        assert rj["metrics"]["query_only_pass"] is True, rj["metrics"]
+        assert (eout / "query_validation.json").exists(), "query 未独立落盘"
+        ok.append("平台入口：case.json→result.json，status=success、query-only 独立跑通")
+
+        # query 子命令必须读已建好的 kg.json，而不是重跑 build
+        kgp = eout / "kg.json"
+        before = kgp.stat().st_mtime_ns
+        kg = json.loads(kgp.read_text(encoding="utf-8"))
+        kg["nodes"][0]["label"] = "SENTINEL-LABEL"
+        kgp.write_text(json.dumps(kg, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/kg.py", "query", "--corpus", ein / "corpus.json", "--relations", ein / "relations.json",
+             "--queries", ein / "queries.json", "--out", eout, "--no-fail"])
+        qv = json.loads((eout / "query_validation.json").read_text(encoding="utf-8"))
+        assert qv.get("mode") == "query-only", qv
+        kg_after = json.loads(kgp.read_text(encoding="utf-8"))
+        assert kg_after["nodes"][0]["label"] == "SENTINEL-LABEL", "query 覆盖了已建图（说明是重跑 build）"
+        ok.append("query 只读 kg.json：图未被重建（哨兵标签保留）")
+
+        # 少于 3 条查询：K07 + pass=false，不许零查询照样过
+        q6 = {"queries": [qy["queries"][0]]}
+        v6, _, _ = build_case(tmp, "few", base, rel, q6)
+        assert "K07" in codes(v6) and v6["pass"] is False, v6
+        ok.append("少于 3 条查询 → K07 + pass=false")
+
+        # 空分母记 None 而非 0.0
+        c7 = copy.deepcopy(base)
+        c7["papers"] = [p for p in c7["papers"] if p["paper_id"] == "P1"]
+        v7, _, _ = build_case(tmp, "one-paper", c7, {"relations": []}, qy)
+        assert v7["rates"]["edge_evidence_rate"] is None, v7["rates"]
+        ok.append("无边时 edge_evidence_rate=None（不把\u201c没数据\u201d记成 0）")
+
+        # 基线对照：同名即合并 + 不核对引文 + 查询无证据 → pass=false
+        bo = tmp / "base_out"
+        run([ROOT / "examples/baseline.py", "--corpus", DEMO / "corpus.json", "--relations", DEMO / "relations.json",
+             "--queries", DEMO / "queries.json", "--out", bo])
+        r = run([ROOT / "eval/metrics.py", "--out_dir", eout, "--base_dir", bo])
+        md = json.loads(r.stdout[:r.stdout.index("| 指标")].strip())
+        assert md["skill"]["pass"] is True and md["base"]["pass"] is False and md["pass_gap"], md
+        assert md["delta"]["edge_evidence_rate"] == 1.0 and md["delta"]["non_merge"] == 1, md["delta"]
+        ok.append("基线对照：边引文率 1.0 vs 0.0、非合并 1 vs 0、pass_gap=true")
+
+        # 缺 validation.json 的对照侧：记 None 不崩
+        eb = tmp / "empty_dir"; eb.mkdir()
+        r = run([ROOT / "eval/metrics.py", "--out_dir", eout, "--base_dir", eb])
+        assert "Traceback" not in r.stderr, r.stderr[-300:]
+        md2 = json.loads(r.stdout[:r.stdout.index("| 指标")].strip())
+        assert md2["base"]["mentions"] is None and md2["base"]["missing"], md2["base"]
+        ok.append("缺 validation.json 的基线段：记 None 不崩溃")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)

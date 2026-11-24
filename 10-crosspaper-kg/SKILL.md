@@ -18,7 +18,7 @@ description: 把两篇相互独立的论文材料合成一个可查询图谱：�
 
 ## 2. 输入与输出
 
-输入（平台约定 `/input/`）：`corpus-manifest.json`（DOI/作者/哈希/许可）、`material.json`、`primary-material.json`、`secondary-material.json`。
+输入（平台约定 `/input/`）：`corpus-manifest.json`（DOI/作者/哈希/许可）、`material.json`、`primary-material.json`、`secondary-material.json`。**`scripts/run.py` 负责把材料装配成 `corpus.json`（`materials[]` 直传也可），再接 `kg.py build → kg.py query`**；脚本不要求平台预先把材料摊成内部格式。
 段落号用 **JATS `paragraph_id`**；**不要写"第 N 页"**，行内公式已被线性化，无图像像素。
 
 先整理成三份工作文件：
@@ -31,7 +31,7 @@ description: 把两篇相互独立的论文材料合成一个可查询图谱：�
 
 | 文件 | 内容 |
 |---|---|
-| `result.json` | 契约字段 + `status` + `artifacts` + `metrics`（取自 `validation.json`） |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，由 `scripts/run.py` 产出 |
 | `kg.json` | 节点（含别名、attrs、逐条提及）+ 边（含 evidence）+ `non_merge` 判定 |
 | `queries_result.json` | 每条查询的问题、结果、证据列表 |
 | `validation.json` | 六类违规码 + 覆盖率/引文率/查询有证据率 |

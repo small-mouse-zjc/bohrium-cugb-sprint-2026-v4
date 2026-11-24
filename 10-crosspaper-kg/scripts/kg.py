@@ -154,16 +154,24 @@ def build(corpus: dict, relations: dict, queries):
                           "quote": _quote_for(para, m)} for nd in nds for m in nd["mentions"][:1]]
         })
 
-    # 边绑定
-    def match(surface, pid):
+    # 边绑定：同名多节点时，优先用关系里给的限定字段消歧，避免把边绑到错实例
+    def match(surface, pid, hints=None):
         n = norm(surface)
         cands = [nd for nd in nodes if any(m["key"] == n for m in nd["mentions"])]
         same = [nd for nd in cands if any(m["paper_id"] == pid for m in nd["mentions"])]
-        return (same or cands or [None])[0]
+        pool = same or cands
+        if hints:
+            for nd in pool:
+                if all(nd["attrs"].get(k) == v for k, v in hints.items() if k in ATTRS):
+                    return nd
+        if len(pool) > 1:
+            return pool[0]
+        return (pool or [None])[0]
 
     edges = []
     for r in relations.get("relations", []):
-        s, o = match(r["subject"], r["paper_id"]), match(r["object"], r["paper_id"])
+        s = match(r["subject"], r["paper_id"], r.get("subject_attrs"))
+        o = match(r["object"], r["paper_id"], r.get("object_attrs"))
         eid = r.get("id") or "e%02d" % (len(edges) + 1)
         if not s or not o:
             V("K06", edge=eid, detail="端点无法解析到节点")
@@ -179,6 +187,39 @@ def build(corpus: dict, relations: dict, queries):
                                    "doi": papers[r["paper_id"]].get("doi"), "quote": q}})
 
     # 查询
+    results = execute_queries(papers, para, nodes, edges, non_merge, queries, violations)
+
+    # 指标
+    def rate(a, b):
+        return round(a / b, 4) if b else None
+
+    if len(queries) < 3:
+        violations.append({"code": "K07", "detail": f"查询只有 {len(queries)} 条，少于 3 条，图谱结论无法被独立复问"})
+    rates = {
+        "mentions": len(mentions),
+        "unresolved_aliases": unresolved,
+        "mention_coverage": rate(len(mentions) - unresolved, len(mentions)),
+        "nodes": len(nodes),
+        "cross_paper_nodes": sum(1 for n in nodes if len({m["paper_id"] for m in n["mentions"]}) > 1),
+        "non_merge": len(non_merge),
+        "edges": len(edges),
+        "edge_evidence_rate": rate(sum(1 for e in edges if e["evidence"]["quote"]), len(edges)),
+        "query_provenance_rate": rate(sum(1 for r in results if r.get("evidence")), len(results)),
+        "queries": len(results),
+    }
+    gates = [k for k in ("mention_coverage", "edge_evidence_rate", "query_provenance_rate")
+             if rates[k] is None or rates[k] < 1.0]
+    return {
+        "nodes": nodes, "edges": edges, "non_merge": non_merge, "queries": results,
+        "violations": violations, "rates": rates,
+        "failed_gates": gates,
+        "pass": not violations and not gates,
+    }
+
+
+def execute_queries(papers, para, nodes, edges, non_merge, queries, violations):
+    """在已建好的图上跑 queries：build 与 query 两条命令共用，query 不再重跑构建。"""
+
     def node_result(label):
         n = norm(label)
         nd = next((x for x in nodes if x["key"] == n), None)
@@ -241,27 +282,10 @@ def build(corpus: dict, relations: dict, queries):
             r = {"error": "unknown kind", "evidence": []}
         r.update({"id": qt["id"], "kind": kind, "question": qt.get("question", "")})
         if not r.get("evidence"):
-            V("K04", query=qt["id"], detail="查询无任何证据支撑（空结果或未绑定来源）")
+            violations.append({"code": "K04", "query": qt["id"],
+                               "detail": "查询无任何证据支撑（空结果或未绑定来源）"})
         results.append(r)
-
-    # 指标
-    rate = lambda a, b: round(a / b, 4) if b else 0.0
-    return {
-        "nodes": nodes, "edges": edges, "non_merge": non_merge, "queries": results,
-        "violations": violations,
-        "rates": {
-            "mentions": len(mentions),
-            "unresolved_aliases": unresolved,
-            "mention_coverage": rate(len(mentions) - unresolved, len(mentions)),
-            "nodes": len(nodes),
-            "cross_paper_nodes": sum(1 for n in nodes if len({m["paper_id"] for m in n["mentions"]}) > 1),
-            "non_merge": len(non_merge),
-            "edges": len(edges),
-            "edge_evidence_rate": rate(sum(1 for e in edges if e["evidence"]["quote"]), len(edges)),
-            "query_provenance_rate": rate(sum(1 for r in results if r.get("evidence")), len(results)),
-        },
-        "pass": not violations,
-    }
+    return results
 
 
 def _quote_for(para, m):
@@ -284,17 +308,55 @@ def main():
     a = ap.parse_args()
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
-    res = build(load(Path(a.corpus)), load(Path(a.relations)), load(Path(a.queries)))
-    (out / "kg.json").write_text(json.dumps({"nodes": res["nodes"], "edges": res["edges"],
-                                             "non_merge": res["non_merge"]}, ensure_ascii=False, indent=2),
-                                 encoding="utf-8")
-    (out / "queries_result.json").write_text(json.dumps(res["queries"], ensure_ascii=False, indent=2),
+    queries = load(Path(a.queries))
+    queries = queries.get("queries", []) if isinstance(queries, dict) else queries
+
+    if a.cmd == "build":
+        corpus, relations = load(Path(a.corpus)), load(Path(a.relations))
+        res = build(corpus, relations, queries)
+        kg = {"nodes": res["nodes"], "edges": res["edges"], "non_merge": res["non_merge"],
+              "papers": corpus["papers"],
+              "para": {f"{k[0]}|{k[1]}": v for k, v in _build_para(corpus).items()}}
+        (out / "kg.json").write_text(json.dumps(kg, ensure_ascii=False, indent=2), encoding="utf-8")
+        results, valid = res["queries"], {"pass": res["pass"], "rates": res["rates"],
+                                         "failed_gates": res["failed_gates"], "violations": res["violations"]}
+    else:
+        # 真查询：读已建好的 kg.json，只执行查询，不再重跑构建
+        kgp = out / "kg.json"
+        if not kgp.exists():
+            print(json.dumps({"error": f"{kgp} 不存在，先跑 build"}, ensure_ascii=False))
+            sys.exit(2)
+        kg = load(kgp)
+        papers = {p["paper_id"]: p for p in kg.get("papers", [])}
+        para = {tuple(k.split("|", 1)): v for k, v in kg.get("para", {}).items()}
+        violations = []
+        results = execute_queries(papers, para, kg["nodes"], kg["edges"], kg["non_merge"], queries, violations)
+        def rate(x, y):
+            return round(x / y, 4) if y else None
+        rates = {"queries": len(results),
+                 "query_provenance_rate": rate(sum(1 for r in results if r.get("evidence")), len(results)),
+                 "nodes": len(kg["nodes"]), "edges": len(kg["edges"])}
+        if len(queries) < 3:
+            violations.append({"code": "K07", "detail": f"查询只有 {len(queries)} 条，少于 3 条"})
+        gates = [] if rates["query_provenance_rate"] == 1.0 else ["query_provenance_rate"]
+        valid = {"pass": not violations and not gates, "rates": rates, "failed_gates": gates,
+                 "violations": violations, "mode": "query-only"}
+
+    (out / "queries_result.json").write_text(json.dumps(results, ensure_ascii=False, indent=2),
                                              encoding="utf-8")
-    valid = {"pass": res["pass"], "rates": res["rates"], "violations": res["violations"]}
-    (out / "validation.json").write_text(json.dumps(valid, ensure_ascii=False, indent=2), encoding="utf-8")
+    vname = "query_validation.json" if a.cmd == "query" else "validation.json"
+    (out / vname).write_text(json.dumps(valid, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps(valid, ensure_ascii=False))
-    if not res["pass"] and not a.no_fail:
+    if not valid["pass"] and not a.no_fail:
         sys.exit(1)
+
+
+def _build_para(corpus):
+    para = {}
+    for p in corpus["papers"]:
+        for pr in p["paragraphs"]:
+            para[(p["paper_id"], pr["paragraph_id"])] = squash(pr["text"])
+    return para
 
 
 if __name__ == "__main__":

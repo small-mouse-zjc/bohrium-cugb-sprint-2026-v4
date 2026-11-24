@@ -1,9 +1,6 @@
 {
   "case_id": "demo-crosspaper-01",
-  "mode": "self-demo",
-  "note": "示例运行的平台契约样例：输入为两篇构造材料，非平台案例。",
   "status": "success",
-  "artifacts": ["kg.json", "queries_result.json", "validation.json"],
   "metrics": {
     "mentions": 19,
     "mention_coverage": 1.0,
@@ -12,10 +9,17 @@
     "non_merge": 1,
     "edges": 6,
     "edge_evidence_rate": 1.0,
-    "query_provenance_rate": 1.0
+    "query_provenance_rate": 1.0,
+    "queries": 4,
+    "query_only_pass": true,
+    "pass": true
   },
-  "violations": [],
-  "uncertainties": [
-    "sediment sample 为同名不同实例（现场 CUG-3 / 实验室 S2），已判不合并，不做跨样品推论"
-  ]
+  "notes": [],
+  "artifacts": [
+    "kg.json",
+    "queries_result.json",
+    "validation.json",
+    "query_validation.json"
+  ],
+  "input_mode": "local"
 }
