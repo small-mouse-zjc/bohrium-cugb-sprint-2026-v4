@@ -1,23 +1,32 @@
 {
-  "case_id": "demo-related-01",
-  "mode": "self-demo",
-  "note": "示例运行的平台契约样例：输入为自建演示材料，非平台案例。",
+  "case_id": "demo-04",
   "status": "success",
-  "artifacts": [
-    "matrix.md",
-    "matrix.json",
-    "intro_draft.md",
-    "bind.json"
-  ],
   "metrics": {
     "works": 6,
+    "groups": 3,
     "gaps": 1,
     "conflicts": 1,
-    "groups": 3,
+    "gap_cells": 0,
+    "thin_groups": 0,
+    "matrix_rc": 0,
+    "bind_rc": 0,
+    "bind_pass": true,
+    "claims": 8,
+    "claim_cited": 8,
+    "contributions": 3,
     "claim_citation_rate": 1.0,
     "gap_support_rate": 1.0,
     "key_work_coverage": 1.0,
-    "contribution_evidence_rate": 1.0
+    "recent_work_coverage": 1.0,
+    "contribution_evidence_rate": 1.0,
+    "group_style": "matrix",
+    "hard_violations": 0
   },
-  "uncertainties": []
+  "notes": [],
+  "artifacts": [
+    "matrix.json",
+    "matrix.md",
+    "bind.json",
+    "bind_report.md"
+  ]
 }

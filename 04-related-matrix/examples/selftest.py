@@ -57,6 +57,56 @@ def main():
             assert not got["pass"], f"{fx['name']} 判为通过"
             ok.append(f"{fx['name']} → {sorted(set(fx['expect_types']))}")
 
+        # 平台入口：case.json → /app/output/result.json
+        ein = tmp / "entry_in"
+        ein.mkdir()
+        for f in ("works.json", "dimensions.json", "manuscript.json", "intro_draft.md"):
+            shutil.copy(demo / f, ein / f)
+        (ein / "case.json").write_text(json.dumps({"case_id": "selftest-04", "works": "works.json",
+                                                   "dimensions": "dimensions.json", "manuscript": "manuscript.json",
+                                                   "draft": "intro_draft.md"}, ensure_ascii=False), encoding="utf-8")
+        eo = tmp / "entry_out"
+        run([ROOT / "scripts/run.py", "--input", ein, "--output", eo])
+        rj = json.loads((eo / "result.json").read_text(encoding="utf-8"))
+        assert rj["case_id"] == "selftest-04" and rj["status"] == "success", rj
+        assert {"matrix.json", "bind.json"} <= set(rj["artifacts"]), rj["artifacts"]
+        ok.append(f"平台入口：case.json→result.json，status={rj['status']}，works={rj['metrics']['works']}")
+
+        # 零贡献草稿：不能再报 1.00
+        zc = tmp / "zero_contrib.md"
+        zc.write_text(src.split("# 4 贡献")[0], encoding="utf-8")
+        run([ROOT / "scripts/claim_bind.py", "--draft", zc, "--works", demo / "works.json",
+             "--manuscript", demo / "manuscript.json", "--out", tmp / "zc", "--no-fail"], rc=(0, 1))
+        z = json.loads((tmp / "zc" / "bind.json").read_text(encoding="utf-8"))
+        assert z["rates"]["contribution_evidence_rate"] is None, z["rates"]
+        assert "contribution_missing" in {v["type"] for v in z["violations"]}, z["violations"]
+        assert not z["pass"], "零贡献草稿被判通过"
+        ok.append("零贡献草稿：contribution_evidence_rate=None + contribution_missing，不再虚报 1.00")
+
+        # 悬空引用不能算"已挂引用"
+        dg = src.replace("3.2 MPa [W1]，分子模拟在 20 MPa 以下没有观察到露点上升 [W2]",
+                         "3.2 MPa [W9]，分子模拟在 20 MPa 以下没有观察到露点上升 [W9]")
+        dp2 = tmp / "dangling.md"
+        dp2.write_text(dg, encoding="utf-8")
+        run([ROOT / "scripts/claim_bind.py", "--draft", dp2, "--works", demo / "works.json",
+             "--manuscript", demo / "manuscript.json", "--out", tmp / "dg", "--no-fail"], rc=(0, 1))
+        d = json.loads((tmp / "dg" / "bind.json").read_text(encoding="utf-8"))
+        assert d["rates"]["claim_citation_rate"] < 1.0, d["rates"]
+        assert "claim_uncited" in {v["type"] for v in d["violations"]}, d["violations"]
+        ok.append(f"悬空引用：claim_citation_rate={d['rates']['claim_citation_rate']}（不再算挂上）")
+
+        # 基线对照：裸 Agent 只有 summary.md，没有矩阵与绑定
+        base = tmp / "base"
+        run([ROOT / "examples/baseline.py", "--works", demo / "works.json", "--out", base])
+        assert (base / "summary.md").exists() and not (base / "matrix.json").exists()
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("m04", ROOT / "eval/metrics.py")
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        sb, ss = mod.load(base), mod.load(tmp / "entry_out")
+        assert sb["group_total"] is None and sb["pass"] is False, sb
+        assert ss["group_total"] == 3 and ss["pass"] is True, ss
+        ok.append("基线对照：裸 Agent group_total=None/pass=False vs Skill 3/True")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)

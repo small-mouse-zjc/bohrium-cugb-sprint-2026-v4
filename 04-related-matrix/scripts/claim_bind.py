@@ -97,10 +97,12 @@ def main():
             if is_claim:
                 claims += 1
                 ss, _ = parse_cites(s, label2wid)
-                if ss:
+                # 只有能解析到真实文献的引用才算"挂上"；悬空引用 [W9] 不能拿来充数
+                valid = [w for w in ss if w in by_wid]
+                if valid:
                     claim_cited += 1
                 else:
-                    viol.append({"type": "claim_uncited", "detail": "论断没有引用", "text": s[:90]})
+                    viol.append({"type": "claim_uncited", "detail": "论断没有可解析的引用", "text": s[:90]})
             if is_gap:
                 gap_sents += 1
                 ss, _ = parse_cites(s, label2wid)
@@ -142,6 +144,7 @@ def main():
             viol.append({"type": "contribution_evidence_missing", "detail": "指向的章节/图表在材料中不存在", "text": b[:90]})
 
     # 关键文献与近作覆盖
+    key_total = sum(1 for w in works if w.get("key"))
     key_uncovered = [w["wid"] for w in works if w.get("key") and w["wid"].upper() not in cited_all]
     for w in key_uncovered:
         viol.append({"type": "key_work_uncited", "detail": f"关键文献 {w} 未被引用", "text": ""})
@@ -163,14 +166,25 @@ def main():
             else:
                 seq = 0
 
+    if list_style:
+        viol.append({"type": "list_style", "detail": f"{list_style} 个段落呈「逐篇罗列」写法（连续 3 句以文献编号开头）",
+                     "text": "应改为按矩阵分组归纳"})
+
+    if contrib == 0:
+        viol.append({"type": "contribution_missing", "detail": "草稿没有任何贡献条目（贡献证据率无从谈起，不能记 1.0）",
+                     "text": ""})
+
     rates = {
-        "claim_citation_rate": round(claim_cited / max(1, claims), 4) if claims else 1.0,
-        "gap_support_rate": round(gap_ok / max(1, gap_sents), 4) if gap_sents else 1.0,
-        "key_work_coverage": round((len(works) - len(key_uncovered)) / max(1, len(works)), 4),
-        "contribution_evidence_rate": round(contrib_ok / max(1, contrib), 4) if contrib else 1.0,
+        "claim_citation_rate": round(claim_cited / max(1, claims), 4) if claims else None,
+        "gap_support_rate": round(gap_ok / max(1, gap_sents), 4) if gap_sents else None,
+        "key_work_coverage": round((key_total - len(key_uncovered)) / key_total, 4) if key_total else None,
+        "recent_work_coverage": round((len(recent) - len(recent_uncited)) / len(recent), 4) if recent else None,
+        "contribution_evidence_rate": round(contrib_ok / contrib, 4) if contrib else None,
+        "group_style": "matrix" if not list_style else "work_by_work",
     }
     hard = [v for v in viol if v["type"] in ("claim_uncited", "dangling_citation", "gap_unsupported",
-                                             "contribution_no_evidence", "contribution_evidence_missing", "key_work_uncited")]
+                                             "contribution_no_evidence", "contribution_evidence_missing",
+                                             "key_work_uncited", "contribution_missing")]
     report = {"claims": claims, "claim_cited": claim_cited, "gap_sentences": gap_sents, "gap_supported": gap_ok,
               "contributions": contrib, "contributions_with_evidence": contrib_ok,
               "cited_wids": sorted(cited_all), "rates": rates, "pass": not hard,
@@ -179,11 +193,17 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "bind.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    def pct(v):
+        return "n/a（无对应句子/条目）" if v is None else f"{v:.2%}"
+
     lines = ["# 论断-引用绑定核对", "",
-             f"- 论断 {claims} 条，挂引用 {claim_cited} 条（{rates['claim_citation_rate']:.2%}）",
-             f"- 空白句 {gap_sents} 条，支撑充分 {gap_ok} 条（{rates['gap_support_rate']:.2%}）",
-             f"- 贡献 {contrib} 条，有可解析证据 {contrib_ok} 条（{rates['contribution_evidence_rate']:.2%}）",
-             f"- 关键文献覆盖 {rates['key_work_coverage']:.2%}", ""]
+             f"- 论断 {claims} 条，挂引用 {claim_cited} 条（{pct(rates['claim_citation_rate'])}）",
+             f"- 空白句 {gap_sents} 条，支撑充分 {gap_ok} 条（{pct(rates['gap_support_rate'])}）",
+             f"- 贡献 {contrib} 条，有可解析证据 {contrib_ok} 条（{pct(rates['contribution_evidence_rate'])}）",
+             f"- 关键文献覆盖 {pct(rates['key_work_coverage'])}（分母=key=true 篇数 {key_total}）",
+             f"- 近作（>=2022）覆盖 {pct(rates['recent_work_coverage'])}",
+             f"- 写法：{rates['group_style']}", ""]
     if viol:
         lines += ["| 类型 | 说明 | 文本 |", "|---|---|---|"]
         lines += [f"| {v['type']} | {v['detail']} | {v['text']} |" for v in viol]

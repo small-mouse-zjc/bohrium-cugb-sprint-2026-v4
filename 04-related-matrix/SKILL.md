@@ -29,7 +29,9 @@ description: 把参考文献整理成"工作×维度"比较矩阵，由矩阵里
 | `matrix.json` | 同上，机器可读；含 `coverage`、`gaps`、`conflicts` |
 | `intro_draft.md` | 四段式：研究背景 / 相关工作（按矩阵分组）/ 研究空白 / 贡献 |
 | `bind.json` | 论断-引用绑定报告（未挂引用的论断、悬空引用、未用文献、空白支撑不足、贡献证据缺失） |
-| `result.json` | 契约字段 + `case_id` + `status` + `metrics`（引用 `bind.json`/`matrix.json`，不手填） |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，**由 `scripts/run.py` 产出**（读 `/input/case.json`，不手填） |
+
+`status` 由脚本按产物判定：`success` 需绑定核对 `pass`、贡献 ≥1 条、工作 ≥3 篇；`partial` 是矩阵出来了但核对未过或缺草稿/贡献/空白；`cannot_determine` 是连矩阵都建不起来（缺 works/dimensions）；`rejected` 是输入不成立。零贡献时 `contribution_evidence_rate` 记 `null` 并报 `contribution_missing`，不记 1.00。
 
 ## 3. 流程
 
@@ -94,4 +96,4 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 ```
 python examples/selftest.py
 ```
-要求：正例 `bind.json` 五项全过；注入的四类缺陷（论断无引用、悬空引用、空白单篇支撑、贡献证据不存在）必须全部命中。
+要求：正例 `bind.json` 五项全过；注入的四类缺陷（论断无引用、悬空引用、空白单篇支撑、贡献证据不存在）必须全部命中；另加四条：`run.py` 由 `case.json` 产出合法 `result.json`（demo 上 `status=success`）、零贡献草稿不虚报 1.00、悬空引用不计入挂引用率、基线（逐篇摘要）`group_total=null / pass=false`。

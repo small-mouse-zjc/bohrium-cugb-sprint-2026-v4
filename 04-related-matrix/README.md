@@ -25,7 +25,7 @@
 | `matrix.json` | 机器可读矩阵；含 `coverage`、`gap_cells`、`gaps`、`conflicts`、`groups`、`thin_groups` |
 | `intro_draft.md` | 四段式：研究背景 / 相关工作（按 route 分组）/ 研究空白 / 贡献 |
 | `bind.json` | 论断-引用绑定报告：未挂引用、悬空引用、未用文献、空白支撑不足、贡献证据缺失 |
-| `result.json` | 契约字段 + `case_id` + `status` + 从两份报告拷贝的 `metrics` |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，**由 `scripts/run.py` 产出**（平台入口：读 `/input/case.json`） |
 
 ## 3. 五维矩阵的定义
 
@@ -118,6 +118,14 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 
 6 条断言全绿。
 
+**平台入口（`scripts/run.py`，2026-11-25 实测）**：读 `/input/case.json` 里的 works/dimensions/manuscript/draft，串 `matrix.py build → claim_bind.py`，写 `/app/output/result.json`。demo 上 `status=success`、`works=6 / groups=3 / gaps=1 / conflicts=1 / hard_violations=0`，`artifacts=[matrix.json, matrix.md, bind.json, bind_report.md]`。
+
+**比率口径修正（本轮）**：`contribution_evidence_rate` 在零贡献时记 `null` 并触发 `contribution_missing`（以前记 1.00，等于送分）；`key_work_coverage` 分母改为 `key=true` 篇数（以前除以全部 works，1/3 关键文献被引会报 0.667）；新增 `recent_work_coverage`；`claim_citation_rate` 只把**能解析**的引用算挂上（悬空 `[W9]` 不再充数，实测从 1.00 降到 0.875）。
+
+**基线对照（`examples/baseline.py` = 逐篇摘要、不建矩阵、不做绑定）**：裸 Agent 只有 `summary.md`，`group_total=None / pass=False`；本 Skill `group_total=3 / pass=True`。差值可用 `eval/metrics.py --out_dir <skill输出> --base_dir <基线输出>` 复算。
+
+自检共 **10 条断言**：原 6 条 + 平台入口、零贡献不虚报、悬空引用不算挂上、基线对照。
+
 ## 7. 异常与降级
 
 | 情况 | 处置 |
@@ -136,6 +144,8 @@ python scripts/matrix.py build --works work/works.json --dims work/dimensions.js
 # 模型据 out/matrix.json 的 gaps/groups 写 out/intro_draft.md
 python scripts/claim_bind.py --draft out/intro_draft.md --works work/works.json \
   --manuscript work/manuscript.json --out out
+# 平台入口：读 /input/case.json，一次串完上面两步并写 /app/output/result.json
+python scripts/run.py --input /input --output /app/output
 python eval/metrics.py --out_dir out
 python examples/selftest.py
 ```
