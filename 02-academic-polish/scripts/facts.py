@@ -20,6 +20,8 @@ NEGATIONS = ["not", "no ", "never", "none", "neither", "nor", "cannot", "can't",
              "isn't", "aren't", "wasn't", "weren't", "doesn't", "don't", "didn't",
              "without", "lack", "lacks", "lacked", "fail", "fails", "failed",
              "unable", "hardly", "barely", "rarely"]
+INTENSITY = ["significantly", "slightly", "markedly", "substantially", "considerably",
+             "marginally", "somewhat", "strongly", "weakly", "greatly", "moderately", "sharply"]
 COMPARATIVES = ["more than", "less than", "higher than", "lower than", "greater than",
                 "fewer", "larger", "smaller", "increase", "increases", "increased",
                 "decrease", "decreases", "decreased", "rise", "rises", "rose",
@@ -78,6 +80,7 @@ def extract(text: str) -> dict:
         "hedges": _count(text, HEDGES),
         "negations": _count(text, NEGATIONS),
         "comparatives": _count(text, COMPARATIVES),
+        "intensity": _count(text, INTENSITY),
         "strong_claims": _count(text, STRONG),
     }
 
@@ -87,4 +90,4 @@ def fact_tokens(text: str) -> set:
     return set(numbers(text)) | set(citations(text))
 
 
-FACT_TYPES = ("number_units", "citations", "hedges", "negations", "comparatives")
+FACT_TYPES = ("number_units", "citations", "hedges", "negations", "comparatives", "intensity")

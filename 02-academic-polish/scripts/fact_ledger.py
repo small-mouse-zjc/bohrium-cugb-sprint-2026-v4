@@ -21,6 +21,8 @@ CODES = {
     "number_or_unit_loss": "F01",
     "unit_change": "F01b",
     "number_added": "F11",
+    "intensity_loss": "F12",
+    "citation_moved": "F13",
     "citation_loss": "F02",
     "citation_added": "F03",
     "hedge_loss": "F04",
@@ -159,6 +161,14 @@ def audit(original: str, polished: str, changes=None) -> dict:
     fact_rows += [{"type": "comparative", "token": k,
                    "status": "removed" if k in cmp_drop else "kept"} for k in orig_f["comparatives"]]
 
+    # 4b) 程度副词（significantly/slightly/markedly…）被删 = 强度被改
+    int_drop = _count_map_diff(orig_f["intensity"], pol_f["intensity"])
+    if int_drop:
+        blocking.append({"type": "intensity_loss", "tokens": int_drop,
+                         "hint": "significantly/slightly/markedly 等程度被改，结论强度变了"})
+    fact_rows += [{"type": "intensity", "token": k,
+                   "status": "removed" if k in int_drop else "kept"} for k in orig_f["intensity"]]
+
     # 5) 逐句对齐：整句丢了 / 改写没记录
     orig_sents, pol_sents = sentences(original), sentences(polished)
     ledger = []
@@ -186,6 +196,17 @@ def audit(original: str, polished: str, changes=None) -> dict:
             r = max(difflib.SequenceMatcher(None, p, o).ratio() for o in orig_sents)
             if r < 0.6 and _norm(p) not in changed_revised:
                 blocking.append({"type": "unlogged_new_sentence", "index": j, "polished": p[:80]})
+
+        # 5b) 引用挪到别的句子：原句里的引用必须还在对应的润色句里
+        for i, rec in enumerate(ledger):
+            orig_cites = facts.citations(rec["original"])
+            if not orig_cites:
+                continue
+            pol_cites = facts.citations(rec["polished"] or "")
+            moved = [c for c in orig_cites if c not in pol_cites]
+            if moved and all(c in facts.citations(polished) for c in moved):
+                blocking.append({"type": "citation_moved", "index": i, "citations": moved,
+                                 "hint": "引用被挪到别的句子，归属变了"})
 
     # 6) 逐条改动：可回指 + 事实变化必须显式声明
     unmatched, undeclared, over_declared = [], [], []

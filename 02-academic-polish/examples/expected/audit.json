@@ -35,12 +35,12 @@
   "facts": [
     {
       "type": "number_unit",
-      "token": "2 times",
+      "token": "4 °c",
       "status": "kept"
     },
     {
       "type": "number_unit",
-      "token": "12 mpa",
+      "token": "3.5 wt%",
       "status": "kept"
     },
     {
@@ -55,17 +55,17 @@
     },
     {
       "type": "number_unit",
-      "token": "3.5 wt%",
-      "status": "kept"
-    },
-    {
-      "type": "number_unit",
-      "token": "4 °c",
-      "status": "kept"
-    },
-    {
-      "type": "number_unit",
       "token": "25 samples",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "12 mpa",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "2 times",
       "status": "kept"
     },
     {

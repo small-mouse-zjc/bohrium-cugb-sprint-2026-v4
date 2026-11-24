@@ -95,6 +95,21 @@ def main():
     assert st.get("3.5 wt%") in ("kept", "normalized"), st
     ok.append("合法归一：3.5 wt% ↔ 3.5 wt % 不算丢事实（kept/normalized）")
 
+    # 8d 程度副词被删：significantly higher → higher
+    src = "The permeability is significantly higher than that of clay [3]."
+    dst = "The permeability is higher than that of clay [3]."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "intensity_loss" in codes(rep), rep["blocking"]
+    assert {x["type"] for x in rep["facts"]} >= {"intensity"}, rep["facts"]
+    ok.append("D9 删 significantly → intensity_loss（结论强度不能被悄悄改）")
+
+    # 8e 引用被挪到别的句子
+    src = "Salinity rises to 3.5 wt% [4]. Permeability is high [4]."
+    dst = "Salinity rises to 3.5 wt%. Permeability is high [4] [4]."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "citation_moved" in codes(rep), rep["blocking"]
+    ok.append("D10 引用挪句 → citation_moved（归属变了）")
+
     # 8c 编造数字：原文没有 18 MPa
     rep = fact_ledger.audit(original, polished.replace("above 12 MPa", "above 18 MPa"), changes)
     assert {"number_added", "number_or_unit_loss"} & codes(rep), rep["blocking"]
