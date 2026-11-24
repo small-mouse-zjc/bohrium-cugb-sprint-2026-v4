@@ -55,7 +55,9 @@ python scripts/run.py --input examples/demo --output out
 
 | code | 含义 | 级别 |
 |---|---|---|
-| F01 | 数字或单位被改/丢（`3.5 wt%` → `3.5%` 也算） | 阻断 |
+| F01 | 数字+单位整体消失 | 阻断 |
+| F01b | 数字还在但单位/基准变了（`3.5 wt%`→`3.5%`、MPa→kPa） | 阻断 |
+| F11 | 出现原文没有的数字（编造数据） | 阻断 |
 | F02 | 引用丢失 | 阻断 |
 | F03 | 凭空出现原文没有的引用 | 阻断 |
 | F04 | 限定词（may/might/could/suggest/approximately…）减少 | 阻断 |
@@ -105,10 +107,10 @@ python eval/metrics.py --out_dir out --base_dir base_out
 ## 7. 自检
 
 ```bash
-python examples/selftest.py      # 14 条断言
+python examples/selftest.py      # 16 条断言
 ```
 
-覆盖：正例、F01–F10 七类注入（单位丢失、编造引用、may→proves、否定反写、未声明改事实、凭空加句、术语变体）、平台入口（minimal-edit 与 LLM 稿两种模式）、降级（无正文/缺 case.json）、基线差值、缺基线数据记 `None`、零事实草稿记 `None`。
+覆盖：正例、F01/F01b/F11（单位基准变化、编造数字）、F03 编造引用、F04+F05（may→proves）、F06 否定反写、F10 未声明改事实、F09 凭空加句、T01 术语变体、合法归一（`3.5 wt%` ↔ `3.5 wt %` 放行）、平台入口（minimal-edit 与 LLM 稿两种模式）、降级（无正文/缺 case.json）、基线差值、缺基线数据记 `None`、零事实草稿记 `None`。
 
 ## 8. 异常与降级
 
@@ -127,3 +129,15 @@ python examples/selftest.py      # 14 条断言
 - 删改数字、单位、引用编号（F01/F02）；
 - 只给润色片段不给完整正文；
 - `status` 手写、`pass` 不看保留率。
+
+## 10. 事实状态与盲区
+
+`audit.json` 的 `facts[]` 给每个原始事实一个状态：`kept` / `normalized`（写法归一，放行）/ `changed` / `removed` / `added`。`fact_preservation_rate = (kept+normalized)/原始事实总数`，`fact_unchanged` 由它反推——"原文无需修改"的声明不由 LLM 手填。
+
+**脚本查不了的**（写进 `result.uncertainty`，不许声称脚本保证语义不变）：
+
+- 语义改写：`correlated with` → `causes`、`in vitro` → `in vivo` 这类词法项不变的改写；
+- 单位换算等价：`0.9 MPa` → `900 kPa` 按 `unit_change` 阻断，交人工决定，不静默放行；
+- 跨句逻辑：合并句子、调换因果顺序，只给 A02 提示。
+
+详见 `references/method.md`。

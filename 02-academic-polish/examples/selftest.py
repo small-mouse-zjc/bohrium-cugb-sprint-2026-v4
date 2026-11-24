@@ -50,7 +50,7 @@ def main():
 
     # 2 数字单位被改：3.5 wt% → 3.5%
     rep = fact_ledger.audit(original, polished.replace("3.5 wt%", "3.5%"), changes)
-    assert "number_or_unit_loss" in codes(rep), rep["blocking"]
+    assert {"number_or_unit_loss", "unit_change"} & codes(rep), rep["blocking"]
     ok.append("D1 单位丢失（3.5 wt%→3.5%）→ number_or_unit_loss")
 
     # 3 凭空加引用
@@ -86,6 +86,19 @@ def main():
                          polished.replace("dissociation pressure", "disassociation pressure", 1))
     assert t["violations"] and t["rates"]["term_consistency"] < 1.0, t
     ok.append("D7 术语变体 disassociation pressure → T01 + 一致率<1")
+
+    # 8b 合法归一：3.5 wt% → 3.5 wt %（空格差异）不算丢事实
+    norm = polished.replace("3.5 wt%", "3.5 wt %")
+    rep = fact_ledger.audit(original, norm, changes)
+    assert rep["pass"], rep["blocking"]
+    st = {x["token"]: x["status"] for x in rep["facts"] if x["type"] == "number_unit"}
+    assert st.get("3.5 wt%") in ("kept", "normalized"), st
+    ok.append("合法归一：3.5 wt% ↔ 3.5 wt % 不算丢事实（kept/normalized）")
+
+    # 8c 编造数字：原文没有 18 MPa
+    rep = fact_ledger.audit(original, polished.replace("above 12 MPa", "above 18 MPa"), changes)
+    assert {"number_added", "number_or_unit_loss"} & codes(rep), rep["blocking"]
+    ok.append("D8 凭空改出 18 MPa → number_added / number_or_unit_loss")
 
     tmp = Path(tempfile.mkdtemp(prefix="t02-"))
     try:
@@ -124,6 +137,7 @@ def main():
         assert md["skill"]["pass"] is True and md["base"]["pass"] is False, md
         assert md["delta"]["citation_retention"] == 1.0 and md["delta"]["hedge_retention"] == 1.0, md["delta"]
         assert md["delta"]["negation_retention"] == 1.0 and md["pass_gap"] is True, md
+        assert md["skill"]["fact_preservation_rate"] == 1.0, md["skill"]
         ok.append("基线对照：引用/限定/否定保留率 1.0 vs 0.0、number 1.0 vs 0.857、pass_gap=true")
 
         # 13 缺 result.json 的基线：记 None 不崩

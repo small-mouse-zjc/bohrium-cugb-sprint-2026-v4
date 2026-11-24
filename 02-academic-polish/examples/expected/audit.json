@@ -21,8 +21,95 @@
     "strong_claims_after": 0,
     "original_chars": 417,
     "polished_chars": 377,
-    "length_ratio": 0.9
+    "length_ratio": 0.9,
+    "fact_preservation_rate": 1.0,
+    "facts_total": 15,
+    "facts_by_status": {
+      "kept": 15,
+      "normalized": 0,
+      "changed": 0,
+      "removed": 0,
+      "added": 0
+    }
   },
+  "facts": [
+    {
+      "type": "number_unit",
+      "token": "2 times",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "12 mpa",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "0.9 mpa",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "0",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "3.5 wt%",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "4 °c",
+      "status": "kept"
+    },
+    {
+      "type": "number_unit",
+      "token": "25 samples",
+      "status": "kept"
+    },
+    {
+      "type": "citation",
+      "token": "[3]",
+      "status": "kept"
+    },
+    {
+      "type": "citation",
+      "token": "[4]",
+      "status": "kept"
+    },
+    {
+      "type": "hedge",
+      "token": "may",
+      "status": "kept"
+    },
+    {
+      "type": "negation",
+      "token": "not",
+      "status": "kept"
+    },
+    {
+      "type": "comparative",
+      "token": "higher than",
+      "status": "kept"
+    },
+    {
+      "type": "comparative",
+      "token": "increase",
+      "status": "kept"
+    },
+    {
+      "type": "comparative",
+      "token": "rises",
+      "status": "kept"
+    },
+    {
+      "type": "comparative",
+      "token": "above",
+      "status": "kept"
+    }
+  ],
+  "fact_unchanged": true,
   "terms": {
     "rates": {
       "term_consistency": 1.0,
@@ -105,5 +192,8 @@
       "facts_before": [],
       "facts_after": []
     }
+  ],
+  "blind_spots": [
+    "semantic_rewrite"
   ]
 }

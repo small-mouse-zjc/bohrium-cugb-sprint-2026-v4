@@ -11,8 +11,8 @@ import argparse
 import json
 from pathlib import Path
 
-KEYS = ("number_retention", "citation_retention", "hedge_retention",
-        "negation_retention", "sentence_coverage", "term_consistency")
+KEYS = ("fact_preservation_rate", "number_retention", "citation_retention",
+        "hedge_retention", "negation_retention", "sentence_coverage", "term_consistency")
 
 
 def load_rates(p: Path) -> dict:

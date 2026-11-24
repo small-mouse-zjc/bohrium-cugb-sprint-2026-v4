@@ -101,7 +101,10 @@ def main():
                                     f"其余 {len(unchanged)} 句原文未改（见 unchanged_sentences）"),
             "preserved": {k: v for k, v in ledger["rates"].items()
                           if k in ("number_retention", "citation_retention",
-                                   "hedge_retention", "negation_retention")},
+                                   "hedge_retention", "negation_retention",
+                                   "fact_preservation_rate")},
+            "fact_unchanged": ledger["fact_unchanged"],
+            "facts": ledger["facts"],
             "artifacts": {"polished_md": str((out / "polished.md").resolve()),
                           "audit_json": str((out / "audit.json").resolve()),
                           "diff_audit_md": str((out / "diff_audit.md").resolve())},
@@ -109,12 +112,15 @@ def main():
         "evidence": [{"anchor": f"sentence {x['i']+1}", "note": f"相似度 {x['similarity']}，"
                                                                 f"事实标记 {'一致' if set(x['facts_before']) == set(x['facts_after']) else '有变化'}"}
                      for x in ledger["ledger"]],
-        "uncertainty": [{"issue": f"第 {x['i']+1} 句改写幅度大（相似度 {x['similarity']}），建议人工确认主张未变"}
-                        for x in ledger["ledger"] if 0.45 <= x["similarity"] < 0.85],
+        "uncertainty": ([{"issue": f"第 {x['i']+1} 句改写幅度大（相似度 {x['similarity']}），建议人工确认主张未变"}
+                         for x in ledger["ledger"] if 0.45 <= x["similarity"] < 0.85]
+                        + [{"issue": "语义改写盲区：只换词法项不变（如 correlated with → causes）时脚本查不出来，"
+                                      "需人工或第二次 LLM 复核；本包不声称脚本能保证语义未变"}]),
     }
     audit = {"case_id": case_id, "mode": mode, "blocking": ledger["blocking"],
              "advisory": ledger["advisory"], "rates": ledger["rates"],
-             "terms": terms, "ledger": ledger["ledger"]}
+             "facts": ledger["facts"], "fact_unchanged": ledger["fact_unchanged"],
+             "terms": terms, "ledger": ledger["ledger"], "blind_spots": ["semantic_rewrite"]}
     (out / "audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
 
     structural = guard.check_result(result, case, str(out))
@@ -126,7 +132,8 @@ def main():
     elif ledger["blocking"] or not structural["ok"]:
         status = "partial"
     elif any(rates[k] not in (None, 1.0) for k in ("number_retention", "citation_retention",
-                                                    "hedge_retention", "negation_retention")):
+                                                    "hedge_retention", "negation_retention",
+                                                    "fact_preservation_rate")):
         status = "partial"
     elif terms["violations"]:
         status = "partial"

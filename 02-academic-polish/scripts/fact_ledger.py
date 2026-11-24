@@ -19,6 +19,8 @@ SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 # 阻断项编号（文档里逐条对应，便于评委按码复现）
 CODES = {
     "number_or_unit_loss": "F01",
+    "unit_change": "F01b",
+    "number_added": "F11",
     "citation_loss": "F02",
     "citation_added": "F03",
     "hedge_loss": "F04",
@@ -48,6 +50,31 @@ def _rate(a, b):
     return round(a / b, 4) if b else None
 
 
+# 只认"写法归一"，不认"数值换算"：3.5 wt% → 3.5 wt % 放行；3.5 wt% → 3.5% 报 unit_change
+UNIT_ALIAS = {
+    "℃": "°c", "ºc": "°c", "° c": "°c", "oc": "°c",
+    "wt %": "wt%", "weight%": "wt%", "wt pct": "wt%",
+    "percent": "%", "pct": "%", "per cent": "%",
+    "×": "x", "μ": "µ",
+}
+
+
+def _canon_token(tok: str) -> str:
+    s = tok.lower().replace("  ", " ").strip()
+    for a, b in UNIT_ALIAS.items():
+        s = s.replace(a, b)
+    return s.replace(" ", "")
+
+
+def _normalized_variant(tok: str, polished_tokens: list):
+    """同一数字+同一单位的另一种写法（空格/符号/大小写）→ normalized。"""
+    key = _canon_token(tok)
+    for t in polished_tokens:
+        if _canon_token(t) == key and t != tok:
+            return t
+    return None
+
+
 def _count_map_diff(before: dict, after: dict) -> dict:
     return {k: {"before": v, "after": after.get(k, 0)} for k, v in before.items()
             if after.get(k, 0) < v}
@@ -59,19 +86,40 @@ def audit(original: str, polished: str, changes=None) -> dict:
     pol_f = facts.extract(polished)
     blocking, advisory = [], []
 
-    # 1) 数字+单位：逐条比对，单位变了也算丢
-    miss = {}
+    # 1) 数字+单位：逐条判定 kept / normalized / changed / removed / added
+    fact_rows = []
+    miss, unit_changed, normalized = {}, {}, {}
     for tok in set(orig_f["number_units"]):
-        if orig_f["number_units"].count(tok) > pol_f["number_units"].count(tok):
-            miss[tok] = {"before": orig_f["number_units"].count(tok),
-                         "after": pol_f["number_units"].count(tok)}
+        before, after = orig_f["number_units"].count(tok), pol_f["number_units"].count(tok)
+        if after >= before:
+            fact_rows.append({"type": "number_unit", "token": tok, "status": "kept"})
+            continue
+        num = tok.split(" ")[0]
+        equiv = _normalized_variant(tok, pol_f["number_units"])
+        if equiv:
+            normalized[tok] = equiv
+            fact_rows.append({"type": "number_unit", "token": tok, "status": "normalized",
+                              "as": equiv})
+        elif num in facts.bare_numbers(polished):
+            unit_changed[tok] = {"number": num, "polished_forms": [t for t in pol_f["number_units"]
+                                                                   if t.split(" ")[0] == num]}
+            fact_rows.append({"type": "number_unit", "token": tok, "status": "changed",
+                              "as": unit_changed[tok]["polished_forms"]})
+        else:
+            miss[tok] = {"before": before, "after": after}
+            fact_rows.append({"type": "number_unit", "token": tok, "status": "removed"})
     if miss:
-        hints = []
-        for tok in miss:
-            num = tok.split(" ")[0]
-            if num in facts.bare_numbers(polished):
-                hints.append(f"{tok} → 数字还在但单位/后缀变成别的写法")
-        blocking.append({"type": "number_or_unit_loss", "tokens": miss, "hint": hints})
+        blocking.append({"type": "number_or_unit_loss", "tokens": miss})
+    if unit_changed:
+        blocking.append({"type": "unit_change", "tokens": unit_changed,
+                         "hint": "数值还在但单位/基准变了（wt%→% 不是同义改写）"})
+    orig_nums = {t.split(" ")[0] for t in orig_f["number_units"]}
+    added_nums = [t for t in set(pol_f["number_units"]) if t not in orig_f["number_units"]
+                  and t.split(" ")[0] not in orig_nums]
+    if added_nums:
+        blocking.append({"type": "number_added", "tokens": added_nums,
+                         "hint": "原文没有的数字不许出现（编造数据）"})
+        fact_rows += [{"type": "number_unit", "token": t, "status": "added"} for t in added_nums]
 
     # 2) 引用：丢一条阻断，凭空多一条也阻断
     lost_cite = [c for c in set(orig_f["citations"])
@@ -82,12 +130,17 @@ def audit(original: str, polished: str, changes=None) -> dict:
     if new_cite:
         blocking.append({"type": "citation_added", "tokens": new_cite,
                          "hint": "原文没有的引用不许出现"})
+    fact_rows += [{"type": "citation", "token": c,
+                   "status": "removed" if c in lost_cite else "kept"} for c in set(orig_f["citations"])]
+    fact_rows += [{"type": "citation", "token": c, "status": "added"} for c in new_cite]
 
     # 3) 限定词减少 / 强断言增加
     hedge_drop = _count_map_diff(orig_f["hedges"], pol_f["hedges"])
     if hedge_drop:
         blocking.append({"type": "hedge_loss", "tokens": hedge_drop,
                          "hint": "推测语气被删，主张强度被抬高"})
+    fact_rows += [{"type": "hedge", "token": k,
+                   "status": "removed" if k in hedge_drop else "kept"} for k in orig_f["hedges"]]
     strong_new = {k: v for k, v in pol_f["strong_claims"].items()
                   if v > orig_f["strong_claims"].get(k, 0)}
     if strong_new and (hedge_drop or any(
@@ -101,6 +154,10 @@ def audit(original: str, polished: str, changes=None) -> dict:
     cmp_drop = _count_map_diff(orig_f["comparatives"], pol_f["comparatives"])
     if cmp_drop:
         blocking.append({"type": "comparative_loss", "tokens": cmp_drop})
+    fact_rows += [{"type": "negation", "token": k,
+                   "status": "removed" if k in neg_drop else "kept"} for k in orig_f["negations"]]
+    fact_rows += [{"type": "comparative", "token": k,
+                   "status": "removed" if k in cmp_drop else "kept"} for k in orig_f["comparatives"]]
 
     # 5) 逐句对齐：整句丢了 / 改写没记录
     orig_sents, pol_sents = sentences(original), sentences(polished)
@@ -177,10 +234,18 @@ def audit(original: str, polished: str, changes=None) -> dict:
         advisory.append({"type": "edit_ratio", "ratio": ratio,
                          "hint": "改动幅度过大，确认是润色还是重写"})
 
+    fact_total = len([x for x in fact_rows if x["status"] != "added"])
+    fact_ok = len([x for x in fact_rows if x["status"] in ("kept", "normalized")])
+    rates["fact_preservation_rate"] = _rate(fact_ok, fact_total)
+    rates["facts_total"] = fact_total
+    rates["facts_by_status"] = {s: sum(1 for x in fact_rows if x["status"] == s)
+                                for s in ("kept", "normalized", "changed", "removed", "added")}
     for item in blocking + advisory:
         item.setdefault("code", CODES.get(item.get("type"), "A00"))
 
-    return {"blocking": blocking, "advisory": advisory, "ledger": ledger, "rates": rates,
+    return {"blocking": blocking, "advisory": advisory, "ledger": ledger, "facts": fact_rows,
+            "rates": rates, "fact_unchanged": not any(
+                x["status"] in ("changed", "removed", "added") for x in fact_rows),
             "pass": not blocking}
 
 def render(report, polished_note: str = "") -> str:

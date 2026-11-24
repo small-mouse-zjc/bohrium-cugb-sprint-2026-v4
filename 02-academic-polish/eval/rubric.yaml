@@ -1,0 +1,18 @@
+# 02 评分口径（本包自用，非官方）
+
+| 维度 | 关注点 | 本包的证据 |
+|---|---|---|
+| 实际效果 40 | 完整正文、逐条改动、可追溯、事实守恒 | `run.py` 产出完整 `polished_text`；`changes` 每条可回指原文与润色稿；`audit.json` 的 F01–F11 |
+| 使用增益 25 | 比裸 Agent 强在哪 | `examples/baseline.py` 对照：事实保留率 1.0 vs 0.857（数字）、引用/限定/否定 1.0 vs 0.0 |
+| 创新 15 | 事实级 diff 而非字符串相等 | 数字+单位成对比较、限定/否定计数、句级对齐、改动声明反推 |
+| 可靠体验 10 | 状态与降级 | `status` 由产物判定；无正文 `cannot_determine`、缺 case `rejected`、零分母 `None` |
+| 生态贡献 10 | 可复用 | `facts.json` 五类状态、`audit.json` 固定 schema、`references/method.md` 可复现 |
+
+## 通过线（自定）
+
+- `status=success` 且 `fact_preservation_rate=1.0`、四项保留率 1.0、术语无 T01。
+- 自检 16 条全绿。
+
+## 已知盲区
+
+见 `references/method.md` §6：语义改写、单位换算、跨句逻辑只给提示，不声称脚本能保证。

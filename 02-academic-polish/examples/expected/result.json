@@ -26,8 +26,87 @@
       "number_retention": 1.0,
       "citation_retention": 1.0,
       "hedge_retention": 1.0,
-      "negation_retention": 1.0
+      "negation_retention": 1.0,
+      "fact_preservation_rate": 1.0
     },
+    "fact_unchanged": true,
+    "facts": [
+      {
+        "type": "number_unit",
+        "token": "2 times",
+        "status": "kept"
+      },
+      {
+        "type": "number_unit",
+        "token": "12 mpa",
+        "status": "kept"
+      },
+      {
+        "type": "number_unit",
+        "token": "0.9 mpa",
+        "status": "kept"
+      },
+      {
+        "type": "number_unit",
+        "token": "0",
+        "status": "kept"
+      },
+      {
+        "type": "number_unit",
+        "token": "3.5 wt%",
+        "status": "kept"
+      },
+      {
+        "type": "number_unit",
+        "token": "4 °c",
+        "status": "kept"
+      },
+      {
+        "type": "number_unit",
+        "token": "25 samples",
+        "status": "kept"
+      },
+      {
+        "type": "citation",
+        "token": "[3]",
+        "status": "kept"
+      },
+      {
+        "type": "citation",
+        "token": "[4]",
+        "status": "kept"
+      },
+      {
+        "type": "hedge",
+        "token": "may",
+        "status": "kept"
+      },
+      {
+        "type": "negation",
+        "token": "not",
+        "status": "kept"
+      },
+      {
+        "type": "comparative",
+        "token": "higher than",
+        "status": "kept"
+      },
+      {
+        "type": "comparative",
+        "token": "increase",
+        "status": "kept"
+      },
+      {
+        "type": "comparative",
+        "token": "rises",
+        "status": "kept"
+      },
+      {
+        "type": "comparative",
+        "token": "above",
+        "status": "kept"
+      }
+    ],
     "artifacts": {
       "polished_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e02\\polished.md",
       "audit_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e02\\audit.json",
@@ -55,6 +134,9 @@
   "uncertainty": [
     {
       "issue": "第 4 句改写幅度大（相似度 0.787），建议人工确认主张未变"
+    },
+    {
+      "issue": "语义改写盲区：只换词法项不变（如 correlated with → causes）时脚本查不出来，需人工或第二次 LLM 复核；本包不声称脚本能保证语义未变"
     }
   ],
   "metrics": {
@@ -69,6 +151,15 @@
     "original_chars": 417,
     "polished_chars": 377,
     "length_ratio": 0.9,
+    "fact_preservation_rate": 1.0,
+    "facts_total": 15,
+    "facts_by_status": {
+      "kept": 15,
+      "normalized": 0,
+      "changed": 0,
+      "removed": 0,
+      "added": 0
+    },
     "term_consistency": 1.0,
     "blocking": 0,
     "advisory": 1,

@@ -52,8 +52,9 @@ def _count(text: str, vocab) -> dict:
 
 def numbers(text: str) -> list:
     """数字+单位配对。'3.5 wt%' 与 '3.5%' 是不同标记，改单位会被抓到。"""
+    t = re.sub(r"(\d+(?:\.\d+)?)\s*(wt|vol|mol|at)\s*%", r"\1 \2%", text or "", flags=re.I)
     out = []
-    for m in NUM_UNIT_RE.finditer(text or ""):
+    for m in NUM_UNIT_RE.finditer(t):
         num, unit = m.group(1), m.group(2)
         if unit.lower() in UNIT_STOP:
             out.append(num)
