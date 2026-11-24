@@ -139,21 +139,32 @@ def check(project: Path, template: dict):
                     if k and k not in bibkeys:
                         v.append({"rule": "T05", "file": f.name, "line": i, "detail": f"\\cite{{{k}}} 不在 .bib 中"})
 
-    # T06 tabular 列数
+    # T06 tabular 列数：转义 \& 是字面"and"，不是列分隔符；行号用源码真实行号，不用 start+k 估算
     for f in files:
         txt = f.read_text(encoding="utf-8", errors="replace")
         for mm in re.finditer(r"\\begin\{tabular\}\{([^}]*)\}", txt):
             spec = mm.group(1)
             ncol = count_cols(spec)
-            start = txt[:mm.start()].count("\n") + 1
             end = txt.find("\\end{tabular}", mm.end())
             body = txt[mm.end():end if end > 0 else len(txt)]
-            for k, row in enumerate(body.split(r"\\")[:-1], start=2):
+            body_start = mm.end()
+            pos = 0
+            for brk in list(re.finditer(r"\\\\", body)) + [None]:
+                nxt = brk.start() if brk else len(body)
+                row = body[pos:nxt]
+                lead = len(row) - len(row.lstrip())
+                row_line = txt[:body_start + pos + lead].count("\n") + 1
+                pos = (brk.end() if brk else len(body))
                 if "multicolumn" in row:
                     continue
-                amps = row.count("&")
-                if row.strip() and amps + 1 != ncol:
-                    v.append({"rule": "T06", "file": f.name, "line": start + k,
+                # 纯横线/空行不是数据行：\toprule、\midrule、\bottomrule、\hline、\cline{..}、\cmidrule
+                bare = re.sub(r"\\(toprule|midrule|bottomrule|hline|cline|cmidrule)(\[[^\]]*\])?(\([^)]*\))?(\{[^}]*\})?",
+                              "", row).strip()
+                if not bare:
+                    continue
+                amps = len(re.findall(r"(?<!\\)&", row))
+                if amps + 1 != ncol:
+                    v.append({"rule": "T06", "file": f.name, "line": row_line,
                               "detail": f"列格式 {ncol} 列，该行有 {amps+1} 列"})
 
     # T07 图片路径

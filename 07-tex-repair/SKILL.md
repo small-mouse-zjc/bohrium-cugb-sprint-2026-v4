@@ -46,7 +46,7 @@ python scripts/texfit.py --project work/paper --template work/template.yaml --ou
 | T03 | 用了宏但没加载对应宏包（`\toprule`→booktabs，`\includegraphics`→graphicx 等） |
 | T04 | `\ref/\eqref` 指向不存在的 `\label` |
 | T05 | `\cite` 键不在 `.bib` 中 |
-| T06 | `tabular` 列格式与行内 `&` 数不一致（编译不一定报错，但会错位） |
+| T06 | `tabular` 列格式与行内**未转义** `&` 数不一致（`\&` 是字面"and"，不算列分隔；报错行号取源码真实行，不是估算）；纯横线行（`\toprule/\midrule/\bottomrule/\hline/\cline/\cmidrule`）不是数据行，不参与列数比对 |
 | T07 | `\includegraphics` 路径不存在 |
 | T08 | 必填章节缺失或编号与模板要求不符 |
 
@@ -86,7 +86,7 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 | 只有 .cls/.sty、没有 template.yaml | 仍按通用规则（T03–T07）检查，`template_mode=generic_cls_only`，结论最高给 `partial` 并在 notes 说明"类别/必填项/章节需人工确认"，不许静默跳过 |
 | 报错级联严重（>50 条） | 先修第一条 E01/E02，再重编，不逐条硬改 |
 | Overfull 无法消除 | 记录具体行与溢出量，标"版式警告，非错误"，不靠缩字号掩盖 |
-| 中文/字体问题 | 报 E09，建议 `ctex` 或 `xeCJK`，不擅自换引擎 |
+| 中文/字体问题 | 报 E09，建议 `ctex` 或 `xeCJK`，不擅自换引擎（`logdiag.py` 真识别 `! Font ... not loadable`、`Metric (TFM) file not found`、`fontspec ... cannot be found`，不再落到 E00） |
 
 ## 可复现与产物指纹
 
@@ -97,4 +97,4 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 ```
 python examples/selftest.py
 ```
-要求：损坏工程被静态检查抓出 8 条规则 / 10 处违规并给出修法；修复版 0 违规；用真实日志样本验证 `E01/E02/E05/E06/E08` 分类与行号定位；有 TeX 时 `build.py` 必须到 `success`（`converged=true`、`bibtex_runs≥1`、`errors=0`），无 TeX 时必须报 `static_only` 而不是假称通过；`scripts/run.py` 必须能从 `case.json` 产出合法 `result.json`。
+要求（共 10 条，全绿才算过）：损坏工程被静态检查抓出 8 条规则 / 10 处违规并给出修法；修复版 0 违规；用真实日志样本验证 `E01/E02/E05/E06/E08` 分类与行号定位；有 TeX 时 `build.py` 必须到 `success`（`converged=true`、`bibtex_runs≥1`、`errors=0`），无 TeX 时必须报 `static_only` 而不是假称通过；`scripts/run.py` 必须能从 `case.json` 产出合法 `result.json`；**T06 不得把 `\&` 当列分隔**（含 `\&` 的 3 列表 0 违规，真缺列时报源码真实行号）；**字体日志必须报 E09 并给 `ctex/xeCJK` 修法**（旧实现落 E00）。

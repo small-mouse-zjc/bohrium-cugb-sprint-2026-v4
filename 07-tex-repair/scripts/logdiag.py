@@ -29,6 +29,14 @@ OVERFULL = re.compile(r"Overfull \\hbox \(([0-9.]+)pt too wide\)(?: in paragraph
 NOFILE = re.compile(r"File `([^']+)' not found")
 PKGERR = re.compile(r"Package ([^ ]+) Error: (.+)")
 LOR = re.compile(r"l\.(\d+)")
+# E09 字体：LaTeX 的字体缺失既可能是 "! Font ... not loadable: Metric (TFM) file not found"，
+# 也可能是 "! Font \...=... at ... not loadable"，或 "Font ... not found"，或中文模板常见的
+# "Package fontspec Error: The font ... cannot be found"
+FONT_FAIL = re.compile(
+    r"(?i)(!?\s*Font\s+.*not\s+loadable|Metric\s*\(TFM\)\s*file\s+not\s+found|"
+    r"Font\s+[^\n]{0,80}not\s+found|fontspec.*(cannot be found|not found)|"
+    r"Font\s+shape\s+`[^']*'\s+unknown)")
+
 
 
 def parse_log(text: str):
@@ -62,7 +70,9 @@ def parse_log(text: str):
         if head and head.group("file"):
             msg = head.group("msg").strip()
             code, detail = "E00", msg
-            if NOFILE.search(msg):
+            if FONT_FAIL.search(msg):
+                code = "E09"
+            elif NOFILE.search(msg):
                 code = "E02"
             elif "Undefined control sequence" in msg:
                 code = "E01"
@@ -83,7 +93,9 @@ def parse_log(text: str):
         if raw.startswith("! "):
             msg = raw[2:].strip()
             code = "E00"
-            if NOFILE.search(msg):
+            if FONT_FAIL.search(msg):
+                code = "E09"
+            elif NOFILE.search(msg):
                 code = "E02"
             elif msg.startswith("Undefined control sequence"):
                 code = "E01"
@@ -97,6 +109,15 @@ def parse_log(text: str):
             if code == "E02" and NOFILE.search(msg):
                 cur["detail_file"] = NOFILE.search(msg).group(1)
             errs.append(cur)
+            continue
+
+        # 字体错误常常以续行出现（"Metric (TFM) file not found" 前面没有 "! Font"），补一条兜底；
+        # 若最近已有 E09（同一次字体故障），不重复计数
+        if FONT_FAIL.search(raw):
+            recent = [e for e in errs[-2:] if e["code"] == "E09"]
+            if not recent:
+                errs.append({"code": "E09", "file": "", "line": 0, "message": raw.strip()[:200],
+                             "root_cause": CATALOG["E09"][1], "fix": CATALOG["E09"][2]})
             continue
 
         if cur is not None and cur.get("line", 0) == 0:

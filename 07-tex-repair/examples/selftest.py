@@ -126,6 +126,52 @@ def main():
         ok.append(f"多文件案例（\\input 两章 + 注释干扰 + \\parencite/\\textcite）：violations=0，"
                   f"status={mj['status']}，pages={mj['metrics'].get('pages')}")
 
+        # T06 不吃转义 \&：3 列表里 "Smith \& Jones & 2021 & A" 必须 0 违规；真少一列时报真实行号
+        pj = tmp / "t06proj"
+        pj.mkdir()
+        tex = (DEMO / "template.yaml").read_text(encoding="utf-8")  # 仅确认真实模板文件可读
+        (pj / "main.tex").write_text(
+            "\\documentclass{article}\n\\begin{document}\n"
+            "\\begin{tabular}{lcr}\n"
+            "\\toprule\n"
+            "who & year & note \\\\\n"
+            "Smith \\& Jones & 2021 & A \\\\\n"
+            "\\bottomrule\n"
+            "\\end{tabular}\n\\end{document}\n", encoding="utf-8")
+        (pj / "template.yaml").write_text(tex, encoding="utf-8")
+        o6 = tmp / "t06ok"
+        run([ROOT / "scripts/texfit.py", "--project", pj, "--template", pj / "template.yaml", "--out", o6], rc=(0, 1))
+        v6 = json.loads((o6 / "texfit.json").read_text(encoding="utf-8"))
+        assert not [x for x in v6["violations"] if x["rule"] == "T06"], v6["violations"]
+        (pj / "main.tex").write_text(
+            "\\documentclass{article}\n\\begin{document}\n"
+            "\\begin{tabular}{lcr}\n"
+            "\\toprule\n"
+            "who & year & note \\\\\n"
+            "Smith \\& Jones & 2021 \\\\\n"
+            "\\bottomrule\n"
+            "\\end{tabular}\n\\end{document}\n", encoding="utf-8")
+        o6b = tmp / "t06bad"
+        run([ROOT / "scripts/texfit.py", "--project", pj, "--template", pj / "template.yaml", "--out", o6b], rc=(0, 1))
+        v6b = json.loads((o6b / "texfit.json").read_text(encoding="utf-8"))
+        t6 = [x for x in v6b["violations"] if x["rule"] == "T06"]
+        assert t6 and t6[0]["line"] == 6 and "2 列" in t6[0]["detail"], t6
+        ok.append(f"T06 转义 \\& 不算列分隔（\\& 行 0 违规）；真少一列 → 报真实行号 {t6[0]['line']}（不是估算值）")
+
+        # E09 字体错误必须被识别（旧实现落到 E00，拿不到 ctex/xeCJK 修法）
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("ld07", ROOT / "scripts/logdiag.py")
+        ld = importlib.util.module_from_spec(spec); spec.loader.exec_module(ld)
+        fontlog = ("This is pdfTeX\n"
+                   "! Font OT1/cmr/m/n/10=cmr10 not loadable: Metric (TFM) file not found.\n"
+                   "<to be read again>\n"
+                   "l.12 \\section{Intro}\n")
+        dg = ld.parse_log(fontlog)
+        assert dg["counts"].get("E09", 0) >= 1, dg["counts"]
+        e9 = next(e for e in dg["errors"] if e["code"] == "E09")
+        assert "ctex" in e9["fix"] or "xeCJK" in e9["fix"], e9
+        ok.append(f"字体日志 → E09×{dg['counts']['E09']}，修法含 ctex/xeCJK（不再落到 E00）")
+
         for line in ok:
             print("  ✓", line)
     except AssertionError as e:
