@@ -39,6 +39,16 @@ def strip_comments(s: str) -> str:
     return "".join(out)
 
 
+def code_lines(p: Path):
+    """逐行剥注释后的 (行号, 代码文本)。T03/T04/T05/T07 只用代码部分，避免注释里的宏误报。"""
+    return [(i, strip_comments(l)) for i, l in enumerate(
+        p.read_text(encoding="utf-8", errors="replace").splitlines(), 1)]
+
+
+CITE_RE = re.compile(r"\\(?:[a-zA-Z]*cite[a-zA-Z]*|citeauthor|citeyear|Citealp|Citep)\s*"
+                     r"(?:\[[^\]]*\])*\{([^}]*)\}")
+
+
 def check(project: Path, template: dict):
     files = tex_files(project)
     if not files:
@@ -77,20 +87,19 @@ def check(project: Path, template: dict):
         for mm in re.finditer(r"\\usepackage\s*(?:\[[^\]]*\])?\s*\{([^}]*)\}", f.read_text(encoding="utf-8", errors="replace")):
             pkgs.update(x.strip() for x in mm.group(1).split(","))
     for f in files:
-        txt = f.read_text(encoding="utf-8", errors="replace")
-        for macro, pkg in MACRO_PKG.items():
-            if macro in txt and pkg not in pkgs:
-                ln = next((i for i, l in enumerate(txt.splitlines(), 1) if macro in l), 0)
-                v.append({"rule": "T03", "file": f.name, "line": ln, "detail": f"用了 {macro}，但未加载 {pkg}"})
+        for ln, code in code_lines(f):
+            for macro, pkg in MACRO_PKG.items():
+                if macro in code and pkg not in pkgs:
+                    v.append({"rule": "T03", "file": f.name, "line": ln, "detail": f"用了 {macro}，但未加载 {pkg}"})
+                    break
 
     # T04 引用/标签
     labels, refs = set(), []
     for f in files:
-        txt = f.read_text(encoding="utf-8", errors="replace")
-        for i, l in enumerate(txt.splitlines(), 1):
+        for i, l in code_lines(f):
             for mm in re.finditer(r"\\label\{([^}]*)\}", l):
                 labels.add(mm.group(1))
-            for mm in re.finditer(r"\\(?:ref|eqref|autoref|pageref)\{([^}]*)\}", l):
+            for mm in re.finditer(r"\\(?:ref|eqref|autoref|pageref|cref|Cref)\{([^}]*)\}", l):
                 refs.append((mm.group(1), f.name, i))
     for key, fn, ln in refs:
         if key not in labels:
@@ -102,8 +111,8 @@ def check(project: Path, template: dict):
     for b in bibs:
         bibkeys.update(re.findall(r"@\w+\s*\{\s*([^,\s]+)\s*,", b.read_text(encoding="utf-8", errors="replace")))
     for f in files:
-        for i, l in enumerate(f.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-            for mm in re.finditer(r"\\cite[a-z]*\{([^}]*)\}", l):
+        for i, l in code_lines(f):
+            for mm in CITE_RE.finditer(l):
                 for k in mm.group(1).split(","):
                     k = k.strip()
                     if k and k not in bibkeys:

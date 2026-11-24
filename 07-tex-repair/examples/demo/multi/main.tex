@@ -1,0 +1,47 @@
+\documentclass[11pt]{article}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{natbib}
+
+\title{A Multi-file Demo Manuscript}
+\author{Demo Author}
+\date{}
+
+\begin{document}
+\maketitle
+
+\input{sections/intro}
+\input{sections/method}
+
+\section{Results}
+The method is compared with earlier work \cite{sheng2021,wang2020}.
+Table~\ref{tab:main} lists the settings and Figure~\ref{fig:res} shows the trend.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{lcr}
+\toprule
+setting & value & unit \\
+temperature & 25 & C \\
+pressure & 12 & MPa \\
+\bottomrule
+\end{tabular}
+\caption{Main settings.}
+\label{tab:main}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.8\linewidth]{figs/result.pdf}
+\caption{Demo figure from a subdirectory.}
+\label{fig:res}
+\end{figure}
+
+\section{Conclusions}
+The multi-file manuscript compiles with cross-references and citations resolved.
+
+\bibliographystyle{plain}
+\bibliography{refs}
+
+\end{document}

@@ -70,6 +70,7 @@ def main():
     ap.add_argument("--main", default="main.tex")
     ap.add_argument("--rounds", type=int, default=3)
     ap.add_argument("--engine", default=None, choices=["pdflatex", "xelatex", "lualatex", "latexmk"])
+    ap.add_argument("--time-budget", type=int, default=900, help="总编译预算秒数，超过就停手并如实降级")
     a = ap.parse_args()
 
     proj = Path(a.project).resolve()
@@ -106,9 +107,15 @@ def main():
 
     log_path = out / (Path(a.main).stem + ".log")
     aux_path = out / (Path(a.main).stem + ".aux")
+    import time
+    t0 = time.monotonic()
     rounds, bib_runs, log_text = 0, 0, ""
     bib_failed = False
+    budget_hit = False
     for i in range(1, a.rounds + 1):
+        if time.monotonic() - t0 > a.time_budget:
+            budget_hit = True
+            break
         r = run(cmd, proj)
         rounds += 1
         log_text = r.stdout + "\n" + r.stderr
@@ -139,6 +146,9 @@ def main():
     (out / "run.log").write_text(log_text[-200000:], encoding="utf-8")
     manifest["rounds"] = rounds
     manifest["bibtex_runs"] = bib_runs
+    manifest["elapsed_s"] = round(time.monotonic() - t0, 1)
+    manifest["time_budget_s"] = a.time_budget
+    manifest["budget_hit"] = budget_hit
     manifest["bibtex_failed"] = bib_failed
     manifest["log"] = "run.log"
     pdf = out / (Path(a.main).stem + ".pdf")

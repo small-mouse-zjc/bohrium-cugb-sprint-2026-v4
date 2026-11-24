@@ -12,12 +12,15 @@ from pathlib import Path
 
 def load(d):
     d = Path(d)
-    tf = json.loads((d / "texfit.json").read_text(encoding="utf-8"))
+    tf = json.loads((d / "texfit.json").read_text(encoding="utf-8")) if (d / "texfit.json").exists() else {}
     lg = json.loads((d / "logdiag.json").read_text(encoding="utf-8")) if (d / "logdiag.json").exists() else {}
     bm = json.loads((d / "build_manifest.json").read_text(encoding="utf-8")) if (d / "build_manifest.json").exists() else {}
+    has_tf = bool(tf)
     return {
-        "template_violations": len(tf.get("violations") or []),
-        "rules_hit": len(tf.get("counts") or {}),
+        # 没有 texfit.json 说明这一侧没做静态体检（如裸编译基线），记 None 而非 0，
+        # 否则"0 违规"会被误读成"体检通过"。
+        "template_violations": len(tf.get("violations") or []) if has_tf else None,
+        "rules_hit": len(tf.get("counts") or {}) if has_tf else None,
         "errors": len(lg.get("errors") or []),
         "warnings": lg.get("warning_count", 0),
         "converged": bool(lg.get("converged", False)),
@@ -27,7 +30,7 @@ def load(d):
         "pages": bm.get("pages"),
         # 只有 success（errors=0 且不再需要重编且 PDF 存在）才算通过；
         # partial = 有 PDF 但引文/交叉引用未收敛，不算 pass。
-        "pass": bool(tf.get("pass")) and bm.get("status") == "success"
+        "pass": has_tf and bool(tf.get("pass")) and bm.get("status") == "success"
         and bool(bm.get("converged")) and (len(lg.get("errors") or []) == 0),
     }
 
@@ -48,7 +51,7 @@ def main():
     if a.base_dir:
         b = load(a.base_dir)
         for name, k in ROWS:
-            md.append("| %s | %s | %s | %s |" % (name, s[k], b[k], round(s[k] - b[k], 4) if isinstance(s[k], (int, float)) else "—"))
+            md.append("| %s | %s | %s | %s |" % (name, s[k], b[k], round(s[k] - b[k], 4) if isinstance(s[k], (int, float)) and isinstance(b[k], (int, float)) else "—"))
     else:
         for name, k in ROWS:
             md.append("| %s | %s | — | — |" % (name, s[k]))

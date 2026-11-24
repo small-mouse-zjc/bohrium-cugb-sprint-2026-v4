@@ -115,6 +115,19 @@ def main():
         raise SystemExit(2)
 
     metrics = {"project": str(project), "template": str(template) if template else None}
+    # 只有 .cls/.sty 没有 template.yaml 时：仍做通用静态检查（T03–T07），
+    # 但模板类别/必填项/章节无法自动判定，必须显式标 generic，不许静默跳过。
+    cls_files = list(project.rglob("*.cls")) + list(project.rglob("*.sty"))
+    if template is None and cls_files:
+        generic = outp / "_generic_template.json"
+        generic.write_text("{}", encoding="utf-8")
+        template = generic
+        metrics["template_mode"] = "generic_cls_only"
+        metrics["template_files"] = [p.name for p in cls_files][:5]
+        result["notes"].append("输入只有 .cls/.sty 模板，已按通用规则（宏包/引用/列数/图路径）检查；"
+                               "documentclass、必填项、章节要求需人工确认，故结论最高只能给 partial")
+    elif template is not None:
+        metrics["template_mode"] = "template_yaml"
     result["metrics"] = metrics
 
     # 1) 静态合规
@@ -163,7 +176,8 @@ def main():
     # 4) 判定
     viol = metrics.get("violations")
     bstat = metrics.get("build_status")
-    if bstat == "success" and viol == 0:
+    generic_tpl = metrics.get("template_mode") == "generic_cls_only"
+    if bstat == "success" and viol == 0 and not generic_tpl:
         result["status"] = "success"
     elif bstat in ("success", "partial"):
         result["status"] = "partial"

@@ -83,7 +83,21 @@ def main():
         ok.append(f"平台入口：case.json→result.json，status={rj['status']}，"
                   f"violations={rj['metrics'].get('violations')}，build={rj['metrics'].get('build_status')}")
 
-        print("SELFTEST OK")
+        # 多文件 + 注释 + biblatex 引用：\input 两章、\parencite/\textcite，注释里故意写 \toprule 和假 cite
+        mp = tmp / "multi"
+        mp.mkdir()
+        shutil.copytree(DEMO / "multi", mp / "paper")
+        (mp / "case.json").write_text(json.dumps({"case_id": "selftest-multi",
+                                                  "project": "paper", "template": "paper/template.yaml"},
+                                                 ensure_ascii=False), encoding="utf-8")
+        mo = tmp / "multi_out"
+        run([ROOT / "scripts/run.py", "--input", mp, "--output", mo], rc=(0, 1, 2))
+        mj = json.loads((mo / "result.json").read_text(encoding="utf-8"))
+        assert mj["metrics"]["violations"] == 0, f"多文件案例误报违规: {mj['metrics'].get('violation_counts')}"
+        assert mj["status"] in ("success", "cannot_determine"), mj["status"]
+        ok.append(f"多文件案例（\\input 两章 + 注释干扰 + \\parencite/\\textcite）：violations=0，"
+                  f"status={mj['status']}，pages={mj['metrics'].get('pages')}")
+
         for line in ok:
             print("  ✓", line)
     except AssertionError as e:
