@@ -188,6 +188,35 @@ def main():
           len(sents) == 2 and "Fig. 3" in sents[0] and "et al. (2020)" in sents[0]
           and sents[1].startswith("The next"), str(len(sents)))
 
+    # pages 形态：页码必须真的落进 section/para 与锚点（旧实现算完 page_map 就丢）
+    pages_case = {"case_id": "pages-demo", "pages": [
+        {"page": 3, "text": "Results\nGas hydrate occurs in marine sediment at site CUG-3 (Fig. 3)."},
+        {"page": 4, "text": "The stability zone extends 12 m below the seafloor."},
+    ]}
+    pw, pdoc = pipeline(pages_case)
+    pall = [n for n in pw["result"]["notes"]]
+    check("pages 形态：页码落到笔记锚点（出现 p.3/p.4），不再 page=None",
+          bool(pall) and any("p.3" in n["anchor"] for n in pall) and any("p.4" in n["anchor"] for n in pall)
+          and all(n["page"] is not None for n in pall),
+          str([(n["note_id"], n["anchor"], n["page"]) for n in pall]))
+
+    # 锚点核验必须真比对 span：篡改 quote 即 verified=False（旧实现无条件 true）
+    import run as runmod
+    n0 = dict(pall[0])
+    good = runmod._verify(pdoc, n0)
+    bad_quote = dict(n0, quote=n0["quote"] + " 篡改")
+    bad_span = dict(n0, span=[0, 0])
+    check("锚点核验真取 text[span] 比对：原样 True、改 quote False、span 越界 False",
+          good["verified"] is True and runmod._verify(pdoc, bad_quote)["verified"] is False
+          and runmod._verify(pdoc, bad_span)["verified"] is False,
+          str((good["verified"], runmod._verify(pdoc, bad_quote)["verified"])))
+    # 节位加权键必须与角色名同口径（单数）：finding/limitation/premise 都有加权
+    check("PRIORITY_SECTION 与 ROLE_MARKERS 同键：finding/limitation/premise 节位加权生效",
+          set(noteslib.PRIORITY_SECTION) == set(noteslib.ROLE_MARKERS)
+          and noteslib._section_bonus("Results and Discussion", "finding") == 2
+          and noteslib._section_bonus("Limitations", "limitation") == 2
+          and noteslib._section_bonus("Methods", "premise") == 2,
+          str(sorted(set(noteslib.ROLE_MARKERS) - set(noteslib.PRIORITY_SECTION))))
     for name in ok:
         print(f"  ✓ {name}")
     for name in fail:

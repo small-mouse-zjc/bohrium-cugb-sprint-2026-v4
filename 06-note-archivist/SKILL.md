@@ -22,7 +22,7 @@ description: 文献总结与结构化笔记。按论文自身章节逐节抽原�
 `case.json` 支持的三种形态（按优先级）：
 
 1. `{"case_id": "...", "sections": [{"heading": "Methods", "page": 2, "text": "..."}]}` —— 最理想，章节与页码都由输入给定；
-2. `{"case_id": "...", "pages": [{"page": 1, "text": "..."}]}` —— 按页给文本，脚本自行检测章节标题；
+2. `{"case_id": "...", "pages": [{"page": 1, "text": "..."}]}` —— 按页给文本，脚本逐页检测章节标题，并把该页页码带进 `section.page` / `para.page`，锚点里因此出现 `p.N`；
 3. `{"case_id": "...", "text": "全文"}` —— 单段全文，脚本按行检测标题；检测不到就整篇当一节，并记 `no_section_headings` 不确定性。
 
 也接受 `full_text` / `manuscript` 作为正文键，`title` / `name` / `content` / `paragraphs` 作为小节字段别名。字段缺失不猜内容，只记 `uncertainty`。
@@ -45,6 +45,8 @@ description: 文献总结与结构化笔记。按论文自身章节逐节抽原�
 ```
 
 `span` 是 `quote` 在 `doc.text`（由输入原样拼接而成）里的 `[start, end)`。`anchor` 是给人看的同一信息：节序 + 段序 +（有页码时）页码 + 字符区间。
+
+`anchor_verification` 不是作者自报：每条都是拿 `span` 回 `doc.text` 切片与 `quote` 逐字比对（有页码时还要求该 span 所属段落的 `page` 与锚点页码一致），不一致就记 `verified=false` —— 交付物里的"已验证"必须能被独立复算。
 
 六种 `role`：`problem` / `data` / `method` / `finding` / `limitation` / `premise`，其余句子记 `background`。
 

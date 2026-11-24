@@ -75,7 +75,6 @@ def build_doc(case):
     """返回 doc：{text, sections:[{index,heading,start,end,page}], paras:[...], warnings}"""
     warns = []
     blocks, page_map = [], {}
-
     if isinstance(case, dict) and isinstance(case.get("sections"), list) and case["sections"]:
         for s in case["sections"]:
             if isinstance(s, dict):
@@ -89,24 +88,31 @@ def build_doc(case):
             blocks.append((h or None, str(body), pg))
     else:
         raw = ""
+        pages = None
         if isinstance(case, dict):
-            raw = case.get("text") or case.get("full_text") or case.get("manuscript") or ""
-            if not raw and isinstance(case.get("pages"), list):
-                chunks = []
-                for p in case["pages"]:
-                    if isinstance(p, dict):
-                        chunks.append(str(p.get("text", "")))
-                        page_map[len("\n\n".join(chunks)) - len(str(p.get("text", "")))] = p.get("page")
-                    else:
-                        chunks.append(str(p))
-                raw = "\n\n".join(chunks)
-        raw = str(raw)
+            raw = str(case.get("text") or case.get("full_text") or case.get("manuscript") or "")
+            pages = case.get("pages")
+        # pages 形态：按页切块并把页码带下去（旧实现算出 page_map 却从没落到 section/para，
+        # 锚点里永远没有 p.N，页码锚定形同虚设）
+        if not raw and isinstance(pages, list) and pages:
+            for p in pages:
+                if isinstance(p, dict):
+                    ptxt, pg = str(p.get("text", "")), p.get("page")
+                else:
+                    ptxt, pg = str(p), None
+                if not ptxt.strip():
+                    continue
+                pb, w = detect_sections(ptxt)
+                if w:
+                    warns.append({"issue": w, "detail": "该页未检测到章节标题，整页作为单节处理"})
+                for h, b in pb:
+                    blocks.append((h, b, pg))
         if raw:
             blocks, w = detect_sections(raw)
             blocks = [(h, b, None) for h, b in blocks]
             if w:
                 warns.append({"issue": w, "detail": "未检测到章节标题，整篇作为单节处理，章节对齐只能做到全篇级"})
-        else:
+        elif not blocks:
             blocks = []
 
     text, sections, paras = "", [], []

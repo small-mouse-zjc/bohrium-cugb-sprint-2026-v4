@@ -23,6 +23,24 @@ def find_input(explicit=None):
     return None
 
 
+def _verify(doc, n):
+    """锚点核验必须是"拿 span 回原文切片比对"，不是自报 verified=true。
+
+    比对三件事：切片与 quote 逐字一致、span 落在正文范围内、锚点里的页码/段号与该 span 所属段落一致。
+    """
+    s, e = n["span"]
+    text = doc["text"]
+    slice_ok = 0 <= s <= e <= len(text) and text[s:e] == n["quote"]
+    page_ok = True
+    if n.get("page") is not None:
+        page_ok = any(p["start"] <= s < p["end"] and p.get("page") == n["page"] for p in doc["paras"])
+    return {"note_id": n["note_id"], "anchor": n["anchor"],
+            "verified": bool(slice_ok and page_ok),
+            "check": "text[span]==quote" + ("" if n.get("page") is None else " and page(span)==anchor page"),
+            "slice": text[s:e][:60] if 0 <= s <= e <= len(text) else None,
+            "span_in_range": 0 <= s <= e <= len(text), "page_matches": page_ok}
+
+
 def render_notes(doc, notes):
     lines = ["# 结构化笔记", ""]
     for sec in doc["sections"]:
@@ -80,8 +98,7 @@ def build(case_path, outdir):
             "section_alignment": align,
             "reading_card": card,
             "card_support": support,
-            "anchor_verification": [{"note_id": n["note_id"], "anchor": n["anchor"], "verified": True,
-                                     "check": "quote==text[span]"} for n in notes],
+            "anchor_verification": [_verify(doc, n) for n in notes],
             "artifacts": {"notes_md": os.path.join(outdir, "notes.md"),
                           "reading_card_json": os.path.join(outdir, "reading_card.json")},
         },

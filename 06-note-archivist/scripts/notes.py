@@ -23,13 +23,13 @@ ROLE_MARKERS = {
 # 角色歧义时的偏好序：条件/局限/方法优先，data 最容易被单位词误触发，放最后
 ROLE_ORDER = ["premise", "limitation", "method", "finding", "problem", "data"]
 
-PRIORITY_SECTION = {
+PRIORITY_SECTION = {           # 键必须与 ROLE_MARKERS / ROLE_ORDER 同一口径（单数角色名）
     "problem": ["abstract", "introduction", "summary"],
     "data": ["method", "material", "experiment", "result"],
     "method": ["method", "material", "experiment"],
-    "findings": ["result", "discussion", "abstract", "conclusion"],
-    "limitations": ["limitation", "discussion", "conclusion"],
-    "premises": ["method", "discussion", "introduction"],
+    "finding": ["result", "discussion", "abstract", "conclusion"],
+    "limitation": ["limitation", "discussion", "conclusion"],
+    "premise": ["method", "discussion", "introduction"],
 }
 
 SENT_RE = re.compile(r"[^\n]{15,400}?(?:[.!?。！？](?=\s|$)|$)")

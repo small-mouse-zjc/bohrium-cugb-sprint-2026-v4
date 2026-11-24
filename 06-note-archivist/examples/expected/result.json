@@ -347,108 +347,159 @@
         "note_id": "S1-N1",
         "anchor": "§1 ¶1 / p.1 [9-109]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "We investigate how CO2 injection changes the phase behaviour",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S1-N2",
         "anchor": "§1 ¶1 / p.1 [110-188]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Core samples from 3 sites in the Qionghai area were tested a",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S1-N3",
         "anchor": "§1 ¶1 / p.1 [189-284]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Results show that CO2 displaces methane hydrate and forms a ",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S2-N1",
         "anchor": "§2 ¶1 / p.1 [299-417]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "The research question is whether CO2 can be stored in hydrat",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S2-N2",
         "anchor": "§2 ¶1 / p.1 [418-527]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Previous work examined pure methane hydrate only, and the ef",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S2-N3",
         "anchor": "§2 ¶1 / p.1 [528-592]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Here we examine the coupled effect of CO2 fraction and salin",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S3-N1",
         "anchor": "§3 ¶1 / p.2 [616-681]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Samples of 25 g wet sediment were collected from 3 gravity c",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S3-N2",
         "anchor": "§3 ¶1 / p.2 [682-828]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Experiments were performed in a high-pressure cell at 12 MPa",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S3-N3",
         "anchor": "§3 ¶1 / p.2 [829-890]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "We assume a constant pore pressure of 12 MPa during each run",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S4-N1",
         "anchor": "§4 ¶1 / p.3 [900-1066]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "CO2 injection increased the hydrate dissociation temperature",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S4-N2",
         "anchor": "§4 ¶1 / p.3 [1067-1133]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Results indicate a mixed hydrate phase at CO2 fractions abov",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S5-N1",
         "anchor": "§5 ¶1 / p.4 [1146-1216]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "The observed shift is consistent with a mixed hydrate stabil",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S5-N2",
         "anchor": "§5 ¶1 / p.4 [1217-1299]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Our data suggest that CO2 storage capacity is limited at sal",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S5-N3",
         "anchor": "§5 ¶1 / p.4 [1300-1394]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "The comparison with pure methane runs shows a lower dissocia",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S6-N1",
         "anchor": "§6 ¶1 / p.4 [1408-1511]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "A limitation of this study is that only 3 cores were tested,",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S6-N2",
         "anchor": "§6 ¶1 / p.4 [1512-1618]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "The model does not account for sediment compaction, and the ",
+        "span_in_range": true,
+        "page_matches": true
       },
       {
         "note_id": "S6-N3",
         "anchor": "§6 ¶1 / p.4 [1619-1658]",
         "verified": true,
-        "check": "quote==text[span]"
+        "check": "text[span]==quote and page(span)==anchor page",
+        "slice": "Further work should test natural cores.",
+        "span_in_range": true,
+        "page_matches": true
       }
     ],
     "artifacts": {
-      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06e\\notes.md",
-      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06e\\reading_card.json"
+      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06\\notes.md",
+      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06\\reading_card.json"
     }
   },
   "evidence": [
