@@ -132,7 +132,8 @@
           "n07",
           "n08"
         ],
-        "reason": "同名但限定冲突：site: CUG-3 vs 未给；sample_id: 未给 vs S2",
+        "reason": "P1 是现场取样的海相沉积物（site CUG-3），P2 是实验室合成的沉积物样品 S2；取样位置与制备方式不同，术语相同不等于同一实例，不能合并。",
+        "reason_source": "author",
         "rule": "相同通用方法/材料术语不等于同一物理样品、模型实例或数据集",
         "evidence": [
           {

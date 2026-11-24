@@ -97,7 +97,7 @@ python examples/selftest.py`）要求五类破坏全部命中或正确拒绝：
 | D4 空查询 | K04 |
 | D5 缩写无篇内全称 | K05 |
 
-自检 **18 条**全绿，另覆盖：**引文逐字但与本边无关（同段落另一句）→ K03 端点缺席、边不成立**；**同篇同名多实例按 relation 的 `paragraph_id` 绑到正确节点、段落也对不上则 K09 拒绝建边（不静默取首个实例）**；**relation 缺 `paper_id` → K06 而非 KeyError**；平台入口（`case.json → result.json`，`status=success` 且 query-only 独立跑通）、query 只读 `kg.json`（哨兵标签未被覆盖，证明没有重跑 build）、少于 3 条查询 → `K07/K08（查询数<3；查询未覆盖 node/edges/path 三类）` + `pass=false`、零边时 `edge_evidence_rate=None`（不把"没数据"记成 0）、基线对照（边引文率 1.0 vs 0.0、非合并 1 vs 0、`pass_gap=true`）、缺 `validation.json` 的基线段记 `None` 不崩溃。
+自检 **20 条**全绿，另覆盖：**引文逐字但与本边无关（同段落另一句）→ K03 端点缺席、边不成立**；**同篇同名多实例按 relation 的 `paragraph_id` 绑到正确节点、段落也对不上则 K09 拒绝建边（不静默取首个实例）**；**relation 缺 `paper_id` → K06 而非 KeyError**；**提及 `quote` 被改写 → K10 且回退成该段真实句**；**`non_merge_reasons` 只写"不确定" → K11、`reason_source` 退回 `auto`（正例为 author）**；平台入口（`case.json → result.json`，`status=success` 且 query-only 独立跑通）、query 只读 `kg.json`（哨兵标签未被覆盖，证明没有重跑 build）、少于 3 条查询 → `K07/K08（查询数<3；查询未覆盖 node/edges/path 三类）` + `pass=false`、零边时 `edge_evidence_rate=None`（不把"没数据"记成 0）、基线对照（边引文率 1.0 vs 0.0、非合并 1 vs 0、`pass_gap=true`）、缺 `validation.json` 的基线段记 `None` 不崩溃。
 
 ## 7. 异常与降级
 

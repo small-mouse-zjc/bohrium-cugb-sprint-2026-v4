@@ -163,6 +163,28 @@ def main():
         assert len(kg9["edges"]) == 5
         ok.append("D9_relation_without_paper_id → K06（缺 paper_id），无 KeyError")
 
+        # D10 提及的引文被改写 → K10，且 quote 回退成该段真实句子
+        c10 = copy.deepcopy(base)
+        for m in c10["papers"][0]["mentions"]:
+            if m["surface"] == "Gas hydrate" and m["paragraph_id"] == "JATS-1":
+                m["quote"] = "Hydrate was found in the sea floor here."
+        v10, kg10, _ = build_case(tmp, "D10", c10, rel, qy)
+        assert any(x["code"] == "K10" and x.get("surface") == "Gas hydrate" for x in v10["violations"]), v10["violations"]
+        gh = next(n for n in kg10["nodes"] if n["key"] == "gas hydrate")
+        q10 = next(m["quote"] for m in gh["mentions"] if m["paper_id"] == "P1" and m["paragraph_id"] == "JATS-1")
+        assert "Gas hydrate" in q10 and "sea floor" not in q10, q10
+        assert v10["pass"] is False, v10
+        ok.append("D10_paraphrased_mention_quote → K10，quote 回退为该段真实句（图谱里不留改写句）")
+
+        # D11 非合并理由为占位 → K11；正例的作者理由 reason_source=author
+        r11 = copy.deepcopy(rel)
+        r11["non_merge_reasons"] = [{"key": "sediment sample", "reason": "不确定"}]
+        v11, kg11, _ = build_case(tmp, "D11", base, r11, qy)
+        assert "K11" in codes(v11), codes(v11)
+        assert v11["pass"] is False and kg11["non_merge"][0]["reason_source"] == "auto", kg11["non_merge"]
+        assert kg["non_merge"][0]["reason_source"] == "author", kg["non_merge"]
+        ok.append("D11_vague_nonmerge_reason → K11；删掉人工理由后 reason_source=auto，正例为 author")
+
         # 平台入口：case.json → result.json
         ein, eout = tmp / "entry_in", tmp / "entry_out"
         ein.mkdir()

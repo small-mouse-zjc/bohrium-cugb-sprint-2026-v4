@@ -86,6 +86,18 @@ def build(corpus: dict, relations: dict, queries):
             if (pid, m["paragraph_id"]) not in para:
                 V("K06", surface=m["surface"], paper_id=pid, paragraph_id=m["paragraph_id"],
                   detail="段落号不存在")
+                mentions.append({**m, "paper_id": pid, "key": n, "type": m.get("type", "unknown")})
+                continue
+            text = para[(pid, m["paragraph_id"])]
+            q = squash(m.get("quote", ""))
+            if not q or q not in text:
+                # 提及的引文同样要逐字：改写句不许原样进图谱，回退成该段真实句子
+                real = next((s for s in re.split(r"(?<=[。！？.!?])\s+", text)
+                             if m["surface"].lower() in s.lower()), "")
+                V("K10", surface=m["surface"], paper_id=pid, paragraph_id=m["paragraph_id"],
+                  detail=("提及缺引文" if not q else "提及引文不是该段落连续子串，已回退为真实句子"),
+                  given_quote=q, fallback=real)
+                m = {**m, "quote": real}
             mentions.append({**m, "paper_id": pid, "key": n, "type": m.get("type", "unknown")})
 
     nodes, groups = [], defaultdict(list)
@@ -130,7 +142,12 @@ def build(corpus: dict, relations: dict, queries):
             if len(vals) > 1:
                 V("K02", node_id=nd["id"], attr=k, values=sorted(vals), detail="冲突限定被合并进同一节点")
 
-    # 非合并判定（带证据）
+    # 非合并判定（带证据 + 人工理由）
+    VAGUE_REASONS = {"不确定", "unknown", "待定", "n/a", "无", "无法判断", "存疑"}
+    reasons = {}
+    for x in (relations.get("non_merge_reasons") or []):
+        if isinstance(x, dict) and x.get("key"):
+            reasons[norm(x["key"])] = str(x.get("reason", "")).strip()
     non_merge = []
     by_key = defaultdict(list)
     for nd in nodes:
@@ -144,11 +161,21 @@ def build(corpus: dict, relations: dict, queries):
         if not diff:
             V("K01", key=key, node_ids=[x["id"] for x in nds], detail="同键节点未被合并")
             continue
+        auto_reason = "同名但限定冲突：" + "；".join(
+            f"{k}: {u if u is not None else '未给'} vs {v if v is not None else '未给'}"
+            for k, u, v in diff)
+        author_reason = reasons.get(key, "")
+        if not author_reason or author_reason.strip().lower() in VAGUE_REASONS or len(author_reason) < 12:
+            V("K11", key=key, node_ids=[x["id"] for x in nds],
+              detail="非合并理由缺失或过泛（须在 relations.json 的 non_merge_reasons 给出一句能说服审稿人的具体理由）",
+              auto_reason=auto_reason)
+            reason_txt = auto_reason
+        else:
+            reason_txt = author_reason
         non_merge.append({
             "key": key, "type": typ, "node_ids": [x["id"] for x in nds],
-            "reason": "同名但限定冲突：" + "；".join(
-                f"{k}: {u if u is not None else '未给'} vs {v if v is not None else '未给'}"
-                for k, u, v in diff),
+            "reason": reason_txt,
+            "reason_source": "author" if reason_txt == author_reason else "auto",
             "rule": "相同通用方法/材料术语不等于同一物理样品、模型实例或数据集",
             "evidence": [{"paper_id": m["paper_id"], "paragraph_id": m["paragraph_id"],
                           "doi": papers[m["paper_id"]].get("doi"),
