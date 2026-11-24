@@ -168,11 +168,14 @@ def audit(original: str, polished: str, changes=None) -> dict:
                    "status": "removed" if k in hedge_drop else "kept"} for k in orig_f["hedges"]]
     strong_new = {k: v for k, v in pol_f["strong_claims"].items()
                   if v > orig_f["strong_claims"].get(k, 0)}
-    # 强弱升级要判方向：只有"弱断言减少 / 推测语气减少"同时新增强断言才算升级。
-    # 无条件阻断会把 proves→demonstrates、confirm→establish 这类强→强同义替换误伤。
+    strong_drop = _count_map_diff(orig_f.get("strong_claims", {}), pol_f.get("strong_claims", {}))
+    # 强弱升级判方向：新增强断言、且没有任何强断言被换成别的强断言，就算抬高。
+    # 只要求 hedge_drop/weak_drop 会漏掉两种最典型的升级：往中性句里塞 clearly
+    # （没有弱词可删），以及 "We observed" → "It is well known"（弱词还在别处）。
     weak_drop = _count_map_diff(orig_f.get("weak_claims", {}), pol_f.get("weak_claims", {}))
-    if strong_new and (hedge_drop or weak_drop):
-        blocking.append({"type": "strength_upgrade", "tokens": strong_new})
+    if strong_new and (hedge_drop or weak_drop or not strong_drop):
+        blocking.append({"type": "strength_upgrade", "tokens": strong_new,
+                         "hint": "新增强断言而原文没有对应的强断言被替换，主张强度被抬高"})
 
     # 4) 否定与比较级
     neg_drop = _count_map_diff(orig_f["negations"], pol_f["negations"])
@@ -279,11 +282,10 @@ def audit(original: str, polished: str, changes=None) -> dict:
         if r and r not in _norm(polished):
             advisory.append({"type": "revised_not_in_polished", "index": k, "revised": r[:60]})
         if o and r:
-            fb, fa = facts.fact_tokens(o), facts.fact_tokens(r)
-            changed = fb != fa
-            if changed and not c.get("fact_changed"):
-                undeclared.append({"index": k, "before": sorted(fb), "after": sorted(fa)})
-            elif c.get("fact_changed") and not changed:
+            dd = facts.fact_delta(o, r)
+            if dd["changed"] and not c.get("fact_changed"):
+                undeclared.append({"index": k, "lost": sorted(dd["lost"]), "gained": sorted(dd["gained"])})
+            elif c.get("fact_changed") and not dd["changed"]:
                 over_declared.append({"index": k})
     if unmatched:
         advisory.append({"type": "change_unmatched", "items": unmatched})

@@ -52,4 +52,7 @@
 | fact_preservation_rate | 1.0000 | 0.6667 |
 | status | success | pass=false（4 项阻断） |
 
-自检：`python examples/selftest.py` → 27 条全绿（含强→强同义放行、近义双句删一句必报 F08）。
+自检：`python examples/selftest.py` → 32 条全绿（含强→强同义放行、近义双句删一句必报 F08）。
+
+**本轮补强（2026-11-25，评审指出的强度红线漏洞）**：① F05 以前只在"删了弱词/推测词"时才判升级，于是"往中性句里塞 clearly"（没有弱词可删）与 `We observed → It is well known`（弱词仍在别处）都能全绿通过——现在改为 `strong_new and (hedge_drop or weak_drop or not strong_drop)`：新增强断言且没有对应的强断言被替换就阻断，`proved→demonstrated` 这类强→强同义替换仍放行；`STRONG` 补入 `well known / well-known / widely accepted / established fact / it is known` 等"断言为常识"型短语，`clearly / undoubtedly / definitively / certainly / conclusively` 同时纳入 `INTENSITY`（F12b 才抓得到凭空加的程度副词）。② 条目级 `fact_tokens` 以前只含数字+引用，`may → 无` 这类删减在 changes 清单里声明 `fact_changed:false` 也不被抓——现在把限定/否定/比较级/程度副词一并计入（`fact_delta()` 统一口径：丢任何事实标记或凭空多出数字/引用才算变了，单纯 `maybe can→may` 的情态规范化不算），F10 与句级"事实标记一致/有变化"共用同一判定，不再自相矛盾。自检相应 +5 条（32 条）。
+

@@ -21,7 +21,8 @@ NEGATIONS = ["not", "no ", "never", "none", "neither", "nor", "cannot", "can't",
              "without", "lack", "lacks", "lacked", "fail", "fails", "failed",
              "unable", "hardly", "barely", "rarely"]
 INTENSITY = ["significantly", "slightly", "markedly", "substantially", "considerably",
-             "marginally", "somewhat", "strongly", "weakly", "greatly", "moderately", "sharply"]
+             "marginally", "somewhat", "strongly", "weakly", "greatly", "moderately", "sharply",
+             "clearly", "undoubtedly", "definitively", "certainly", "conclusively"]
 
 # 单位家族（用于识别"数值也变的等价换算"，如 0.9 MPa → 900 kPa）
 UNIT_FAMILIES = {
@@ -46,7 +47,10 @@ WEAK = ["find", "finds", "found", "observe", "observes", "observed", "report", "
 STRONG = ["prove", "proves", "proved", "demonstrate", "demonstrates", "demonstrated",
           "confirm", "confirms", "confirmed", "establish", "establishes", "established",
           "significant", "significantly", "definitively", "clearly", "undoubtedly",
-          "always", "certainly", "conclusively"]
+          "always", "certainly", "conclusively",
+          # "断言为常识"型升级：把"我们观察到"改写成"众所周知"，同样是抬高主张强度
+          "well known", "well-known", "widely accepted", "widely accepted fact",
+          "established fact", "widely recognized", "commonly accepted", "it is known"]
 
 # 数字后面紧跟的普通词不是单位（避免 "0 to" 被当成 "0 to" 这个标记）
 UNIT_STOP = {"to", "and", "of", "in", "at", "by", "from", "with", "for", "is", "are",
@@ -130,8 +134,34 @@ def extract(text: str) -> dict:
 
 
 def fact_tokens(text: str) -> set:
-    """用于 change 条目级比对的最小事实集合（数字+单位、引用）。"""
-    return set(numbers(text)) | set(citations(text))
+    """用于 change 条目级比对的最小事实集合。
+
+    除数字+单位、引用外，必须把限定/否定/比较级/程度副词也计入：否则"删掉 may 却
+    声明 fact_changed=false"（Salinity may raise pressure → Salinity raises pressure）
+    在条目级看不出来，逐条改动台账的自报核验就形同虚设。计数带前缀，避免与数字串混淆。
+    """
+    t = text or ""
+    out = set(numbers(t)) | set(citations(t))
+    for name, vocab in (("hedge", HEDGES), ("neg", NEGATIONS),
+                        ("cmp", COMPARATIVES), ("int", INTENSITY)):
+        for k, v in _count(t, vocab).items():
+            out.add(f"{name}:{k}:{v}")
+    return out
+
+
+SOFT_TAGS = ("hedge", "neg", "cmp", "int")
+
+
+def fact_delta(before: str, after: str) -> dict:
+    """条目级/句级共用同一套判定：丢掉任何事实标记、或凭空多出数字/引用 = 事实变了。
+
+    只多出限定/程度词（maybe can 收敛成 may）属情态规范化，不算事实变化 ——
+    否则正例的正常润色会被条目级 F10 误判成"改了事实却不申报"。
+    """
+    fb, fa = fact_tokens(before), fact_tokens(after)
+    lost = fb - fa
+    gained = {x for x in (fa - fb) if x.split(":")[0] not in SOFT_TAGS}
+    return {"lost": lost, "gained": gained, "changed": bool(lost) or bool(gained)}
 
 
 FACT_TYPES = ("number_units", "citations", "hedges", "negations", "comparatives", "intensity")

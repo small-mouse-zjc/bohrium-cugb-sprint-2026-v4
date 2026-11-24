@@ -24,6 +24,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
 import fact_ledger  # noqa: E402
+import facts  # noqa: E402
 import guard  # noqa: E402
 import polish  # noqa: E402
 import term_check  # noqa: E402
@@ -110,7 +111,9 @@ def main():
                           "diff_audit_md": str((out / "diff_audit.md").resolve())},
         },
         "evidence": [{"anchor": f"sentence {x['i']+1}", "note": f"相似度 {x['similarity']}，"
-                                                                f"事实标记 {'一致' if set(x['facts_before']) == set(x['facts_after']) else '有变化'}"}
+                                                                + ("事实标记 一致"
+                                                                   if not facts.fact_delta(x["original"], x["polished"] or "")["changed"]
+                                                                   else "事实标记 有变化")}
                      for x in ledger["ledger"]],
         "uncertainty": ([{"issue": f"第 {x['i']+1} 句改写幅度大（相似度 {x['similarity']}），建议人工确认主张未变"}
                          for x in ledger["ledger"] if 0.45 <= x["similarity"] < 0.85]

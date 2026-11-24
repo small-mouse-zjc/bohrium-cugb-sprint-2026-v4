@@ -76,10 +76,43 @@ def main():
     assert "undeclared_fact_change" in codes(rep), rep["blocking"]
     ok.append("D5 改动 25→30 未声明 → undeclared_fact_change")
 
+    # 6b 条目级只删情态词（无数字/引用变化）也必须申报：Salinity may→Salinity raises
+    ch6b = [{"original": "Salinity may raise pressure.", "revised": "Salinity raises pressure.",
+             "reason": "精简", "fact_changed": False}]
+    rep = fact_ledger.audit("Salinity may raise pressure.", "Salinity raises pressure.", ch6b)
+    assert "undeclared_fact_change" in codes(rep), rep["blocking"]
+    assert "hedge_loss" in codes(rep), rep["blocking"]
+    ok.append("D5b 条目级删 may 却声明 fact_changed=false → F10 + hedge_loss（fact_tokens 含限定词）")
+
+    # 6c 情态规范化（maybe can → may）不是事实变化，不许误报 F10
+    ch6c = [{"original": "Gas hydrate maybe can form in sediment.", "revised": "Gas hydrate may form in sediment.",
+             "reason": "情态词合并", "fact_changed": False}]
+    rep = fact_ledger.audit("Gas hydrate maybe can form in sediment.", "Gas hydrate may form in sediment.", ch6c)
+    assert "undeclared_fact_change" not in codes(rep), rep["blocking"]
+    ok.append("D5c maybe can→may 属情态规范化，不误报 F10")
+
     # 7 无记录的新句子
     rep = fact_ledger.audit(original, polished + " This mechanism is well known in the literature.", changes)
     assert "unlogged_new_sentence" in codes(rep), rep["blocking"]
     ok.append("D6 凭空加句 → unlogged_new_sentence")
+
+    # 7b 纯加强（中性句塞 clearly）：没有弱词可删，也必须报 F05
+    rep = fact_ledger.audit("The hydrate layer thickens over time.",
+                            "The hydrate layer clearly thickens over time.", [])
+    assert "strength_upgrade" in codes(rep), rep["blocking"]
+    ok.append("D6b 中性句塞 clearly（无弱词可删）→ strength_upgrade（不再只看 hedge/weak 减少）")
+
+    # 7c "断言为常识"型升级：We observed → It is well known
+    rep = fact_ledger.audit("We observed that pressure rises.",
+                            "It is well known that pressure rises.", [])
+    assert "strength_upgrade" in codes(rep), rep["blocking"]
+    ok.append("D6c We observed→It is well known → strength_upgrade（well known 已入强断言表）")
+
+    # 7d 强→强同义替换仍放行：proved → demonstrated
+    rep = fact_ledger.audit("We proved the model at site CUG-3.",
+                            "We demonstrated the model at site CUG-3.", [])
+    assert "strength_upgrade" not in codes(rep), rep["blocking"]
+    ok.append("D6d proved→demonstrated（强→强）仍放行，不误伤同义替换")
 
     # 8 术语变体
     t = term_check.check(case["terms"],

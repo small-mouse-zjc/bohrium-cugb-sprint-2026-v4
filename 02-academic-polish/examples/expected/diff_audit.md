@@ -18,7 +18,7 @@
 
 | # | 原句 | 润色后 | 相似度 | 事实标记变化 |
 |---|---|---|---|---|
-| 1 | Gas hydrate (GH) maybe can form in m | Gas hydrate (GH) may form in marine  | 0.933 | 同一组 |
+| 1 | Gas hydrate (GH) maybe can form in m | Gas hydrate (GH) may form in marine  | 0.933 | ['25 samples', '[3]'] → ['25 samples', '[3]', 'hedge:may:1'] |
 | 2 | The dissociation pressure of GH may  | The dissociation pressure of GH may  | 1.0 | 同一组 |
 | 3 | We did not observe any dissociation  | We did not observe any dissociation  | 1.0 | 同一组 |
 | 4 | It can be seen that the dissociation | The dissociation pressure is sensiti | 0.787 | 同一组 |
