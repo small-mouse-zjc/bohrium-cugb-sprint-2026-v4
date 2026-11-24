@@ -83,6 +83,7 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 |---|---|
 | 缺宏包/字体 | 报 E02 并给出包名；无权限安装时在清单里写明"需在镜像中预装" |
 | 模板 .cls 缺失 | 停止编译，`status=cannot_determine`，列出缺失文件 |
+| 只有 .cls/.sty、没有 template.yaml | 仍按通用规则（T03–T07）检查，`template_mode=generic_cls_only`，结论最高给 `partial` 并在 notes 说明"类别/必填项/章节需人工确认"，不许静默跳过 |
 | 报错级联严重（>50 条） | 先修第一条 E01/E02，再重编，不逐条硬改 |
 | Overfull 无法消除 | 记录具体行与溢出量，标"版式警告，非错误"，不靠缩字号掩盖 |
 | 中文/字体问题 | 报 E09，建议 `ctex` 或 `xeCJK`，不擅自换引擎 |

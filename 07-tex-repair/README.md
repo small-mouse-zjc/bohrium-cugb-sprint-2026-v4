@@ -157,3 +157,7 @@ python examples/selftest.py
 - `examples/demo` 的工程、模板为自建样例；日志片段来自真实 pdflatex 输出，**非平台案例结果**；
 - 本包未在平台运行，不声称任何平台得分；
 - 静态检查不替代真实编译，宏包内部语义错误只能靠日志判定。
+
+**多文件案例（`examples/demo/multi`，实测）**：`main.tex` 用 `\input` 拆出 `sections/intro`、`sections/method` 两章，含子目录图、两张表、`\citep/\citet` 跨文件引用，并在注释里故意写了 `\toprule` 与 `\cite{ghost2099}` 作干扰。`run.py` 端到端结果：`status=success / violations=0 / errors=0 / converged=true / bibtex_runs=1 / pages=2`，注释里的伪违规没有误报。
+
+**基线对照（同机同工程，`examples/baseline.py` = 单轮 pdflatex、不跑 bibtex、不体检）**：修复版基线 `partial / converged=false / 6 条引文警告 / 1 轮 / 0 次 bib`，本 Skill `success / converged=true / 0 警告 / 3 轮 / 1 次 bib`；损坏版两边都是 10 条错误，差别是本 Skill 在编译前就用 8 条规则定位了 10 处问题（含文件行号），基线编完才知道错。完整表见 `examples/demo/compile_evidence.md`，差值可用 `eval/metrics.py --out_dir <skill输出> --base_dir <基线输出>` 复算。
