@@ -40,7 +40,7 @@ description: 把一篇真实文献切成带稳定编号的段落，先锁死术�
 python scripts/pdf_to_paras.py --in <pdf|txt> --out /app/work/paras.jsonl
 ```
 产出每段的 `id`（P0001 递增，**全篇唯一，翻译后不得重排**）、`page`、`bbox`、`col`、`section`。
-PDF 无文字层（`chars_per_page < 50`）时脚本会置 `status=no_text_layer`，此时**停止翻译**并在 `result.json` 写 `status=partial`、`uncertainties` 说明需要 OCR，不许把空白页当正文。
+PDF 无文字层（`chars_per_page < 50`）时脚本会置 `status=no_text_layer`，此时**停止翻译**并在 `result.json` 写 `status=cannot_determine`、`uncertainties` 说明需要 OCR，不许把空白页当正文。
 
 **第 2 步 建并锁术语表（脚本 + 你判断）**
 ```

@@ -256,6 +256,9 @@ def extract_txt(path: Path):
                     "col": "unknown", "bbox": None, "section": section, "text": c, "chars": len(c)})
     meta = {"source": str(path), "pages": page, "chars_per_page": [len(raw)], "dropped_headers_footers": [],
             "status": "ok", "warnings": ["纯文本输入无版面信息，页码为估算"]}
+    if len(raw) < 50:
+        meta["status"] = "no_text_layer"
+        meta["warnings"].append("纯文本几乎为空，疑似抽取失败或扫描件转存，需 OCR/换源")
     return out, meta
 
 

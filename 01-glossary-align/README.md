@@ -120,7 +120,7 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 
 | 情况 | 处置 |
 |---|---|
-| 扫描件、无文字层（`chars_per_page < 50`） | `status=partial`，指出页码，建议 OCR，不猜正文 |
+| 扫描件、无文字层（PDF 每页均字符 < 50，或纯文本近乎为空） | `status=cannot_determine`，指出页码，建议 OCR，不猜正文 |
 | 双栏串行错乱 | 先 `--check-order` 看串栏警告，再借用 08 的列重排逻辑；仍错则在 `uncertainties` 标受影响段落 |
 | 公式/表格是图片 | 该段 `status=uncertain`，`risk=["公式为图片，未转写"]`，正文照译并保留编号 |
 | 原文残缺、句子中断 | `status=untranslatable`，保留原文片段，不补写 |
