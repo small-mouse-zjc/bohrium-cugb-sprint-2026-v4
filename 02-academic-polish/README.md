@@ -52,4 +52,4 @@
 | fact_preservation_rate | 1.0000 | 0.6667 |
 | status | success | pass=false（4 项阻断） |
 
-自检：`python examples/selftest.py` → 26 条全绿（含强→强同义放行、近义双句删一句必报 F08）。
+自检：`python examples/selftest.py` → 27 条全绿（含强→强同义放行、近义双句删一句必报 F08）。

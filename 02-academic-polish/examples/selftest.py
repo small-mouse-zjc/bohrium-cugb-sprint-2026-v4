@@ -166,6 +166,15 @@ def main():
     assert "sentence_dropped" in codes(rep), rep["blocking"]
     ok.append("D18 近义双句删一句 → sentence_dropped（一对一匹配，不再被顶替）")
 
+    # 8n 两句合法合并成一句：不能被当成整句丢失
+    src = ("The hydrate forms in marine sediment. "
+           "The hydrate is stable at low temperature.")
+    dst = "The hydrate forms in marine sediment and is stable at low temperature."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "sentence_dropped" not in codes(rep), rep["blocking"]
+    assert any(a["type"] == "sentence_merged" for a in rep["advisory"]), rep["advisory"]
+    ok.append("D19 两句合并为一句 → A02 sentence_merged，不误判 F08")
+
     # 8c 编造数字：原文没有 18 MPa
     rep = fact_ledger.audit(original, polished.replace("above 12 MPa", "above 18 MPa"), changes)
     assert {"number_added", "number_or_unit_loss"} & codes(rep), rep["blocking"]

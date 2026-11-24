@@ -84,6 +84,16 @@ def _count_map_diff(before: dict, after: dict) -> dict:
             if after.get(k, 0) < v}
 
 
+def _content_cover(src: str, merged: str) -> float:
+    """源句的实词有多少比例能在合并句里找到（用于区分"合并"与"整句丢失"）。"""
+    toks = {w for w in re.findall(r"[A-Za-z][A-Za-z\-]{3,}", (src or "").lower())}
+    if not toks:
+        return 0.0
+    low = (merged or "").lower()
+    hit = sum(1 for w in toks if w in low)
+    return hit / len(toks)
+
+
 def audit(original: str, polished: str, changes=None) -> dict:
     changes = changes or []
     orig_f = facts.extract(original)
@@ -216,9 +226,29 @@ def audit(original: str, polished: str, changes=None) -> dict:
                    "facts_before": sorted(facts.fact_tokens(o)),
                    "facts_after": sorted(facts.fact_tokens(pol_sents[best]) if best is not None else [])}
             ledger.append(rec)
+        # 第二遍判定：此时全部匹配已知，才能区分"合并"与"整句丢失"
+        for i, rec in enumerate(ledger):
+            best_r = rec["similarity"]
             if best_r < 0.45:
-                blocking.append({"type": "sentence_dropped", "index": i, "original": o[:80],
-                                 "hint": "源句没有被任何润色句一对一认领"})
+                # 未被认领不必然是丢失：两句合法合并成一句时，合并句应同时覆盖两句实词。
+                # 只按"一对一无主"就阻断会把合并误判成 F08。
+                merged_into = None
+                for k, rec2 in enumerate(ledger):
+                    if k == i:
+                        continue
+                    p = rec2.get("polished") or ""
+                    if not p:
+                        continue
+                    if _content_cover(rec["original"], p) >= 0.6 and _content_cover(rec2["original"], p) >= 0.6:
+                        merged_into = k
+                        break
+                if merged_into is not None:
+                    rec["merged_into"] = merged_into
+                    advisory.append({"type": "sentence_merged", "index": i, "into": merged_into,
+                                     "hint": "两句合并为一句，按 A02 提示而非整句丢失"})
+                else:
+                    blocking.append({"type": "sentence_dropped", "index": i, "original": rec["original"][:80],
+                                     "hint": "源句没有被任何润色句一对一认领，也未被合并覆盖"})
             elif best_r < 0.85:
                 advisory.append({"type": "sentence_rewritten", "index": i,
                                  "similarity": round(best_r, 3)})
