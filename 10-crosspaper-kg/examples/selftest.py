@@ -255,6 +255,26 @@ def main():
         assert p1["ambiguous"] is True, p1
         ok.append("路径查询端点多实例：from_ids 含全部实例（%d 个）且 ambiguous=true，不静默取一个" % len(ss_ids))
 
+        # 建边端的别名归一必须与提及/查询同口径：关系端点写缩写 "GH" 也要能建边
+        rel_ab = {"relations": [{"id": "eABBR", "paper_id": "P1", "subject": "GH",
+                                 "predicate": "located_in", "object": "marine sediment",
+                                 "paragraph_id": "JATS-1",
+                                 "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."}]}
+        va2, kga2, _ = build_case(tmp, "abbr-edge", base, rel_ab, qy)
+        assert len(kga2["edges"]) == 1, kga2["edges"]
+        assert "K06" not in codes(va2), va2["violations"]
+        assert kga2["edges"][0]["subject_label"] == "Gas hydrate", kga2["edges"][0]
+        ok.append("建边端认缩写：relation subject=\"GH\" → 边建成、无 K06、subject 归一为 Gas hydrate")
+
+        # 回归：篇内没有全称的缩写仍不能凭空解析（K06 保持）
+        rel_ab2 = {"relations": [{"id": "eBAD", "paper_id": "P1", "subject": "XYZ",
+                                  "predicate": "located_in", "object": "marine sediment",
+                                  "paragraph_id": "JATS-1",
+                                  "quote": "Gas hydrate (GH) occurs in marine sediment at site CUG-3."}]}
+        va3, kga3, _ = build_case(tmp, "abbr-bad", base, rel_ab2, qy)
+        assert "K06" in codes(va3) and not kga3["edges"], va3["violations"]
+        ok.append("回归：篇内无全称的缩写 XYZ 仍 K06，不凭空建边")
+
         # cannot_determine 时 notes 不残留下游 query 噪音
         c9 = copy.deepcopy(base)
         for p in c9["papers"]:

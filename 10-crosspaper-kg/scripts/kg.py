@@ -185,6 +185,10 @@ def build(corpus: dict, relations: dict, queries):
     # 边绑定：同名多节点时，优先用关系里给的段落/限定字段消歧，避免把边绑到错实例
     def match(surface, pid, hints=None, paragraph_id=None):
         n = norm(surface)
+        # 建边端的归一要和提及端同口径：关系里写 "GH" 时先按该篇的缩写表展开成全称，
+        # 否则提及/查询都认的别名在建边处失效，端点直接 K06，边建不起来。
+        if is_abbr(surface) and n in aliases.get(pid, {}):
+            n = norm(aliases[pid][n])
         cands = [nd for nd in nodes if any(m["key"] == n for m in nd["mentions"])]
         same = [nd for nd in cands if any(m["paper_id"] == pid for m in nd["mentions"])]
         pool = same or cands
@@ -218,6 +222,8 @@ def build(corpus: dict, relations: dict, queries):
         o = match(r["object"], pid, r.get("object_attrs"), prg)
         def n_cands(surface):
             n = norm(surface)
+            if is_abbr(surface) and n in aliases.get(pid, {}):
+                n = norm(aliases[pid][n])
             return len([nd for nd in nodes if any(m["key"] == n and m["paper_id"] == pid for m in nd["mentions"])])
         if not s or not o:
             amb = [rr for rr, got in ((r["subject"], s), (r["object"], o)) if got is None and n_cands(rr) > 1]
