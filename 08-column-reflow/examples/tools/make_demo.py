@@ -69,6 +69,22 @@ def main():
         truth.append(f"P{i}")
         y += 82
 
+
+    # 第 3 页：不规则双栏（左栏短、右栏长、半页宽块插在栏中、跨块断词）
+    page = page_new()
+    put((50, 20, 545, 40), "Demo Journal of Reflow 2026 - preprint", size=8)
+    put((50, 786, 545, 826), "Demo preprint, not for citation", size=8)
+    put((50, 55, 275, 115), "[[L1]] Left column starts here and is shorter than the right column.", size=9)
+    put((50, 130, 275, 190), "[[L2]] A hyphenated word is split across blocks: micro-", size=9)
+    put((50, 152, 275, 212), "[[L3]] structure continues in the next block.", size=9)
+    put((305, 55, 545, 115), "[[Q1]] Right column block one continues normally.", size=9)
+    put((305, 130, 545, 190), "[[Q2]] Right column block two continues normally.", size=9)
+    put((305, 205, 545, 265), "[[Q3]] Right column block three continues normally.", size=9)
+    put((50, 285, 545, 320), "[[G1]] Table 2. A wide cross-column block inserted inside the two columns: it spans the full text width and must be read at its own vertical position, after the left column and before the remaining right-column blocks.", size=9)
+    put((305, 340, 545, 400), "[[Q4]] Right column resumes below the inserted block.", size=9)
+    put((305, 415, 545, 475), "[[Q5]] Right column block five continues normally.", size=9)
+    put((305, 490, 545, 550), "[[Q6]] Right column block six ends the page.", size=9)
+    truth += ["L1", "L2", "L3", "Q1", "Q2", "Q3", "G1", "Q4", "Q5", "Q6"]
     pdf = out / "demo.pdf"
     doc.save(str(pdf))
     (out / "truth.json").write_text(json.dumps({"order": truth, "note": "构造文档，真值由生成顺序确定"}, ensure_ascii=False, indent=2), encoding="utf-8")

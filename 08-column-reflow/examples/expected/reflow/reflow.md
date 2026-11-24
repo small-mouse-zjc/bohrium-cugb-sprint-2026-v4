@@ -66,3 +66,30 @@
 
 [P0023] p.2 1
 [[P20]] Left-column paragraph 20. It describes step 20 of the demo procedure and keeps numbers like 202 m. The paragraph ends with a full stop so it can be split cleanly.
+
+[P0024] p.3 0
+[[L1]] Left column starts here and is shorter than the right column.
+
+[P0025] p.3 0
+[[L2]] A hyphenated word is split across blocks: microstructure continues in the next block. [[L3]]
+
+[P0026] p.3 1
+[[Q1]] Right column block one continues normally.
+
+[P0027] p.3 1
+[[Q2]] Right column block two continues normally.
+
+[P0028] p.3 1
+[[Q3]] Right column block three continues normally.
+
+[P0029] p.3 span
+[[G1]] Table 2. A wide cross-column block inserted inside the two columns: it spans the full text width and must be read at its own vertical position, after the left column and before the remaining right-column blocks.
+
+[P0030] p.3 1
+[[Q4]] Right column resumes below the inserted block.
+
+[P0031] p.3 1
+[[Q5]] Right column block five continues normally.
+
+[P0032] p.3 1
+[[Q6]] Right column block six ends the page.

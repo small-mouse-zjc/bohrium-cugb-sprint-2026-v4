@@ -80,7 +80,9 @@ def main():
 
     metrics = {"pages": info.get("pages"), "paragraphs": info.get("paragraphs"),
                "layout": info.get("layout"), "dropped_headers_footers": len(info.get("dropped_headers_footers", [])),
-               "suspicious": len(info.get("suspicious", []))}
+               "suspicious": len(info.get("suspicious", [])),
+               "coverage": info.get("coverage"),
+               "audit_fail": len((info.get("audit") or {}).get("fail", []))}
     if truth and truth.exists():
         rm = call([ROOT / "eval/measure.py", "--out", out, "--truth", truth])
         mp = out / "measure.json"
@@ -98,10 +100,13 @@ def main():
                             "inversions": m.get("inversions"), "adjacent_errors": m.get("adjacent_errors"),
                             "order_match": m.get("order_match"), "missing": len(m.get("missing", []))})
             artifacts += ["measure.json"]
-            ok = bool(m.get("order_match")) and m.get("inversions") == 0 and not m.get("missing")
+            ok = (bool(m.get("order_match")) and m.get("inversions") == 0 and not m.get("missing")
+                  and len(info.get("suspicious", [])) == 0
+                  and (info.get("coverage") is None or info["coverage"] >= 0.95))
             status = "success" if ok else "partial"
             if not ok:
-                notes.append(f"与真值不一致：逆序 {m.get('inversions')}、相邻错位 {m.get('adjacent_errors')}、缺失 {len(m.get('missing', []))}")
+                notes.append(f"与真值不一致：逆序 {m.get('inversions')}、相邻错位 {m.get('adjacent_errors')}、缺失 {len(m.get('missing', []))}；"
+                             f"串栏疑似 {len(info.get('suspicious', []))}、覆盖率 {info.get('coverage')}")
         else:
             metrics["order_match"] = None
             status = "partial"
@@ -110,6 +115,8 @@ def main():
         metrics["order_match"] = None
         status = "partial"
         notes.append("未提供真值 truth.json：重排已交付，但顺序无法机器校验（不宣称通过）")
+        if info.get("suspicious"):
+            notes.append(f"另有串栏疑似 {len(info['suspicious'])} 处，必须人工复核")
 
     if info.get("paragraphs", 0) == 0:
         status = "cannot_determine"

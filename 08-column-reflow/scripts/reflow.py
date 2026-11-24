@@ -165,9 +165,14 @@ def merge_paragraphs(seq):
             same_col = p.get("col") == b.get("col")
             gap = b["y0"] - p["y1"]
             prev_open = not re.search(r"[.!?。！？:;]\s*$", p["text"])
-            start_lower = re.match(r"[a-z(]", b["text"]) is not None
+            start_lower = re.match(r"(?:\[\[[A-Z]\d+\]\]\s*)?[a-z(]", b["text"]) is not None
             if same_col and prev_open and start_lower and gap <= max(12, 1.6 * (b["size"] or 10)):
-                p["text"] = clean(p["text"] + " " + b["text"])
+                if p["text"].endswith("-") and re.search(r"[A-Za-z]-$", p["text"]):
+                    mk = re.match(r"\[\[[A-Z]\d+\]\]", b["text"])
+                    tail = b["text"][mk.end():].lstrip() if mk else b["text"]
+                    p["text"] = p["text"][:-1] + tail + ((" " + mk.group(0)) if mk else "")
+                else:
+                    p["text"] = clean(p["text"] + " " + b["text"])
                 p["y1"] = b["y1"]
                 p["x1"] = max(p["x1"], b["x1"])
                 continue
@@ -235,10 +240,22 @@ def main():
     for a1, b1 in zip(paras, paras[1:]):
         if a1["page"] != b1["page"] or isinstance(a1["col"], str) or isinstance(b1["col"], str):
             continue
-        if a1["col"] < b1["col"] and not re.search(r"[.!?。！？]\s*$", a1["text"]):
+        vis = re.sub(r"\[\[[A-Z]\d+\]\]", "", a1["text"]).strip()
+        if a1["col"] < b1["col"] and not re.search(r"[.!?。！？]\s*$", vis):
             suspicious.append({"from": a1["id"], "to": b1["id"], "reason": "左栏末尾无句末标点即转右栏"})
 
+    kept_chars = sum(len(p["text"]) for p in paras)
+    src_chars = sum(len(b["text"]) for p in pages for b in p["blocks"])  # 已剔页眉页脚，分母只算正文/边注
+    coverage = round(kept_chars / src_chars, 4) if src_chars else None
+    audit_fail = []
+    if a.audit:
+        if suspicious:
+            audit_fail.append(f"串栏疑似 {len(suspicious)} 处")
+        if coverage is not None and coverage < 0.95:
+            audit_fail.append(f"文本覆盖率 {coverage:.2%} < 95%")
+
     info = {"pdf": Path(a.pdf).name, "pages": len(pages), "paragraphs": len(paras),
+            "coverage": coverage, "audit": {"enabled": bool(a.audit), "fail": audit_fail},
             "layout": "single" if layout == 1 else f"{layout}-column",
             "dropped_headers_footers": dropped, "suspicious": suspicious,
             "note_blocks": notes, "continues": continues,
@@ -254,7 +271,10 @@ def main():
     md = "\n\n".join(f"[{r['id']}] p.{r['page']} {r['col']}\n{r['text']}" for r in paras)
     (out / "reflow.md").write_text(md + "\n", encoding="utf-8")
     print(json.dumps({"layout": info["layout"], "pages": info["pages"], "paragraphs": len(paras),
-                      "dropped": len(dropped), "suspicious": len(suspicious), "mode": info["mode"]}, ensure_ascii=False))
+                      "dropped": len(dropped), "suspicious": len(suspicious), "coverage": coverage,
+                      "audit_fail": audit_fail, "mode": info["mode"]}, ensure_ascii=False))
+    if a.audit and audit_fail:
+        raise SystemExit(3)
 
 
 if __name__ == "__main__":

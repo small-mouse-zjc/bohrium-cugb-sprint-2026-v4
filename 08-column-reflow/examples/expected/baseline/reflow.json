@@ -1,27 +1,48 @@
 {
   "pdf": "demo.pdf",
-  "pages": 2,
-  "paragraphs": 23,
+  "pages": 3,
+  "paragraphs": 33,
+  "coverage": 1.0,
+  "audit": {
+    "enabled": false,
+    "fail": []
+  },
   "layout": "single",
   "dropped_headers_footers": [
     {
       "page": 1,
-      "text": "Demo Journal of Reflow 2026 - preprint"
+      "text": "Demo Journal of Reflow 2026 - preprint",
+      "reason": "跨页逐字重复"
     },
     {
       "page": 1,
-      "text": "Demo preprint, not for citation"
+      "text": "Demo preprint, not for citation",
+      "reason": "跨页逐字重复"
     },
     {
       "page": 2,
-      "text": "Demo Journal of Reflow 2026 - preprint"
+      "text": "Demo Journal of Reflow 2026 - preprint",
+      "reason": "跨页逐字重复"
     },
     {
       "page": 2,
-      "text": "Demo preprint, not for citation"
+      "text": "Demo preprint, not for citation",
+      "reason": "跨页逐字重复"
+    },
+    {
+      "page": 3,
+      "text": "Demo Journal of Reflow 2026 - preprint",
+      "reason": "跨页逐字重复"
+    },
+    {
+      "page": 3,
+      "text": "Demo preprint, not for citation",
+      "reason": "跨页逐字重复"
     }
   ],
   "suspicious": [],
+  "note_blocks": [],
+  "continues": [],
   "mode": "baseline",
-  "chars": 3622
+  "chars": 4304
 }

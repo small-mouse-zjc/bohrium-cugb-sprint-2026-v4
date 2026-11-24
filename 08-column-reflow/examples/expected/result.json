@@ -1,21 +1,27 @@
 {
   "case_id": "demo-reflow-01",
-  "mode": "self-demo",
-  "note": "示例运行的平台契约样例：输入为自建演示材料，非平台案例。",
   "status": "success",
-  "artifacts": [
-    "paragraphs.jsonl",
-    "reflow.json",
-    "reflow.md"
-  ],
   "metrics": {
-    "pages": 2,
-    "paragraphs": 23,
-    "blocks_extracted": 23,
+    "pages": 3,
+    "paragraphs": 32,
+    "layout": "2-column",
+    "dropped_headers_footers": 6,
+    "suspicious": 0,
+    "coverage": 0.9998,
+    "audit_fail": 0,
     "exact_position_rate": 1.0,
     "inversions": 0,
     "adjacent_errors": 0,
-    "order_match": true
+    "order_match": true,
+    "missing": 0,
+    "pass": true
   },
-  "uncertainties": []
+  "notes": [],
+  "artifacts": [
+    "paragraphs.jsonl",
+    "reflow.json",
+    "reflow.md",
+    "measure.json"
+  ],
+  "input_mode": "local"
 }

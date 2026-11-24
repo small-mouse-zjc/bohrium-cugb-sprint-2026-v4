@@ -20,6 +20,10 @@ def run(args, rc=(0,)):
     return r
 
 
+def rows_of(d):
+    return [json.loads(l) for l in (Path(d) / "paragraphs.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+
+
 def main():
     tmp = Path(tempfile.mkdtemp(prefix="v3_08_"))
     ok, err = [], []
@@ -33,12 +37,15 @@ def main():
         run([ROOT / "scripts/reflow.py", "--pdf", pdf, "--out", rd, "--audit"])
         info = json.loads((rd / "reflow.json").read_text(encoding="utf-8"))
         assert info["layout"] == "2-column", info["layout"]
-        assert len(info["dropped_headers_footers"]) == 4, "页眉页脚未全部剔除"
+        assert len(info["dropped_headers_footers"]) == 6, "页眉页脚未全部剔除（3 页各 2 条）"
         assert not info["suspicious"], f"仍有串栏疑似: {info['suspicious']}"
         m = json.loads(run([ROOT / "eval/measure.py", "--out", rd, "--truth", truth]).stdout)
         assert m["order_match"] is True, f"顺序与真值不一致: {m}"
         assert m["inversions"] == 0, m
-        ok.append("双栏重排：与真值逐段一致，0 逆序，0 串栏，页眉页脚 4 条全剔除")
+        ok.append("双栏重排：3 页（含左短右长、半页宽块插栏中、跨块断词）与真值逐段一致，0 逆序，0 串栏，页眉页脚 6 条全剔除")
+        joined = [r["text"] for r in rows_of(rd)]
+        assert any("microstructure" in x for x in joined), [x for x in joined if "micro" in x]
+        ok.append("跨块断词：micro- + structure → microstructure（不再留 \"micro- structure\"）")
 
         bd = tmp / "base"
         run([ROOT / "scripts/reflow.py", "--pdf", pdf, "--out", bd, "--baseline"])

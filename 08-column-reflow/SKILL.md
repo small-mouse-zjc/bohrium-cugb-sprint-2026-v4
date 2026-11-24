@@ -42,13 +42,14 @@ python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 
 **第 3 步 清理**
 - 页眉页脚：上下 7% 区域内的三类文本全部剔除并记入 `dropped`（含 `reason`）：① 跨页逐字重复；② 页码形态（`Page N`、`N`、`N of M`、`N/M`）；③ 跨页只有数字不同的短行（running head/章节页眉，需字号小于正文字号）。只认逐字重复会漏掉每页变化的页码。
-- 断词：行末 `-` 直接拼接（`micro-` + `structure` → `microstructure`），避免把单词拆两段。
+- 断词：行内行末 `-` 直接拼接；跨块续段时上一段以 `-` 结尾、下一段小写开头（允许 `[[Xn]]` 标记前缀）同样去掉连字符拼接（`micro-` + `structure` → `microstructure`）。
 - 同栏续段：上一块无句末标点、下一块小写开头、垂直间距 ≤1.6 倍字号时合并。
 
 **第 4 步 自检（脚本）**
 ```
 python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 ```
+`--audit` 是硬门槛开关：串栏疑似 > 0 或文本覆盖率 < 95% 时以退出码 3 结束，`reflow.json.audit.fail` 写明原因；`scripts/run.py` 的 `success` 同时要求 `suspicious==0` 且 `coverage>=0.95`。
 硬门槛：
 
 | 指标 | 门槛 |
@@ -80,5 +81,5 @@ python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 ```
 python examples/selftest.py
 ```
-自检 **10 条**：除双栏真值、基线对照、平台入口/降级外，新增 ① 每页变化的页码（`Page 1 of 2`/`Page 2 of 2`）按页码形态剔除且正文零泄漏；② 页边窄块进 `note` 不混正文；③ 跨页断句正确记 `continues_from`。
+自检 **11 条**：除双栏真值、基线对照、平台入口/降级外，新增 ① 每页变化的页码（`Page 1 of 2`/`Page 2 of 2`）按页码形态剔除且正文零泄漏；② 页边窄块进 `note` 不混正文；③ 跨页断句正确记 `continues_from`；④ 第 3 页不规则双栏（左栏短、右栏长、半页宽块插在栏中、跨块断词）仍与真值逐段一致，`micro-`+`structure` 合成 `microstructure`。
 要求：用已知真值的双栏 PDF（`examples/demo` 生成器可重建）验证：本算法输出顺序与真值 **完全一致**；朴素"按 y 再按 x"基线明显串栏（作为对照，不是分数）。
