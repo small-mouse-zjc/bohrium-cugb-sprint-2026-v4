@@ -1,12 +1,13 @@
 {
   "case_id": "demo-hydrate-01",
   "counts": {
-    "source_paras": 7,
-    "translated_paras": 7,
+    "source_paras": 12,
+    "translated_paras": 12,
     "glossary_terms": 16,
     "term_checks": 35,
-    "number_checks": 28,
-    "citation_checks": 7
+    "number_checks": 33,
+    "citation_checks": 7,
+    "headings": 5
   },
   "rates": {
     "coverage": 1.0,
@@ -23,6 +24,9 @@
     "uncertain_flagging": 1.0
   },
   "failed": [],
+  "violation_counts": {},
+  "hard_violations": 0,
+  "soft_violations": 0,
   "pass": true,
   "violations": []
 }

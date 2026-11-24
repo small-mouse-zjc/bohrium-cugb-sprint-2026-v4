@@ -1,0 +1,7 @@
+{
+  "case_id": "demo-hydrate-01",
+  "source": "source.txt",
+  "glossary": "glossary_filled.csv",
+  "bilingual": "bilingual.json",
+  "note": "自建演示案例，非平台固定案例"
+}

@@ -21,7 +21,7 @@ v1/v2 的教训是功能摊得太宽——术语、摘要、问答、润色、�
 
 | 文件 | 内容 | 谁生成 |
 |---|---|---|
-| `result.json` | 平台契约字段 + `case_id` + `status` + `artifacts` + `evidence` + `uncertainties` + `metrics` | 模型，指标从 `qc.json` 拷贝 |
+| `result.json` | 平台契约字段 `case_id` + `status` + `artifacts` + `metrics`。**由 `scripts/run.py` 产出**，指标从 `qc.json` 拷，不手填 |
 | `bilingual.json` | 逐段结构：`id/page/section/source_span/source/target/terms/status/basis/risk` | 模型（翻译） |
 | `bilingual.md` | 人读版：`[P0001] p.2 §Results` 原文/译文交叠 | 脚本 |
 | `glossary.csv` | `source,translation,pos,occurrences,paragraph_ids,lock` | 脚本 + 模型填译名 |
@@ -96,13 +96,13 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 
 ## 5. 实测证据（自建演示材料，非平台案例）
 
-`examples/demo/source.txt` 是一篇 7 段的水合物文献式样文本，`examples/expected/` 是真实跑出的产物：
+`examples/demo/source.txt` 是一篇 7 段正文 + 5 个章节标题的水合物文献式样文本，`examples/expected/` 是真实跑出的产物：
 
-- 7 段全部有译文，**覆盖率 1.00**；
-- 抽出并锁定 **16 条术语**，执行 **35 次术语检查**，**一致率 1.00**；
-- **28 个数字标记**、**7 处引用标记**全部原位保留，两项保真率均 **1.00**；
-- 未确定段全部带 `risk`，标注率 **1.00**；
-- `qc.json` 的 `failed` 与 `violations` 均为空，`pass=true`。
+- **12 段（7 正文 + 5 章节标题）全部有译文**，覆盖率 1.00；标题用 `H00n` 编号单独成段，不再被静默丢弃；
+- 抽出并锁定 **16 条术语**，执行 **35 次术语检查**，一致率 1.00；
+- **33 个数字标记**、**7 处引用标记**全部原位保留，两项保真率均 1.00；
+- 未确定段全部带 `risk`，标注率 1.00；
+- `qc.json` 的 `failed`、`violations`、`hard_violations` 均为 0，`pass=true`。
 
 缺陷注入自检（`python examples/selftest.py`）要求质检器对三类人为破坏全部命中，否则视为质检器失效、不得提交：
 
@@ -112,7 +112,9 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 | F2 整段漏译（删掉一段 `target`） | 报覆盖率不足 |
 | F3 数字与引用同时丢失 | 同时报 `number_lost` 与 `citation_lost` |
 
-自检 6 条断言全绿。演示输入是纯文本，`paras.jsonl.meta.json` 明确记录 `warnings: 纯文本输入无版面信息，页码为估算`——不把估算页码当真实页码。
+自检 **11 条**断言全绿，除三类注入外还覆盖：平台入口（`case.json → result.json`，12 段含 5 标题）、缺译文草稿时 `status=partial`、硬违规卡 `pass`（`unit_lost` + `dup_target` 同时命中时 `hard_violations>0`、`pass=false`）、基线对照（Skill `pass=true` vs 基线 `pass=false`，术语一致率差 +80.00%）、缺 `qc.json` 的基线段记 `None` 而不崩溃。演示输入是纯文本，`paras.jsonl.meta.json` 明确记录 `warnings: 纯文本输入无版面信息，页码为估算`——不把估算页码当真实页码。
+
+**上岗入口**：`python scripts/run.py --input /input --output /app/output`。它读 `case.json` 的 `source / glossary / bilingual`（字段名容错），依次跑取段 → 术语锁定 → 质检，写 `result.json`；`status` 由实际产物判定：`success` 需 `qc.pass=true`；有译文但未过门槛为 `partial`；无文字层为 `cannot_determine`；缺原文/`case.json` 为 `rejected`。**没有译文草稿时不冒充成功**，只交 `paras.jsonl` 与 `glossary.csv` 并写 `partial`。
 
 ## 6. 异常与降级
 
@@ -128,6 +130,8 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 ## 7. 快速开始
 
 ```bash
+# 0) 平台一键（读 /input/case.json，写 /app/output/result.json）
+python scripts/run.py
 # 1) 抽段
 python scripts/pdf_to_paras.py --in paper.pdf --out work/paras.jsonl
 # 2) 抽术语候选（人工填唯一译名）

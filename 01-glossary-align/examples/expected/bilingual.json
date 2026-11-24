@@ -5,11 +5,81 @@
   "note": "示例输出：作者按本 Skill 规则在自建演示文本上完成，非平台正式案例结果。",
   "paragraphs": [
     {
+      "id": "H001",
+      "type": "heading",
+      "page": 1,
+      "section": "1 Introduction",
+      "source": "1 Introduction",
+      "target": "1 引言",
+      "terms": [],
+      "status": "ok",
+      "basis": "章节标题按 SKILL 一并翻译，编号保留以便与原文对照。",
+      "risk": []
+    },
+    {
+      "id": "H002",
+      "type": "heading",
+      "page": 1,
+      "section": "2 Materials and Methods",
+      "source": "2 Materials and Methods",
+      "target": "2 材料与方法",
+      "terms": [],
+      "status": "ok",
+      "basis": "章节标题按 SKILL 一并翻译，编号保留以便与原文对照。",
+      "risk": []
+    },
+    {
+      "id": "H003",
+      "type": "heading",
+      "page": 1,
+      "section": "3 Results",
+      "source": "3 Results",
+      "target": "3 结果",
+      "terms": [],
+      "status": "ok",
+      "basis": "章节标题按 SKILL 一并翻译，编号保留以便与原文对照。",
+      "risk": []
+    },
+    {
+      "id": "H004",
+      "type": "heading",
+      "page": 1,
+      "section": "4 Discussion",
+      "source": "4 Discussion",
+      "target": "4 讨论",
+      "terms": [],
+      "status": "ok",
+      "basis": "章节标题按 SKILL 一并翻译，编号保留以便与原文对照。",
+      "risk": []
+    },
+    {
+      "id": "H005",
+      "type": "heading",
+      "page": 1,
+      "section": "5 Conclusions",
+      "source": "5 Conclusions",
+      "target": "5 结论",
+      "terms": [],
+      "status": "ok",
+      "basis": "章节标题按 SKILL 一并翻译，编号保留以便与原文对照。",
+      "risk": []
+    },
+    {
       "id": "P0001",
       "page": 1,
       "section": "1 Introduction",
       "target": "天然气水合物是一种类冰的笼型化合物，在高压低温条件下，甲烷分子占据由水分子构成的笼腔。在海洋沉积物中，水合物稳定带（HSZ）的底界通常由地震剖面上的似海底反射（BSR）标示。由于天然气水合物的稳定性取决于压力、温度、孔隙水盐度和气体组成，这些条件的微小变化可使水合物稳定带边界移动数十米。",
-      "terms": ["天然气水合物", "笼型化合物", "甲烷", "水合物稳定带", "HSZ", "似海底反射", "BSR", "孔隙水盐度", "盐度"],
+      "terms": [
+        "天然气水合物",
+        "笼型化合物",
+        "甲烷",
+        "水合物稳定带",
+        "HSZ",
+        "似海底反射",
+        "BSR",
+        "孔隙水盐度",
+        "盐度"
+      ],
       "status": "ok",
       "basis": "clathrate 按术语表固定为'笼型化合物'；HSZ/BSR 缩写保持原形以便回查原文。",
       "risk": []
@@ -19,7 +89,15 @@
       "page": 1,
       "section": "2 Materials and Methods",
       "target": "我们在水深 1180 m 的 CUG-3 站位采集了保压岩心。孔隙水盐度用折射法测定，以 3.5 wt% NaCl 当量表示。子样在 1.2 MPa、4 °C 的高压腔中平衡，并记录分解压力，分辨率为 0.01 MPa。孔隙度由伽马射线密度测井求得，渗透率按 Kozeny–Carman 关系 Eq. (1) 估算。",
-      "terms": ["水深", "孔隙水盐度", "盐度", "分解压力", "分解", "孔隙度", "渗透率"],
+      "terms": [
+        "水深",
+        "孔隙水盐度",
+        "盐度",
+        "分解压力",
+        "分解",
+        "孔隙度",
+        "渗透率"
+      ],
       "status": "ok",
       "basis": "wt% 与 MPa、°C 原样保留；Eq. (1) 标记不译，保证回查。",
       "risk": []
@@ -29,7 +107,13 @@
       "page": 1,
       "section": "3 Results",
       "target": "砂质层段的水合物饱和度为孔隙体积的 21% 至 64%。在脊顶，BSR 位于海底之下 12 m，向翼部加深至 35 m。分解实验表明，在 4 °C 下盐度升高 3.5 wt% 会使分解压力升高 0.9 MPa（Fig. 2）。这些观测与 [3] 的区域热模型一致。",
-      "terms": ["水合物饱和度", "BSR", "分解", "盐度", "分解压力"],
+      "terms": [
+        "水合物饱和度",
+        "BSR",
+        "分解",
+        "盐度",
+        "分解压力"
+      ],
       "status": "ok",
       "basis": "百分比与深度单位逐字保留；Fig. 2 与 [3] 原位不动。",
       "risk": []
@@ -39,7 +123,14 @@
       "page": 1,
       "section": "4 Discussion",
       "target": "在 CUG-3 站位，模拟的水合物稳定带（HSZ）厚度与实测 BSR 深度相差 6 m。我们将这一偏差归因于水合物分解引起的孔隙水淡化，而不是区域热流异常。由于砂层的渗透率比上覆黏土高一个数量级，流体流动可在数公里尺度上重新分配盐度（Sloan & Koh, 2008）。然而，该机制无法解释翼部富黏土沉积物中清晰的 BSR。",
-      "terms": ["HSZ", "BSR", "分解", "热流异常", "渗透率", "盐度"],
+      "terms": [
+        "HSZ",
+        "BSR",
+        "分解",
+        "热流异常",
+        "渗透率",
+        "盐度"
+      ],
       "status": "ok",
       "basis": "因果关系按原文保留（归因于…而不是…）；作者-年份引用原样保留。",
       "risk": []
@@ -49,7 +140,11 @@
       "page": 1,
       "section": "5 Conclusions",
       "target": "CUG-3 站位的天然气水合物稳定性受压力、温度和孔隙水盐度的耦合作用控制。实测的每 3.5 wt% 盐度对应 0.9 MPa 的压力偏移，在 0.02 MPa 内可复现，应纳入区域 HSZ 模型。Table 1 汇总了本研究采用的输入参数。",
-      "terms": ["孔隙水盐度", "盐度", "水合物稳定带"],
+      "terms": [
+        "孔隙水盐度",
+        "盐度",
+        "水合物稳定带"
+      ],
       "status": "ok",
       "basis": "'每…对应…' 的定量关系不改写；Table 1 标记保留。",
       "risk": []
@@ -59,7 +154,9 @@
       "page": 1,
       "section": "5 Conclusions",
       "target": "Table 1. CUG-3 站位 HSZ 模型的输入参数。",
-      "terms": ["水合物稳定带"],
+      "terms": [
+        "水合物稳定带"
+      ],
       "status": "ok",
       "basis": "图表题注按正文同样译法，编号保持在句首。",
       "risk": []
@@ -69,7 +166,10 @@
       "page": 1,
       "section": "5 Conclusions",
       "target": "Figure 2. 4 °C 下分解压力与盐度的关系。虚线为最佳拟合关系。",
-      "terms": ["分解压力", "盐度"],
+      "terms": [
+        "分解压力",
+        "盐度"
+      ],
       "status": "ok",
       "basis": "题注编号与温度单位原样保留。",
       "risk": []

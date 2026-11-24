@@ -171,6 +171,10 @@ def extract_pdf(path: Path):
             is_head = _is_heading(text, b["size"], doc_median)
             if is_head:
                 cur_section = text
+                # 标题也作为可翻译段落输出（SKILL 要求标题与正文一视同仁），用 H 前缀编号，不打乱正文 P 编号
+                paras.append({"text": text, "col": col, "page": p["no"], "y1": b["y1"],
+                              "bbox": [round(b["x0"], 1), round(b["y0"], 1), round(b["x1"], 1), round(b["y1"], 1)],
+                              "section": text, "type": "heading"})
                 continue
             # 同栏续段合并：上一块未以句末标点结尾、本块小写开头、垂直间距小
             if (last is not None and last["col"] == col and not is_head
@@ -185,9 +189,15 @@ def extract_pdf(path: Path):
                     "section": cur_section}
             paras.append(last)
 
-    out = []
-    for i, p in enumerate(paras, start=1):
-        out.append({"id": f"P{i:04d}", "page": p["page"], "col": p["col"],
+    out, np_, nh = [], 0, 0
+    for p in paras:
+        if p.get("type") == "heading":
+            nh += 1
+            pid = f"H{nh:03d}"
+        else:
+            np_ += 1
+            pid = f"P{np_:04d}"
+        out.append({"id": pid, "type": p.get("type", "body"), "page": p["page"], "col": p["col"],
                     "bbox": p["bbox"], "section": p["section"], "text": p["text"],
                     "chars": len(p["text"])})
     meta = {"source": str(path), "pages": len(pages), "chars_per_page": [p["chars"] for p in pages],
@@ -228,18 +238,22 @@ def extract_txt(path: Path):
     raw = path.read_text(encoding="utf-8", errors="replace")
     chunks = re.split(r"\n\s*\n", raw)
     out, section, page = [], "", 1
+    nh = 0
     for c in chunks:
         c = _clean_line(c)
         if not c:
             continue
         if len(c) < 90 and not c.endswith((".", "。", "!", "?")) and re.match(r"^(?:\d+(?:\.\d+)*\s+)?[A-Z\u4e00-\u9fa5]", c):
             section = c
+            nh += 1
+            out.append({"id": f"H{nh:03d}", "type": "heading", "page": page, "col": "unknown", "bbox": None,
+                        "section": section, "text": c, "chars": len(c)})
             continue
         if "\f" in c:
             page += c.count("\f")
             c = c.replace("\f", " ")
-        out.append({"id": f"P{len(out)+1:04d}", "page": page, "col": "unknown", "bbox": None,
-                    "section": section, "text": c, "chars": len(c)})
+        out.append({"id": f"P{len([x for x in out if x['type']=='body'])+1:04d}", "type": "body", "page": page,
+                    "col": "unknown", "bbox": None, "section": section, "text": c, "chars": len(c)})
     meta = {"source": str(path), "pages": page, "chars_per_page": [len(raw)], "dropped_headers_footers": [],
             "status": "ok", "warnings": ["纯文本输入无版面信息，页码为估算"]}
     return out, meta

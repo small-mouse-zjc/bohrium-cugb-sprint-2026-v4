@@ -1,22 +1,24 @@
 {
   "case_id": "demo-hydrate-01",
-  "mode": "self-demo",
-  "note": "示例运行的平台契约样例：输入为自建演示材料，非平台案例。",
   "status": "success",
-  "artifacts": [
-    "bilingual.json",
-    "glossary.csv",
-    "qc.json",
-    "qc_report.md"
-  ],
   "metrics": {
-    "paragraphs": 7,
-    "glossary_terms": 16,
     "coverage": 1.0,
     "term_consistency": 1.0,
     "number_preservation": 1.0,
     "citation_preservation": 1.0,
-    "uncertain_flagging": 1.0
+    "uncertain_flagging": 1.0,
+    "paragraphs": 12,
+    "headings": 5,
+    "hard_violations": 0,
+    "pass": true
   },
-  "uncertainties": []
+  "notes": [],
+  "artifacts": [
+    "paras.jsonl",
+    "glossary.csv",
+    "bilingual.json",
+    "qc.json",
+    "qc_report.md"
+  ],
+  "input_mode": "local"
 }

@@ -25,13 +25,13 @@ description: 把一篇真实文献切成带稳定编号的段落，先锁死术�
 
 | 文件 | 内容 |
 |---|---|
-| `result.json` | 平台契约字段 + `case_id` + `status` + `artifacts` + `evidence` + `uncertainties` + `metrics` |
+| `result.json` | 平台契约字段 `case_id` + `status` + `artifacts` + `metrics`，由 `scripts/run.py` 产出（指标取自 `qc.json`，不手填） |
 | `bilingual.json` | 逐段结构：`id/page/section/source_span/source/target/terms/status/basis/risk` |
 | `bilingual.md` | 人读版：`[P0001] p.2 §Results` 原文 / 译文 交叠排列 |
 | `glossary.csv` | 锁定后的术语表：`source,translation,pos,occurrences,paragraph_ids,lock` |
 | `qc.json` + `qc_report.md` | 质检结果，含四项比率与逐条违规 |
 
-`result.json` 的 `status` 只能取 `success / partial / cannot_determine / rejected`，并写清原因与可人工接管的位置。`case.json` 若给出 `output_contract`，以它为准，本文件字段作兜底。
+`scripts/run.py --input /input --output /app/output` 是平台入口；`status` 只能取 `success / partial / cannot_determine / rejected`，由产物判定：`qc.pass=true` 才 `success`，有译文未过门槛 `partial`，无文字层 `cannot_determine`，缺原文/`case.json` `rejected`。`case.json` 若给出 `output_contract`，以它为准，本文件字段作兜底。
 
 ## 3. 流程（5 步，禁止跳步）
 

@@ -162,18 +162,28 @@ def main():
 
     rates = {
         "coverage": round(covered / max(1, len(src)), 4),
-        "term_consistency": round(hits / max(1, checks), 4),
-        "number_preservation": round(num_hits / max(1, num_checks), 4),
-        "citation_preservation": round(cite_hits / max(1, cite_checks), 4),
+        "term_consistency": round(hits / checks, 4) if checks else None,
+        "number_preservation": round(num_hits / num_checks, 4) if num_checks else None,
+        "citation_preservation": round(cite_hits / cite_checks, 4) if cite_checks else None,
         "uncertain_flagging": round(1.0 if need_flag == 0 else flagged / need_flag, 4),
     }
-    failed = [k for k, v in THRESH.items() if rates[k] < v]
+    failed = [k for k, v in THRESH.items() if rates[k] is not None and rates[k] < v]
+    # 违规类型决定 pass：unit_lost / dup_target / length_ratio 以前只进 violations、不影响结论，等于白检
+    HARD = {"missing_para", "empty_target", "term_drift", "number_lost", "citation_lost",
+            "unit_lost", "dup_target", "unknown_id", "unflagged_uncertain"}
+    by_type = {}
+    for v in viol:
+        by_type[v["type"]] = by_type.get(v["type"], 0) + 1
+    hard_viol = [v for v in viol if v["type"] in HARD]
+    soft_viol = [v for v in viol if v["type"] not in HARD]
     report = {
         "case_id": bi_raw.get("case_id"),
         "counts": {"source_paras": len(src), "translated_paras": len(rows), "glossary_terms": len(glos),
-                   "term_checks": checks, "number_checks": num_checks, "citation_checks": cite_checks},
+                   "term_checks": checks, "number_checks": num_checks, "citation_checks": cite_checks,
+                   "headings": sum(1 for p in src.values() if p.get("type") == "heading")},
         "rates": rates, "thresholds": THRESH, "failed": failed,
-        "pass": not failed and not any(v["type"] in ("missing_para", "empty_target") for v in viol),
+        "violation_counts": by_type, "hard_violations": len(hard_viol), "soft_violations": len(soft_viol),
+        "pass": not failed and not hard_viol,
         "violations": viol[:400],
     }
     out = Path(a.out)
