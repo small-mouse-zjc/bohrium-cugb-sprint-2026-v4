@@ -98,7 +98,9 @@ def build_doc(case):
                 h = str(s.get("heading") or s.get("title") or s.get("name") or "")
                 body = s.get("text") or s.get("content") or ""
                 if not body and isinstance(s.get("paragraphs"), list):
-                    body = "\n".join(str(p) for p in s["paragraphs"])
+                    # 列表里一项就是一段：必须用空行连接，否则经 unwrap() 后会被折成一段，
+                    # ¶ 段序锚点整体失准（¶ 序号全错、按段落定位证据退化成整节）
+                    body = "\n\n".join(str(p) for p in s["paragraphs"])
                 pg = s.get("page")
             else:
                 h, body, pg = "", str(s), None

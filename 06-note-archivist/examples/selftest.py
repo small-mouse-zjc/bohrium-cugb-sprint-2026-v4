@@ -221,6 +221,17 @@ def main():
           any("12 MPa" in n["quote"] for n in hns) and any("observed the phase change" in n["quote"] for n in hns)
           and all(hdoc["text"][n["span"][0]:n["span"][1]] == n["quote"] for n in hns),
           joined[:80])
+
+    # paragraphs 列表形态：一项一段，不许被 unwrap 折成一段（¶ 锚点要分开）
+    scase = {"case_id": "s", "sections": [{"heading": "Methods",
+                                           "paragraphs": ["Samples were collected from site A.",
+                                                          "The pressure was set to 12 MPa."]}]}
+    sdoc = extract.build_doc(scase)
+    sns, _ = noteslib.build_notes(sdoc, per_section=3)
+    check("paragraphs 列表形态：两段不合并（paras=2）且 ¶1/¶2 锚点分开",
+          len(sdoc["paras"]) == 2 and any("¶1" in n["anchor"] for n in sns)
+          and any("¶2" in n["anchor"] for n in sns),
+          str([(p["text"][:28], n["anchor"]) for p, n in zip(sdoc["paras"], sns)]))
     # 节位加权键必须与角色名同口径（单数）：finding/limitation/premise 都有加权
     check("PRIORITY_SECTION 与 ROLE_MARKERS 同键：finding/limitation/premise 节位加权生效",
           set(noteslib.PRIORITY_SECTION) == set(noteslib.ROLE_MARKERS)
