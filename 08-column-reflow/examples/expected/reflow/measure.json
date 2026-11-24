@@ -1,1 +1,7 @@
-{"blocks_extracted": 23, "exact_position_rate": 1.0, "inversions": 0, "adjacent_errors": 0, "order_match": true}
+{
+  "blocks_extracted": 23,
+  "exact_position_rate": 1.0,
+  "inversions": 0,
+  "adjacent_errors": 0,
+  "order_match": true
+}

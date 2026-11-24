@@ -1,0 +1,6 @@
+{
+  "case_id": "demo-reflow-01",
+  "pdf": "demo.pdf",
+  "truth": "truth.json",
+  "note": "自建演示案例（由 examples/tools/make_demo.py 生成 PDF 与真值），非平台固定案例"
+}

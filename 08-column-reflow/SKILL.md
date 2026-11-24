@@ -25,7 +25,7 @@ description: 修正双栏/多栏论文的阅读顺序：按版面切出通栏块
 | `paragraphs.jsonl` | 每行 `{id,page,col,bbox,text,order_index}`，顺序即阅读顺序 |
 | `reflow.json` | 文档级：页数、栏数判定、剔除的页眉页脚、串栏疑似位置、覆盖率 |
 | `reflow.md` | 人读版，`[P0001] p.2 L` + 文本 |
-| `result.json` | 契约字段 + `case_id` + `status` + `metrics` |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，由 `scripts/run.py` 按真值复算产出 |
 
 ## 3. 流程
 

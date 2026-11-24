@@ -1,0 +1,25 @@
+{
+  "case_id": "demo-reflow-01",
+  "status": "success",
+  "metrics": {
+    "pages": 2,
+    "paragraphs": 23,
+    "layout": "2-column",
+    "dropped_headers_footers": 4,
+    "suspicious": 0,
+    "exact_position_rate": 1.0,
+    "inversions": 0,
+    "adjacent_errors": 0,
+    "order_match": true,
+    "missing": 0,
+    "pass": true
+  },
+  "notes": [],
+  "artifacts": [
+    "paragraphs.jsonl",
+    "reflow.json",
+    "reflow.md",
+    "measure.json"
+  ],
+  "input_mode": "local"
+}
