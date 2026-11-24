@@ -28,13 +28,13 @@ description: 把论文结论拆成"一句一断言"，每条绑逐字证据，�
 
 | 文件 | 内容 |
 |---|---|
-| `result.json` | 契约字段 + `status` + `artifacts` + `metrics`（数字取自 `validation.json`） |
+| `result.json` | 契约字段 `case_id` + `status` + `artifacts` + `metrics`，**由 `scripts/run.py` 产出**（数字取自 `validation.json`） |
 | `assertions.json` | 校验后的断言清单（含 `evidence` 与 `confidence/derivation`） |
 | `nanopub.jsonld` | `@context` + 四层结构 |
 | `nanopub.trig` | 每条断言一个命名图 |
 | `validation.json` | 原子率/逐字率/来源率/回解析 + 逐条违规码 |
 
-`status` 只能取 `success / partial / cannot_determine / rejected`。
+`status` 只能取 `success / partial / cannot_determine / rejected`，全部由 `scripts/run.py` 按产物判定：`success` 需 `pass=true`、断言 ≥3 条、TriG 回解析成功；有违规 → `partial`；缺断言文件 → `rejected`。
 
 ## 3. 流程（4 步）
 
@@ -57,7 +57,7 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 ## 4. 关系词表（封闭 10 个）
 
 `increases / decreases / supports / contradicts / uses / measured_by / located_in / composed_of / exceeds / has_value`
-需要新关系时，先在 `assertions.json` 顶部写 `relation_extensions` 说明，再改脚本，不许临时造词。
+需要新关系时，在 `assertions.json` 顶部写 `relation_extensions`，`nanopub.py` 会真实并入受控词表，不许临时造词。
 
 ## 5. 预算与降级（64 请求 / 900 秒 / 单次 16384 tokens）
 

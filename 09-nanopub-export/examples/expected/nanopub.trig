@@ -15,7 +15,7 @@
       rel:qualifier "site CUG-3" ;
       rel:text "Gas hydrate occurs in marine sediment at site CUG-3." .
   <https://example.org/np/demo-nanopub-01/A1/provenance> a np:Provenance ;
-      prov:wasDerivedFrom <urn:doi:urn:doi:none:demo-nanopub-01> ;
+      prov:wasDerivedFrom <urn:case:demo-nanopub-01> ;
       rel:paragraphId "JATS-3" ;
       rel:quote "Gas hydrate occurs in marine sediment at site CUG-3." ;
       rel:derivation "direct" .
@@ -36,7 +36,7 @@
       rel:qualifier "base at 12 m" ;
       rel:text "The hydrate stability zone extends 12 m below the seafloor." .
   <https://example.org/np/demo-nanopub-01/A2/provenance> a np:Provenance ;
-      prov:wasDerivedFrom <urn:doi:urn:doi:none:demo-nanopub-01> ;
+      prov:wasDerivedFrom <urn:case:demo-nanopub-01> ;
       rel:paragraphId "JATS-3" ;
       rel:quote "The hydrate stability zone extends 12 m below the seafloor." ;
       rel:derivation "direct" .
@@ -57,7 +57,7 @@
       rel:qualifier "4 °C; 0→3.5 wt%; +0.9 MPa" ;
       rel:text "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C." .
   <https://example.org/np/demo-nanopub-01/A3/provenance> a np:Provenance ;
-      prov:wasDerivedFrom <urn:doi:urn:doi:none:demo-nanopub-01> ;
+      prov:wasDerivedFrom <urn:case:demo-nanopub-01> ;
       rel:paragraphId "JATS-6" ;
       rel:quote "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C." ;
       rel:derivation "direct" .
@@ -78,7 +78,7 @@
       rel:qualifier "by one order of magnitude" ;
       rel:text "Permeability of the sandy layer is one order of magnitude higher than that of the clay." .
   <https://example.org/np/demo-nanopub-01/A4/provenance> a np:Provenance ;
-      prov:wasDerivedFrom <urn:doi:urn:doi:none:demo-nanopub-01> ;
+      prov:wasDerivedFrom <urn:case:demo-nanopub-01> ;
       rel:paragraphId "JATS-6" ;
       rel:quote "Permeability of the sandy layer is one order of magnitude higher than that of the clay." ;
       rel:derivation "direct" .
@@ -99,7 +99,7 @@
       rel:qualifier "site CUG-3" ;
       rel:text "Pore-water salinity is 3.5 wt% NaCl equivalent." .
   <https://example.org/np/demo-nanopub-01/A5/provenance> a np:Provenance ;
-      prov:wasDerivedFrom <urn:doi:urn:doi:none:demo-nanopub-01> ;
+      prov:wasDerivedFrom <urn:case:demo-nanopub-01> ;
       rel:paragraphId "JATS-3" ;
       rel:quote "Pore-water salinity is 3.5 wt% NaCl equivalent." ;
       rel:derivation "direct" .

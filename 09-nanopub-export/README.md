@@ -21,7 +21,7 @@ v3 把要求钉在四个可机器判定的点：
 
 | 文件 | 内容 |
 |---|---|
-| `result.json` | 契约字段 + `status` + `artifacts` + `metrics`（数字取自 `validation.json`） |
+| `result.json` | 契约字段 `case_id` + `status` + `artifacts` + `metrics`，**由 `scripts/run.py` 产出**（数字取自 `validation.json`，不手填） |
 | `assertions.json` | 校验后的断言清单（含 `evidence`、`confidence/derivation`） |
 | `nanopub.jsonld` | `@context` + 四层结构（assertion / provenance / pubinfo / 命名图） |
 | `nanopub.trig` | 每条断言一个命名图 |
@@ -42,7 +42,7 @@ v3 把要求钉在四个可机器判定的点：
                "confidence":"high","derivation":"direct"}]}
 ```
 
-关系词封闭 10 个：`increases / decreases / supports / contradicts / uses / measured_by / located_in / composed_of / exceeds / has_value`。需要新关系时，先在 `assertions.json` 顶部写 `relation_extensions` 说明并改脚本，**不许临时造词**。
+关系词封闭 10 个：`increases / decreases / supports / contradicts / uses / measured_by / located_in / composed_of / exceeds / has_value`。需要新关系时，在 `assertions.json` 顶部写 `relation_extensions`，`nanopub.py` 会把它真的并进受控词表（不是只写在文档里），**不许临时造词**。
 
 "约/可能"不进主句：写入 `qualifier`，或 `derivation=inferred`。
 
@@ -71,7 +71,7 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 | N07 | 重复断言（同主-关-客-限定） |
 | N08 | 回解析结果与导出不一致 |
 
-**第 4 步 修到全绿再交付**：任一硬指标 < 1.00 时 `status` 最多 `partial`，并在 `result.json` 写清剩余问题。
+**第 4 步 修到全绿再交付**：`status` 由 `scripts/run.py` 按实际产物判定——`success` 需 `pass=true`、断言 ≥3 条、TriG 回解析成功；有违规或不满足则 `partial`；论文文本都没有则 `cannot_determine`；缺 `assertions.json`/`sources.json` 则 `rejected`。任一硬指标 < 1.00 时写清剩余问题，不许写"通过"。
 
 ## 5. 硬门槛
 
@@ -89,7 +89,8 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 - **5 条断言**，`atomic_rate=1.00`、`verbatim_rate=1.00`、`provenance_rate=1.00`；
 - 回解析：**5 个命名图 / 5 个断言节点 / 5 条引文**，`ok=true`；
 - `violations` 为空，`pass=true`；
-- `nanopub.jsonld` 带 `@context` 与四层结构，`nanopub.trig` 每条断言独立命名图，可直接被 TriG 解析器读取。
+- `nanopub.jsonld` 带 `@context` 与四层结构；`nanopub.trig` 每条断言独立命名图。**回解析只做结构计数**（命名图 / 断言节点 / 引文数是否等于断言数），不是完整 RDF 解析——这一点如实标注，不宣称"TriG 解析器已验收"。
+- `prov:wasDerivedFrom` 统一为单一 IRI：纯 DOI 补 `https://doi.org/`，已是 URL/urn 的原样用，缺 DOI 用 `urn:case:<id>`（修掉了旧的 `urn:doi:urn:doi:...` 双前缀畸形）。
 
 缺陷注入自检（`python examples/selftest.py`）要求四类破坏全部命中：
 
@@ -101,6 +102,8 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 | D4 重复断言 | N07 |
 
 5 条断言全绿。
+
+**本轮补强（2026-11-25）**：新增 `scripts/run.py`（读 `/input/case.json` → 校验 → 导出 → `/app/output/result.json`）、N04 纳入逐字率（证据不含主体/客体表面形式会拉低 `verbatim_rate`，实测 5 条里 1 条违规 → 0.80）、零断言时三比率记 `null` 并报 `N00`、`relation_extensions` 真正生效、DOI 统一 IRI、新增 `examples/baseline.py`（裸基线：只把断言转存 JSON，不校验不导出）。自检 **9 条**：原 5 条 + 平台入口、零断言、N04、TriG IRI、基线对照。
 
 ## 7. 异常与降级
 

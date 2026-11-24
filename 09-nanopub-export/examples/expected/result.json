@@ -1,16 +1,22 @@
 {
-  "case_id": "demo-nanopub-01",
-  "mode": "self-demo",
-  "note": "示例运行的平台契约样例：输入为自建演示文本，非平台案例。",
+  "case_id": "demo-09",
   "status": "success",
-  "artifacts": ["assertions.json", "nanopub.jsonld", "nanopub.trig", "validation.json"],
   "metrics": {
+    "build_rc": 0,
     "assertions": 5,
     "atomic_rate": 1.0,
     "verbatim_rate": 1.0,
     "provenance_rate": 1.0,
-    "export_roundtrip": true
+    "export_roundtrip": true,
+    "violations": 0,
+    "codes": [],
+    "pass": true
   },
-  "violations": [],
-  "uncertainties": []
+  "notes": [],
+  "artifacts": [
+    "assertions.json",
+    "nanopub.jsonld",
+    "nanopub.trig",
+    "validation.json"
+  ]
 }

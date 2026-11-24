@@ -23,6 +23,19 @@ def esc(s: str) -> str:
     return s.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
 
 
+def doi_iri(doi, case_id):
+    """把 DOI 统一成一个 IRI：已是 URL/urn 的原样用，纯 DOI 补 https://doi.org/，缺失用 urn:case:。
+
+    旧实现无条件加 urn:doi: 前缀，遇到 doi 本身是 urn:doi:... 就生成 urn:doi:urn:doi:... 的畸形 IRI。
+    """
+    d = (doi or "").strip()
+    if not d:
+        return f"urn:case:{case_id}"
+    if d.startswith(("http://", "https://", "urn:")):
+        return d
+    return "https://doi.org/" + d
+
+
 def lit(s: str) -> str:
     return '"' + esc(s) + '"'
 
@@ -120,7 +133,7 @@ def export_trig(asserts, paper, case_id):
     blocks = []
     for a in asserts:
         gid = base + a["id"]
-        src = paper.get("doi") or f"urn:doi:none:{case_id}"
+        src = doi_iri(paper.get("doi"), case_id)
         b = (f"<{gid}> {{\n"
              f"  <{gid}> a np:Nanopublication ;\n"
              f"      np:hasAssertion <{gid}/assertion> ;\n"
@@ -133,7 +146,7 @@ def export_trig(asserts, paper, case_id):
              f"      rel:qualifier {lit(a['qualifier'])} ;\n"
              f"      rel:text {lit(a['text'])} .\n"
              f"  <{gid}/provenance> a np:Provenance ;\n"
-             f"      prov:wasDerivedFrom <urn:doi:{esc(str(src))}> ;\n"
+             f"      prov:wasDerivedFrom <{esc(str(src))}> ;\n"
              f"      rel:paragraphId {lit(str(a['evidence']['paragraph_id']))} ;\n"
              f"      rel:quote {lit(a['evidence']['quote'])} ;\n"
              f"      rel:derivation {lit(a['derivation'])} .\n"
@@ -166,6 +179,10 @@ def main():
     sources = json.loads(Path(a.sources).read_text(encoding="utf-8"))["sources"]
     paper = payload.get("paper", {})
     case_id = payload.get("case_id", "case")
+    # 词表可扩展：payload 里的 relation_extensions 真的并进受控词表（以前只在文档里说）
+    for x in (payload.get("relation_extensions") or []):
+        if isinstance(x, str) and x.strip() and x.strip() not in VOCAB:
+            VOCAB.append(x.strip())
     asserts, viol = build(payload["assertions"], sources, paper)
 
     trig = export_trig(asserts, paper, case_id)
@@ -173,13 +190,26 @@ def main():
     if not rt["ok"]:
         viol.append({"code": "N08", "detail": f"导出回解析失败: {rt}"})
 
-    atomic_ok = sum(1 for v in viol if v["code"] == "N01") == 0
-    verbatim_ok = sum(1 for v in viol if v["code"] in ("N02", "N03")) == 0
-    prov_ok = sum(1 for v in viol if v["code"] == "N05") == 0
-    rates = {"assertions": len(asserts), "atomic_rate": 1.0 if atomic_ok else round(1 - sum(1 for v in viol if v["code"] == "N01") / max(1, len(asserts)), 4),
-             "verbatim_rate": 1.0 if verbatim_ok else round(1 - sum(1 for v in viol if v["code"] in ("N02", "N03")) / max(1, len(asserts)), 4),
-             "provenance_rate": 1.0 if prov_ok else round(1 - sum(1 for v in viol if v["code"] == "N05") / max(1, len(asserts)), 4),
-             "export_roundtrip": rt["ok"], "violations": len(viol)}
+    # 按"受影响的断言 id"算比率，而不是按违规条数（一条断言可能同时触发 2 条 N01，
+    # 旧写法 1 - 条数/断言数 会算出负数或把 0 断言记成 1.00）
+    n = len(asserts)
+    def bad_ids(codes):
+        return {v["id"] for v in viol if v.get("code") in codes and v.get("id")}
+    atomic_bad = bad_ids(("N01", "N06"))
+    verbatim_bad = bad_ids(("N02", "N03", "N04"))   # N04（证据不含主客表面形式）也必须拉低逐字率
+    prov_bad = bad_ids(("N05",))
+    if n == 0:
+        viol.append({"code": "N00", "detail": "断言文件里没有断言，无法导出（比率记 null，不记 1.00）"})
+        rates = {"assertions": 0, "atomic_rate": None, "verbatim_rate": None, "provenance_rate": None,
+                 "export_roundtrip": False, "violations": len(viol)}
+        trig = ""
+        rt = {"named_graphs": 0, "assertion_nodes": 0, "quotes": 0, "ok": False}
+    else:
+        rates = {"assertions": n,
+                 "atomic_rate": round((n - len(atomic_bad)) / n, 4),
+                 "verbatim_rate": round((n - len(verbatim_bad)) / n, 4),
+                 "provenance_rate": round((n - len(prov_bad)) / n, 4),
+                 "export_roundtrip": rt["ok"], "violations": len(viol)}
 
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)

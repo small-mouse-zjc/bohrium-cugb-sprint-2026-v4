@@ -55,6 +55,64 @@ def main():
             assert code in codes, f"{name} 未命中 {code}，实际 {sorted(codes)}"
             ok.append(f"{name} → {code}")
 
+        # 平台入口：case.json → /app/output/result.json
+        ein = tmp / "entry_in"
+        ein.mkdir()
+        for f in ("assertions.json", "sources.json"):
+            shutil.copy(DEMO / f, ein / f)
+        (ein / "case.json").write_text(json.dumps({"case_id": "selftest-09", "assertions": "assertions.json",
+                                                   "sources": "sources.json"}, ensure_ascii=False), encoding="utf-8")
+        eo = tmp / "entry_out"
+        run([ROOT / "scripts/run.py", "--input", ein, "--output", eo])
+        rj = json.loads((eo / "result.json").read_text(encoding="utf-8"))
+        assert rj["case_id"] == "selftest-09" and rj["status"] == "success", rj
+        assert "nanopub.trig" in rj["artifacts"], rj["artifacts"]
+        ok.append(f"平台入口：case.json→result.json，status={rj['status']}，assertions={rj['metrics']['assertions']}")
+
+        # 零断言：比率必须 null，不能记 1.00，且报 N00
+        z = json.loads(json.dumps(base))
+        z["assertions"] = []
+        zp = tmp / "zero.json"
+        zp.write_text(json.dumps(z, ensure_ascii=False), encoding="utf-8")
+        zo = tmp / "zero"
+        run([ROOT / "scripts/nanopub.py", "build", "--assertions", zp, "--sources", DEMO / "sources.json",
+             "--out", zo, "--no-fail"], rc=(0, 1))
+        zv = json.loads((zo / "validation.json").read_text(encoding="utf-8"))
+        assert zv["rates"]["atomic_rate"] is None, zv["rates"]
+        assert "N00" in {x["code"] for x in zv["violations"]}, zv["violations"]
+        assert zv["pass"] is False, "零断言被判通过"
+        ok.append("零断言：三比率=None + N00，不再虚报 1.00")
+
+        # N04 必须拉低逐字率（以前三个比率对着违规清单仍全绿）
+        d4 = json.loads(json.dumps(base))
+        d4["assertions"][0]["subject"]["label"] = "zzq alpha absent"
+        d4["assertions"][0]["object"]["label"] = "zzq beta absent"
+        d4p = tmp / "n04.json"
+        d4p.write_text(json.dumps(d4, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/nanopub.py", "build", "--assertions", d4p, "--sources", DEMO / "sources.json",
+             "--out", tmp / "n04", "--no-fail"], rc=(0, 1))
+        v4 = json.loads((tmp / "n04" / "validation.json").read_text(encoding="utf-8"))
+        assert v4["rates"]["verbatim_rate"] < 1.0, v4["rates"]
+        assert "N04" in {x["code"] for x in v4["violations"]}, v4["violations"]
+        ok.append(f"N04 拉低逐字率：verbatim_rate={v4['rates']['verbatim_rate']}")
+
+        # TriG 的 DOI IRI 不能出现 urn:doi:urn:doi 双前缀
+        trig = (eo / "nanopub.trig").read_text(encoding="utf-8")
+        assert "urn:doi:urn:doi" not in trig, "DOI 双前缀畸形 IRI 仍在"
+        assert "wasDerivedFrom <" in trig, "provenance 未写成 IRI"
+        ok.append("TriG：DOI 统一为单一 IRI（无 urn:doi:urn:doi）")
+
+        # 基线对照：裸 Agent 只有 raw JSON，没有校验
+        base_out = tmp / "base"
+        run([ROOT / "examples/baseline.py", "--assertions", DEMO / "assertions.json", "--out", base_out])
+        import importlib.util
+        spec = importlib.util.spec_from_file_location("m09", ROOT / "eval/metrics.py")
+        mod = importlib.util.module_from_spec(spec); spec.loader.exec_module(mod)
+        sb, ss = mod.load(base_out), mod.load(eo)
+        assert sb["atomic_rate"] is None and sb["pass"] is False, sb
+        assert ss["pass"] is True and ss["export_roundtrip"] is True, ss
+        ok.append("基线对照：裸 Agent 率=None/pass=False vs Skill pass=True/roundtrip=True")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)
