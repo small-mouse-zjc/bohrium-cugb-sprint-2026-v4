@@ -1,0 +1,109 @@
+{
+  "case_id": "demo-polish-01",
+  "mode": "minimal-edit",
+  "blocking": [],
+  "advisory": [
+    {
+      "type": "sentence_rewritten",
+      "index": 3,
+      "similarity": 0.787,
+      "code": "A02"
+    }
+  ],
+  "rates": {
+    "number_retention": 1.0,
+    "citation_retention": 1.0,
+    "hedge_retention": 1.0,
+    "negation_retention": 1.0,
+    "sentence_coverage": 1.0,
+    "changes": 2,
+    "stray_citations": 0,
+    "strong_claims_after": 0,
+    "original_chars": 417,
+    "polished_chars": 377,
+    "length_ratio": 0.9
+  },
+  "terms": {
+    "rates": {
+      "term_consistency": 1.0,
+      "terms": 2
+    },
+    "violations": [],
+    "rows": [
+      {
+        "concept": "dissociation pressure",
+        "canonical": "dissociation pressure",
+        "canonical_count": 2,
+        "variants_found": []
+      },
+      {
+        "concept": "gas hydrate",
+        "canonical": "gas hydrate",
+        "canonical_count": 1,
+        "variants_found": []
+      }
+    ]
+  },
+  "ledger": [
+    {
+      "i": 0,
+      "original": "Gas hydrate (GH) maybe can form in marine sediment at site CUG-3 [3], and we used 25 samples in order to test this idea.",
+      "polished_index": 0,
+      "polished": "Gas hydrate (GH) may form in marine sediment at site CUG-3 [3], and we used 25 samples to test this idea.",
+      "similarity": 0.933,
+      "facts_before": [
+        "25 samples",
+        "[3]"
+      ],
+      "facts_after": [
+        "25 samples",
+        "[3]"
+      ]
+    },
+    {
+      "i": 1,
+      "original": "The dissociation pressure of GH may increase by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C [4].",
+      "polished_index": 1,
+      "polished": "The dissociation pressure of GH may increase by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C [4].",
+      "similarity": 1.0,
+      "facts_before": [
+        "0",
+        "0.9 mpa",
+        "3.5 wt%",
+        "4 °c",
+        "[4]"
+      ],
+      "facts_after": [
+        "0",
+        "0.9 mpa",
+        "3.5 wt%",
+        "4 °c",
+        "[4]"
+      ]
+    },
+    {
+      "i": 2,
+      "original": "We did not observe any dissociation above 12 MPa, and the permeability was 2 times higher than that of the clay.",
+      "polished_index": 2,
+      "polished": "We did not observe any dissociation above 12 MPa, and the permeability was 2 times higher than that of the clay.",
+      "similarity": 1.0,
+      "facts_before": [
+        "12 mpa",
+        "2 times"
+      ],
+      "facts_after": [
+        "12 mpa",
+        "2 times"
+      ]
+    },
+    {
+      "i": 3,
+      "original": "It can be seen that the dissociation pressure is very sensitive to salinity.",
+      "polished_index": 3,
+      "polished": "The dissociation pressure is sensitive to salinity.",
+      "similarity": 0.787,
+      "facts_before": [],
+      "facts_after": []
+    }
+  ]
+}

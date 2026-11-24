@@ -1,0 +1,79 @@
+{
+  "case_id": "demo-polish-01",
+  "status": "success",
+  "result": {
+    "polished_text": "Gas hydrate (GH) may form in marine sediment at site CUG-3 [3], and we used 25 samples to test this idea. The dissociation pressure of GH may increase by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C [4]. We did not observe any dissociation above 12 MPa, and the permeability was 2 times higher than that of the clay. The dissociation pressure is sensitive to salinity.",
+    "changes": [
+      {
+        "original": "Gas hydrate (GH) maybe can form in marine sediment at site CUG-3 [3], and we used 25 samples in order to test this idea.",
+        "revised": "Gas hydrate (GH) may form in marine sediment at site CUG-3 [3], and we used 25 samples to test this idea.",
+        "reason": "固定搭配精简; 情态动词合并（保留推测语气）",
+        "fact_changed": false
+      },
+      {
+        "original": "It can be seen that the dissociation pressure is very sensitive to salinity.",
+        "revised": "The dissociation pressure is sensitive to salinity.",
+        "reason": "删空壳引导句; 删空泛程度副词",
+        "fact_changed": false
+      }
+    ],
+    "unchanged_sentences": [
+      "The dissociation pressure of GH may increase by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C [4].",
+      "We did not observe any dissociation above 12 MPa, and the permeability was 2 times higher than that of the clay."
+    ],
+    "no_change_statement": "其余 2 句原文未改（见 unchanged_sentences）",
+    "preserved": {
+      "number_retention": 1.0,
+      "citation_retention": 1.0,
+      "hedge_retention": 1.0,
+      "negation_retention": 1.0
+    },
+    "artifacts": {
+      "polished_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e02\\polished.md",
+      "audit_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e02\\audit.json",
+      "diff_audit_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e02\\diff_audit.md"
+    }
+  },
+  "evidence": [
+    {
+      "anchor": "sentence 1",
+      "note": "相似度 0.933，事实标记 一致"
+    },
+    {
+      "anchor": "sentence 2",
+      "note": "相似度 1.0，事实标记 一致"
+    },
+    {
+      "anchor": "sentence 3",
+      "note": "相似度 1.0，事实标记 一致"
+    },
+    {
+      "anchor": "sentence 4",
+      "note": "相似度 0.787，事实标记 一致"
+    }
+  ],
+  "uncertainty": [
+    {
+      "issue": "第 4 句改写幅度大（相似度 0.787），建议人工确认主张未变"
+    }
+  ],
+  "metrics": {
+    "number_retention": 1.0,
+    "citation_retention": 1.0,
+    "hedge_retention": 1.0,
+    "negation_retention": 1.0,
+    "sentence_coverage": 1.0,
+    "changes": 2,
+    "stray_citations": 0,
+    "strong_claims_after": 0,
+    "original_chars": 417,
+    "polished_chars": 377,
+    "length_ratio": 0.9,
+    "term_consistency": 1.0,
+    "blocking": 0,
+    "advisory": 1,
+    "term_violations": 0,
+    "pass": true
+  },
+  "notes": []
+}

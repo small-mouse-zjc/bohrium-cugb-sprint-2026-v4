@@ -1,0 +1,18 @@
+{
+  "case_id": "demo-polish-01",
+  "note": "自建演示稿（非平台案例）：学生草稿，含推测语气、数字与单位、引用、否定、比较级、口语化冗余。",
+  "text": "Gas hydrate (GH) maybe can form in marine sediment at site CUG-3 [3], and we used 25 samples in order to test this idea. The dissociation pressure of GH may increase by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C [4]. We did not observe any dissociation above 12 MPa, and the permeability was 2 times higher than that of the clay. It can be seen that the dissociation pressure is very sensitive to salinity.",
+  "terms": [
+    {
+      "concept": "dissociation pressure",
+      "canonical": "dissociation pressure",
+      "variants": ["disassociation pressure", "dissociation pressures"]
+    },
+    {
+      "concept": "gas hydrate",
+      "canonical": "gas hydrate",
+      "variants": ["gas hydrates", "Gas-Hydrate"]
+    }
+  ],
+  "target_style": "journal"
+}
