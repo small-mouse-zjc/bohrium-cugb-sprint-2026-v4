@@ -90,8 +90,8 @@ def audit(result: dict, case: dict) -> dict:
     ay_resolved, ay_unresolved = set(), []
     if style != "numeric":
         for m in renumber.AUTH_YEAR.finditer(ms):
-            surname, year = m.group(1).lower(), m.group(2)
-            hit = next((b for b in bib if renumber.author_norm(b).split(" ")[0] == surname
+            surname, year = renumber.surname_key(m.group(1)), m.group(2)
+            hit = next((b for b in bib if renumber.surname_key(b.get("author")) == surname
                         and str(b.get("year")) == year), None)
             if hit:
                 ay_resolved.add(str(hit.get("id")))

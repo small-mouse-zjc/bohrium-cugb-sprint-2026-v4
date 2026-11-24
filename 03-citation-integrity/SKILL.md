@@ -38,7 +38,7 @@ python scripts/run.py --input examples/demo --output out
 ## 3. 工作流（4 步）
 
 1. **盘点原始来源**：以 `case.json` 的文献表为准，逐条核对；缺 DOI/卷期不补全。
-2. **查重合并**：作者姓+首字母、年份、标题规范化相似度 >0.9 三条同时成立才合并；**DOI 不同的两条不合并**（可能是会议版/期刊版），写进 `uncertainty`。
+2. **查重合并**：作者姓+首字母、年份、标题规范化相似度 >0.9 三条同时成立才合并；**DOI 不同的两条不合并**（可能是会议版/期刊版），写进 `uncertainty`。作者姓名两种常见格式都必须正确取到首字母：`Smith J.`（空格式）与 `Smith, John`（逗号式，.bib 里最常见）——逗号式漏首字母会把 "Smith, John" 与 "Smith, Rebecca" 误并成一条假条目；粒子/双姓（`van der Berg`、`O'Brien`）按完整姓比对，不许压成 `van`。
 3. **连锁重排**：新编号 = 正文首次出现顺序 1..N；正文所有标记同步改写；`number_mapping` 记录 `from_id → bib_id`。
 4. **审计落盘**：`scripts/run.py` 自动跑 `cite_chain.audit`（四方闭环 + 元数据逐字）与 `guard`（结构）；任一阻断即 `partial`。
 
@@ -76,7 +76,7 @@ python scripts/run.py --input examples/demo --output out
 python examples/selftest.py      # 25 条断言
 ```
 
-覆盖：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C13 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`。
+覆盖（**28 条断言**）：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C13 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`；另加两条锁死作者名处理：逗号格式 `Smith, John` vs `Smith, Rebecca` 不误合并（key 分别为 `smith j` / `smith r`）、粒子/撇号姓 `(van der Berg, 2020)` 与 `(O'Brien, 2019)` 必须进闭合率分母（实测 2 条里 1 条可解析 → 0.50，悬空那条报 C01）。
 
 ## 7. 基线（`examples/baseline.py`）
 

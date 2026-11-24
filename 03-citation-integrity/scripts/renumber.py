@@ -16,7 +16,13 @@ import difflib
 import re
 
 NUM_CITE = re.compile(r"\[(\d+(?:\s*[-–,]\s*\d+)*)\]")
-AUTH_YEAR = re.compile(r"\(([A-Z][A-Za-z\-]+)(?: et al\.| (?:&|and) [A-Z][A-Za-z\-]+)?,\s*(\d{4})\)")
+AUTH_YEAR = re.compile(
+    r"\(("
+    r"[A-Za-z][A-Za-z\-']*"                 # 首姓片段：O'Brien / van
+    r"(?:\s+[A-Za-z][A-Za-z\-']*)*"         # 粒子与双姓：van der Berg / Smith Jones
+    r")"
+    r"(?: et al\.| (?:&|and) [A-Za-z][A-Za-z\-']*(?:\s+[A-Za-z][A-Za-z\-']*)*)?"
+    r",\s*(\d{4})\)")
 SENT_SPLIT = re.compile(r"(?<=[.!?])\s+")
 
 FIELDS = ("author", "year", "title", "source", "doi", "volume", "pages", "publisher", "url")
@@ -34,20 +40,48 @@ def expand(spec: str) -> list:
     return out
 
 
+def surname_key(s) -> str:
+    """姓的归一形式：保留粒子与双姓（van der Berg → 'van der berg'），去掉名与首字母。
+
+    逗号格式取逗号前；空格格式若末词是首字母（J. / J）则丢掉。这样引用侧与文献表侧可以同一口径比对。
+    """
+    a = str(s or "").split(" and ")[0].split(" & ")[0].strip()
+    if "," in a:
+        a = a.split(",", 1)[0]
+    a = re.sub(r"[^A-Za-z\-'. ]", " ", a).strip()
+    toks = [t for t in a.split() if t and t != "."]
+    if len(toks) > 1 and (len(toks[-1].rstrip(".")) == 1 or (toks[-1].endswith(".") and len(toks[-1]) == 2)):
+        toks = toks[:-1]
+    return " ".join(toks).lower().strip(".'- ")
+
+
 def author_norm(entry: dict) -> str:
-    """姓 + 首字母（Smith J. → 'smith j'）；同姓不同名不得合并。"""
+    """姓 + 首字母（Smith J. / Smith, John → 'smith j'；van der Berg → 'van der berg'）。
+
+    .bib 里最常见的 "Surname, Given" 逗号格式必须先取回名首字母——旧写法 split(",")[0] 把名切掉后
+    首字母永远取不到，导致 "Smith, John" 与 "Smith, Rebecca" 同为 'smith' 被误并成一条假条目。
+    """
     a = str(entry.get("author") or "")
-    a = a.split(",")[0].split(" and ")[0].split(" & ")[0]
-    a = re.sub(r"[^A-Za-z\- .]", "", a).strip()
-    parts = [p for p in a.split() if p and p != "."]
-    if not parts:
+    a = a.split(" and ")[0].split(" & ")[0].strip()
+    given = ""
+    if "," in a:
+        given = a.split(",", 1)[1]
+    surname = surname_key(a)
+    if not surname:
         return ""
-    surname = parts[0].lower()
     initial = ""
-    if len(parts) > 1 and len(parts[1]) == 1:
-        initial = parts[1].lower()
-    elif len(parts) > 1 and parts[1].endswith(".") and len(parts[1]) == 2:
-        initial = parts[1][0].lower()
+    if given:
+        gp = [p for p in re.sub(r"[^A-Za-z\-. ]", " ", given).split() if p]
+        if gp and gp[0][0].isalpha():
+            initial = gp[0][0].lower()
+    else:
+        toks = [t for t in re.sub(r"[^A-Za-z\- .]", "", a).split() if t and t != "."]
+        if len(toks) > 1:
+            last = toks[-1]
+            if len(last) == 1:
+                initial = last.lower()
+            elif last.endswith(".") and len(last) == 2:
+                initial = last[0].lower()
     return f"{surname} {initial}".strip()
 
 
@@ -143,9 +177,9 @@ def renumber(manuscript: str, bib: list, style: str = "numeric") -> dict:
         return key_index.get(token)
 
     def resolve_author_year(m: re.Match) -> str | None:
-        surname, year = m.group(1).lower(), m.group(2)
+        surname, year = surname_key(m.group(1)), m.group(2)
         for b in bib:
-            if author_norm(b).split(" ")[0] == surname and str(b.get("year")) == year:
+            if surname_key(b.get("author")) == surname and str(b.get("year")) == year:
                 return merged_into.get(str(b.get("id")), str(b.get("id")))
         return None
 
@@ -171,8 +205,12 @@ def renumber(manuscript: str, bib: list, style: str = "numeric") -> dict:
                 return "[" + ",".join(str(order.index(r) + 1) for r in good) + "]"
             first = [b for b in bib if merged_into.get(str(b.get("id")), str(b.get("id"))) == good[0]]
             e = first[0] if first else {}
-            surname = str(e.get("author") or "Unknown").split(",")[0].split(" ")[0]
-            etal = " et al." if (" et al" in str(e.get("author")) or len([x for x in str(e.get("author")).split(",") if x.strip()]) > 1) else ""
+            raw_author = str(e.get("author") or "Unknown")
+            sur_toks = raw_author.split(" and ")[0].split(" & ")[0].split(",")[0].strip().split()
+            if len(sur_toks) > 1 and len(sur_toks[-1].rstrip(".")) == 1:
+                sur_toks = sur_toks[:-1]
+            surname = " ".join(sur_toks) or "Unknown"   # 保留粒子：van der Berg，不能压成 van
+            etal = " et al." if (" et al" in raw_author or " and " in raw_author or ";" in raw_author) else ""
             return f"({surname}{etal}, {e.get('year')})"
         return pattern.sub(repl, text)
 

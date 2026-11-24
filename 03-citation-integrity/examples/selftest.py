@@ -162,6 +162,33 @@ def main():
     assert rep_aybad["rates"]["citation_closure_rate"] == 0.0
     ok.append("author-year 悬空：(Smith et al., 2021) 文献表只有 2020 → C01，闭合率 0.0")
 
+    # 逗号格式 "Surname, Given" 必须取回名首字母：Smith, John 与 Smith, Rebecca 同题同年同缺 DOI 也不得合并
+    assert renumber.author_norm({"author": "Smith, John"}) == "smith j"
+    assert renumber.author_norm({"author": "Smith, Rebecca"}) == "smith r"
+    assert renumber.author_norm({"author": "Smith J."}) == "smith j"
+    bib_cm = [
+        {"id": "1", "key": "k1", "author": "Smith, John", "year": "2020",
+         "title": "Gas hydrate stability in marine sediments", "source": "J1", "doi": None},
+        {"id": "2", "key": "k2", "author": "Smith, Rebecca", "year": "2020",
+         "title": "Gas hydrate stability in marine sediments", "source": "J2", "doi": None},
+    ]
+    g_cm, _, _ = renumber.merge_candidates(bib_cm)
+    assert not g_cm, g_cm
+    ok.append("逗号格式作者（Smith, John vs Smith, Rebecca）不误合并 → key 'smith j' / 'smith r'")
+
+    # 粒子/撇号姓的 author-year 引用必须被解析，并进闭合率分母（旧实现整条静默丢弃）
+    assert renumber.AUTH_YEAR.findall("(van der Berg, 2020)") == [("van der Berg", "2020")]
+    assert renumber.AUTH_YEAR.findall("(O'Brien, 2019)") == [("O'Brien", "2019")]
+    ay_pol = {"case_id": "ayp", "style": "author-year",
+              "bibliography": [dict(case["bibliography"][0], id="1", author="van der Berg", year="2020", cited=True)]}
+    pol_ms = "Gas hydrate occurs at CUG-3 (van der Berg, 2020). Pore-water salinity is 3.5 wt% (O'Brien, 2019)."
+    pol = renumber.renumber(pol_ms, ay_pol["bibliography"], "author-year")
+    rep_pol = cite_chain.audit(wrap(pol, "ayp"), ay_pol)
+    total = rep_pol["rates"].get("citation_closure_rate")
+    assert total is not None and total < 1.0, rep_pol["rates"]      # 两条里有一条在文献表里 → 0.5，不能虚报 1.0
+    assert any("O'Brien" in str(b) for b in rep_pol["blocking"]), rep_pol["blocking"]
+    ok.append(f"粒子/撇号姓可解析：(van der Berg, 2020)+(O'Brien, 2019) → 闭合率 {total:.2f}（分母算进 2 条，悬空那条报 C01）")
+
     # 同姓不同首字母不合并
     bib_ab = [
         {"id": "1", "key": "smithj2020", "author": "Smith J.", "year": "2020",
