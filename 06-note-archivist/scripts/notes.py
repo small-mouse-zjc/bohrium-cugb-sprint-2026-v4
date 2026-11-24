@@ -34,15 +34,40 @@ PRIORITY_SECTION = {
 
 SENT_RE = re.compile(r"[^\n]{15,400}?(?:[.!?。！？](?=\s|$)|$)")
 MIN_LEN, MAX_LEN = 30, 240
+ABBREV_TAIL = re.compile(
+    r"(?:Fig|Figs|Eq|Eqs|Ref|Refs|No|Sect|Sec|Tab|vs|cf|ca|approx|al|e\.g|i\.e|etc|vol|pp|p)\.$",
+    re.I)
+
+
+def _abbrev_end(seg):
+    """句尾是缩写（Fig./et al./e.g.）或以数字+点结尾（3.5 / 0.7）→ 不该在此切句。"""
+    tail = seg.strip()
+    if not tail:
+        return True
+    if ABBREV_TAIL.search(tail):
+        return True
+    if re.search(r"\d\.$", tail):
+        return True
+    return False
 
 
 def sentences(para_text, base):
-    """返回 [(sent_text, start, end)]，start/end 是全局偏移，sent_text 是原文切片。"""
+    """返回 [(sent_text, start, end)]，start/end 是全局偏移，sent_text 是原文切片。
+
+    切句后做一次合并：遇到缩写尾巴或小数点的"句"与下一段拼接，避免把
+    `Fig. 3 shows ...` 切成 `Fig.` + `3 shows ...` 两个残句。
+    """
+    raw = [(m.start(), m.end()) for m in SENT_RE.finditer(para_text)]
+    merged = []
+    for s, e in raw:
+        if merged and _abbrev_end(para_text[merged[-1][0]:merged[-1][1]]):
+            merged[-1] = (merged[-1][0], e)
+        else:
+            merged.append((s, e))
     out = []
-    for m in SENT_RE.finditer(para_text):
-        s, e = m.start(), m.end()
+    for s, e in merged:
         seg = para_text[s:e].strip()
-        if len(seg) < MIN_LEN:
+        if len(seg) < MIN_LEN or len(seg) > MAX_LEN:
             continue
         lead = len(para_text[s:e]) - len(para_text[s:e].lstrip())
         out.append((seg, base + s + lead, base + s + lead + len(seg)))

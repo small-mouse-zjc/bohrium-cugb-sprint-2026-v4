@@ -2,7 +2,7 @@
   "case_id": "demo-note-01",
   "status": "success",
   "result": {
-    "structured_notes": "# 结构化笔记\n\n## Abstract\n\n- [problem] We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.\n  - anchor: `§1 ¶1 / p.1 [9-109]`\n- [data] Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C.\n  - anchor: `§1 ¶1 / p.1 [110-188]`\n- [finding] Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase within 6 hours.\n  - anchor: `§1 ¶1 / p.1 [189-284]`\n\n## Introduction\n\n- [problem] The research question is whether CO2 can be stored in hydrate reservoirs without destabilising the overlying sediment.\n  - anchor: `§2 ¶1 / p.1 [299-417]`\n- [limitation] Previous work examined pure methane hydrate only, and the effect of CO2 on phase equilibrium remains unclear.\n  - anchor: `§2 ¶1 / p.1 [418-527]`\n- [problem] Here we examine the coupled effect of CO2 fraction and salinity.\n  - anchor: `§2 ¶1 / p.1 [528-592]`\n\n## Materials and Methods\n\n- [data] Samples of 25 g wet sediment were collected from 3 gravity cores.\n  - anchor: `§3 ¶1 / p.2 [616-681]`\n- [method] Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.\n  - anchor: `§3 ¶1 / p.2 [682-788]`\n- [premise] We assume a constant pore pressure of 12 MPa during each run.\n  - anchor: `§3 ¶1 / p.2 [829-890]`\n\n## Results\n\n- [finding] CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.\n  - anchor: `§4 ¶1 / p.3 [900-996]`\n- [background] The measured permeability dropped from 120 mD to 45 mD after 6 hours.\n  - anchor: `§4 ¶1 / p.3 [997-1066]`\n- [finding] Results indicate a mixed hydrate phase at CO2 fractions above 0.5.\n  - anchor: `§4 ¶1 / p.3 [1067-1133]`\n\n## Discussion\n\n- [finding] The observed shift is consistent with a mixed hydrate stability field.\n  - anchor: `§5 ¶1 / p.4 [1146-1216]`\n- [finding] Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt%.\n  - anchor: `§5 ¶1 / p.4 [1217-1299]`\n- [finding] The comparison with pure methane runs shows a lower dissociation pressure at 0.7 CO2 fraction.\n  - anchor: `§5 ¶1 / p.4 [1300-1394]`\n\n## Limitations\n\n- [limitation] A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.\n  - anchor: `§6 ¶1 / p.4 [1408-1511]`\n- [limitation] The model does not account for sediment compaction, and the temperature control remains uncertain at 4 °C.\n  - anchor: `§6 ¶1 / p.4 [1512-1618]`\n- [data] Further work should test natural cores.\n  - anchor: `§6 ¶1 / p.4 [1619-1658]`\n",
+    "structured_notes": "# 结构化笔记\n\n## Abstract\n\n- [problem] We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.\n  - anchor: `§1 ¶1 / p.1 [9-109]`\n- [data] Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C.\n  - anchor: `§1 ¶1 / p.1 [110-188]`\n- [finding] Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase within 6 hours.\n  - anchor: `§1 ¶1 / p.1 [189-284]`\n\n## Introduction\n\n- [problem] The research question is whether CO2 can be stored in hydrate reservoirs without destabilising the overlying sediment.\n  - anchor: `§2 ¶1 / p.1 [299-417]`\n- [limitation] Previous work examined pure methane hydrate only, and the effect of CO2 on phase equilibrium remains unclear.\n  - anchor: `§2 ¶1 / p.1 [418-527]`\n- [problem] Here we examine the coupled effect of CO2 fraction and salinity.\n  - anchor: `§2 ¶1 / p.1 [528-592]`\n\n## Materials and Methods\n\n- [data] Samples of 25 g wet sediment were collected from 3 gravity cores.\n  - anchor: `§3 ¶1 / p.2 [616-681]`\n- [method] Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. Salinity was measured by refractometry.\n  - anchor: `§3 ¶1 / p.2 [682-828]`\n- [premise] We assume a constant pore pressure of 12 MPa during each run.\n  - anchor: `§3 ¶1 / p.2 [829-890]`\n\n## Results\n\n- [finding] CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours.\n  - anchor: `§4 ¶1 / p.3 [900-1066]`\n- [finding] Results indicate a mixed hydrate phase at CO2 fractions above 0.5.\n  - anchor: `§4 ¶1 / p.3 [1067-1133]`\n\n## Discussion\n\n- [finding] The observed shift is consistent with a mixed hydrate stability field.\n  - anchor: `§5 ¶1 / p.4 [1146-1216]`\n- [finding] Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt%.\n  - anchor: `§5 ¶1 / p.4 [1217-1299]`\n- [finding] The comparison with pure methane runs shows a lower dissociation pressure at 0.7 CO2 fraction.\n  - anchor: `§5 ¶1 / p.4 [1300-1394]`\n\n## Limitations\n\n- [limitation] A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.\n  - anchor: `§6 ¶1 / p.4 [1408-1511]`\n- [limitation] The model does not account for sediment compaction, and the temperature control remains uncertain at 4 °C.\n  - anchor: `§6 ¶1 / p.4 [1512-1618]`\n- [data] Further work should test natural cores.\n  - anchor: `§6 ¶1 / p.4 [1619-1658]`\n",
     "notes": [
       {
         "note_id": "S1-N1",
@@ -107,11 +107,11 @@
         "section": "Materials and Methods",
         "section_index": 2,
         "role": "method",
-        "quote": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.",
-        "anchor": "§3 ¶1 / p.2 [682-788]",
+        "quote": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. Salinity was measured by refractometry.",
+        "anchor": "§3 ¶1 / p.2 [682-828]",
         "span": [
           682,
-          788
+          828
         ],
         "page": 2,
         "para": 1
@@ -135,31 +135,17 @@
         "section": "Results",
         "section_index": 3,
         "role": "finding",
-        "quote": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.",
-        "anchor": "§4 ¶1 / p.3 [900-996]",
+        "quote": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours.",
+        "anchor": "§4 ¶1 / p.3 [900-1066]",
         "span": [
           900,
-          996
-        ],
-        "page": 3,
-        "para": 1
-      },
-      {
-        "note_id": "S4-N2",
-        "section": "Results",
-        "section_index": 3,
-        "role": "background",
-        "quote": "The measured permeability dropped from 120 mD to 45 mD after 6 hours.",
-        "anchor": "§4 ¶1 / p.3 [997-1066]",
-        "span": [
-          997,
           1066
         ],
         "page": 3,
         "para": 1
       },
       {
-        "note_id": "S4-N3",
+        "note_id": "S4-N2",
         "section": "Results",
         "section_index": 3,
         "role": "finding",
@@ -283,7 +269,7 @@
       {
         "section": "Materials and Methods",
         "section_index": 2,
-        "notes": "Samples of 25 g wet sediment were collected from 3 gravity cores. Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. We assume a constant pore pressure of 12 MPa during each run.",
+        "notes": "Samples of 25 g wet sediment were collected from 3 gravity cores. Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. Salinity was measured by refractometry. We assume a constant pore pressure of 12 MPa during each run.",
         "note_ids": [
           "S3-N1",
           "S3-N2",
@@ -297,10 +283,9 @@
         "notes": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours. Results indicate a mixed hydrate phase at CO2 fractions above 0.5.",
         "note_ids": [
           "S4-N1",
-          "S4-N2",
-          "S4-N3"
+          "S4-N2"
         ],
-        "anchor": "§4 ¶1 / p.3 [900-996]"
+        "anchor": "§4 ¶1 / p.3 [900-1066]"
       },
       {
         "section": "Discussion",
@@ -328,8 +313,8 @@
     "reading_card": {
       "problem": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.",
       "data": "Samples of 25 g wet sediment were collected from 3 gravity cores.",
-      "method": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.",
-      "findings": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.",
+      "method": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. Salinity was measured by refractometry.",
+      "findings": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours.",
       "limitations": "A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.",
       "premises": "We assume a constant pore pressure of 12 MPa during each run."
     },
@@ -402,7 +387,7 @@
       },
       {
         "note_id": "S3-N2",
-        "anchor": "§3 ¶1 / p.2 [682-788]",
+        "anchor": "§3 ¶1 / p.2 [682-828]",
         "verified": true,
         "check": "quote==text[span]"
       },
@@ -414,18 +399,12 @@
       },
       {
         "note_id": "S4-N1",
-        "anchor": "§4 ¶1 / p.3 [900-996]",
+        "anchor": "§4 ¶1 / p.3 [900-1066]",
         "verified": true,
         "check": "quote==text[span]"
       },
       {
         "note_id": "S4-N2",
-        "anchor": "§4 ¶1 / p.3 [997-1066]",
-        "verified": true,
-        "check": "quote==text[span]"
-      },
-      {
-        "note_id": "S4-N3",
         "anchor": "§4 ¶1 / p.3 [1067-1133]",
         "verified": true,
         "check": "quote==text[span]"
@@ -468,8 +447,8 @@
       }
     ],
     "artifacts": {
-      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06d\\notes.md",
-      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06d\\reading_card.json"
+      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06e\\notes.md",
+      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06e\\reading_card.json"
     }
   },
   "evidence": [
@@ -502,7 +481,7 @@
       "note": "Samples of 25 g wet sediment were collected from 3 gravity cores."
     },
     {
-      "anchor": "§3 ¶1 / p.2 [682-788]",
+      "anchor": "§3 ¶1 / p.2 [682-828]",
       "note": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a C"
     },
     {
@@ -510,12 +489,8 @@
       "note": "We assume a constant pore pressure of 12 MPa during each run."
     },
     {
-      "anchor": "§4 ¶1 / p.3 [900-996]",
+      "anchor": "§4 ¶1 / p.3 [900-1066]",
       "note": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 "
-    },
-    {
-      "anchor": "§4 ¶1 / p.3 [997-1066]",
-      "note": "The measured permeability dropped from 120 mD to 45 mD after 6 hours."
     },
     {
       "anchor": "§4 ¶1 / p.3 [1067-1133]",
@@ -557,7 +532,7 @@
       "card_support_rate": 1.0,
       "number_sourced_rate": 1.0,
       "role_coverage_rate": 1.0,
-      "notes_count": 18,
+      "notes_count": 17,
       "sections": 6
     },
     "pass": true,
@@ -570,7 +545,7 @@
     "card_support_rate": 1.0,
     "number_sourced_rate": 1.0,
     "role_coverage_rate": 1.0,
-    "notes_count": 18,
+    "notes_count": 17,
     "sections": 6
   }
 }

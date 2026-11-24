@@ -22,17 +22,15 @@
 
 - [data] Samples of 25 g wet sediment were collected from 3 gravity cores.
   - anchor: `§3 ¶1 / p.2 [616-681]`
-- [method] Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.
-  - anchor: `§3 ¶1 / p.2 [682-788]`
+- [method] Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. Salinity was measured by refractometry.
+  - anchor: `§3 ¶1 / p.2 [682-828]`
 - [premise] We assume a constant pore pressure of 12 MPa during each run.
   - anchor: `§3 ¶1 / p.2 [829-890]`
 
 ## Results
 
-- [finding] CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.
-  - anchor: `§4 ¶1 / p.3 [900-996]`
-- [background] The measured permeability dropped from 120 mD to 45 mD after 6 hours.
-  - anchor: `§4 ¶1 / p.3 [997-1066]`
+- [finding] CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours.
+  - anchor: `§4 ¶1 / p.3 [900-1066]`
 - [finding] Results indicate a mixed hydrate phase at CO2 fractions above 0.5.
   - anchor: `§4 ¶1 / p.3 [1067-1133]`
 

@@ -180,6 +180,14 @@ def main():
           auditlib.numbers("共 30 个样品，重复 3 次，n = 4，12 MPa，8 samples") >= {"3", "4", "8", "12", "30"}
           and auditlib.numbers("See Section 2 and Fig. 3 in 2020.") == set())
 
+    # 切句：缩写与小数点不切
+    para = ("Results are shown in Fig. 3 and follow Smith et al. (2020) at 3.5 wt% salinity. "
+            "The next sentence stays separate and is long enough to survive.")
+    sents = [s[0] for s in noteslib.sentences(para, 0)]
+    check("切句：Fig. 3 / et al. (2020) / 3.5 wt% 不被切断，仍是一句",
+          len(sents) == 2 and "Fig. 3" in sents[0] and "et al. (2020)" in sents[0]
+          and sents[1].startswith("The next"), str(len(sents)))
+
     for name in ok:
         print(f"  ✓ {name}")
     for name in fail:

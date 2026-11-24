@@ -6,7 +6,7 @@
 
 ```bash
 python scripts/run.py --input /input/case.json --output /app/output
-python examples/selftest.py          # 27 条断言
+python examples/selftest.py          # 28 条断言
 ```
 
 产物：`result.json`、`notes.md`、`reading_card.json`、`section_align.md`。
