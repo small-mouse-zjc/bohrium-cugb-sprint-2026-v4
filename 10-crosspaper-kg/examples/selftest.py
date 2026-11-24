@@ -113,6 +113,56 @@ def main():
         assert "K05" in codes(v5), codes(v5)
         ok.append("D5_unresolved_abbr → K05")
 
+        # D6 引文逐字但与本边无关（同段落另一句）→ K03，边不得成立
+        r6 = copy.deepcopy(rel)
+        r6["relations"][0]["quote"] = "Pore-water salinity is 3.5 wt% NaCl equivalent."
+        v6, kg6, _ = build_case(tmp, "D6", base, r6, qy)
+        assert any(x["code"] == "K03" and "subject" in (x.get("endpoints") or []) for x in v6["violations"]), v6["violations"]
+        assert len(kg6["edges"]) == 5, len(kg6["edges"])
+        assert v6["pass"] is False, v6
+        ok.append("D6_verbatim_but_irrelevant_quote → K03（引文未含端点写法），边数 6→5")
+
+        # D7 同篇同名多实例：按 relation 的 paragraph_id 消歧，不得静默绑到第一个
+        c7 = copy.deepcopy(base)
+        p2 = next(p for p in c7["papers"] if p["paper_id"] == "P2")
+        p2["paragraphs"] += [
+            {"paragraph_id": "JATS-9", "text": "A third sediment sample (S3) was prepared; the clay was removed before use."},
+            {"paragraph_id": "JATS-10", "text": "A fourth sediment sample (S4) was prepared; the clay was removed before use."},
+        ]
+        p2["mentions"] += [
+            {"surface": "sediment sample", "type": "material", "paragraph_id": "JATS-9",
+             "quote": "A third sediment sample (S3) was prepared; the clay was removed before use.",
+             "attrs": {"sample_id": "S3"}},
+            {"surface": "sediment sample", "type": "material", "paragraph_id": "JATS-10",
+             "quote": "A fourth sediment sample (S4) was prepared; the clay was removed before use.",
+             "attrs": {"sample_id": "S4"}},
+        ]
+        r7 = copy.deepcopy(rel)
+        r7["relations"].append({"id": "e7", "paper_id": "P2", "paragraph_id": "JATS-9",
+                                "subject": "sediment sample", "predicate": "located_in", "object": "clay",
+                                "quote": "A third sediment sample (S3) was prepared; the clay was removed before use."})
+        v7, kg7, _ = build_case(tmp, "D7", c7, r7, qy)
+        e7 = next(e for e in kg7["edges"] if e["id"] == "e7")
+        node7 = next(n for n in kg7["nodes"] if n["id"] == e7["subject"])
+        assert node7["attrs"].get("sample_id") == "S3", node7
+        ok.append("D7_endpoint_by_paragraph → e7 的 subject 绑到 sample_id=S3（不静默取首个实例）")
+
+        # D8 同篇同名多实例且段落也对不上 → K09 拒绝建边，不许猜
+        r8 = copy.deepcopy(r7)
+        r8["relations"][-1]["paragraph_id"] = "JATS-99"
+        v8, kg8, _ = build_case(tmp, "D8", c7, r8, qy)
+        assert "K09" in codes(v8), codes(v8)
+        assert not any(e["id"] == "e7" for e in kg8["edges"]), "歧义端点仍建了边"
+        ok.append("D8_ambiguous_endpoint → K09，e7 不成立（不静默 pool[0]）")
+
+        # D9 relation 缺 paper_id → 优雅报 K06，不许 KeyError
+        r9 = copy.deepcopy(rel)
+        r9["relations"][0].pop("paper_id", None)
+        v9, kg9, _ = build_case(tmp, "D9", base, r9, qy)
+        assert any(x["code"] == "K06" and "paper_id" in x.get("detail", "") for x in v9["violations"]), v9["violations"]
+        assert len(kg9["edges"]) == 5
+        ok.append("D9_relation_without_paper_id → K06（缺 paper_id），无 KeyError")
+
         # 平台入口：case.json → result.json
         ein, eout = tmp / "entry_in", tmp / "entry_out"
         ein.mkdir()

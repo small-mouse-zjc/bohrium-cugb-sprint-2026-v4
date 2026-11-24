@@ -155,37 +155,65 @@ def build(corpus: dict, relations: dict, queries):
                           "quote": _quote_for(para, m)} for nd in nds for m in nd["mentions"][:1]]
         })
 
-    # 边绑定：同名多节点时，优先用关系里给的限定字段消歧，避免把边绑到错实例
-    def match(surface, pid, hints=None):
+    # 边绑定：同名多节点时，优先用关系里给的段落/限定字段消歧，避免把边绑到错实例
+    def match(surface, pid, hints=None, paragraph_id=None):
         n = norm(surface)
         cands = [nd for nd in nodes if any(m["key"] == n for m in nd["mentions"])]
         same = [nd for nd in cands if any(m["paper_id"] == pid for m in nd["mentions"])]
         pool = same or cands
         if hints:
-            for nd in pool:
-                if all(nd["attrs"].get(k) == v for k, v in hints.items() if k in ATTRS):
-                    return nd
-        if len(pool) > 1:
+            pin = [nd for nd in pool
+                   if all(nd["attrs"].get(k) == v for k, v in hints.items() if k in ATTRS)]
+            if pin:
+                pool = pin
+        if paragraph_id:
+            inpar = [nd for nd in pool if any(m["paper_id"] == pid and m["paragraph_id"] == paragraph_id
+                                              for m in nd["mentions"])]
+            if inpar:
+                pool = inpar
+        if len(pool) == 1:
             return pool[0]
-        return (pool or [None])[0]
+        return None  # 0 个 = 无端点；>1 个 = 歧义，交给调用方报错，不静默取第一个
 
     edges = []
+    def surfaces_of(nd, pid):
+        return [squash(m["surface"]).lower() for m in nd["mentions"] if m["paper_id"] == pid] or \
+               [squash(m["surface"]).lower() for m in nd["mentions"]]
+
     for r in relations.get("relations", []):
-        s = match(r["subject"], r["paper_id"], r.get("subject_attrs"))
-        o = match(r["object"], r["paper_id"], r.get("object_attrs"))
         eid = r.get("id") or "e%02d" % (len(edges) + 1)
-        if not s or not o:
-            V("K06", edge=eid, detail="端点无法解析到节点")
+        pid = r.get("paper_id")
+        if not pid:
+            V("K06", edge=eid, detail="关系缺少 paper_id，端点无法归属到任何一篇")
             continue
-        text = para.get((r["paper_id"], r.get("paragraph_id")), "")
+        prg = r.get("paragraph_id")
+        s = match(r["subject"], pid, r.get("subject_attrs"), prg)
+        o = match(r["object"], pid, r.get("object_attrs"), prg)
+        def n_cands(surface):
+            n = norm(surface)
+            return len([nd for nd in nodes if any(m["key"] == n and m["paper_id"] == pid for m in nd["mentions"])])
+        if not s or not o:
+            amb = [rr for rr, got in ((r["subject"], s), (r["object"], o)) if got is None and n_cands(rr) > 1]
+            if amb:
+                V("K09", edge=eid, detail=f"同名多实例且段落/限定无法唯一确定端点（{amb[0]}），拒绝建边")
+            else:
+                V("K06", edge=eid, detail="端点无法解析到节点")
+            continue
+        text = para.get((pid, prg), "")
         q = squash(r.get("quote", ""))
         if not text or not q or q not in text:
             V("K03", edge=eid, detail="引文不是该段落的连续子串或段落缺失")
             continue
+        low = q.lower()
+        miss = [nm for nm, nd in (("subject", s), ("object", o)) if not any(sf in low for sf in surfaces_of(nd, pid))]
+        if miss:
+            V("K03", edge=eid, detail=f"引文逐字但未支持 {'/'.join(miss)}：引文里没有端点在本篇的写法",
+              endpoints=miss, quote=q)
+            continue
         edges.append({"id": eid, "subject": s["id"], "subject_label": s["label"],
                       "predicate": r["predicate"], "object": o["id"], "object_label": o["label"],
-                      "evidence": {"paper_id": r["paper_id"], "paragraph_id": r["paragraph_id"],
-                                   "doi": papers[r["paper_id"]].get("doi"), "quote": q}})
+                      "evidence": {"paper_id": pid, "paragraph_id": prg,
+                                   "doi": papers[pid].get("doi"), "quote": q}})
 
     # 查询
     results = execute_queries(papers, para, nodes, edges, non_merge, queries, violations)
