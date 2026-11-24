@@ -95,6 +95,43 @@ def main():
         assert "Traceback" not in r.stderr, r.stderr[-300:]
         ok.append("缺 truth.json：指标记 None 不崩溃")
 
+        # 真实论文形态：每页变化的页码、页边注、跨页断句
+        import fitz
+        edge = tmp / "edge.pdf"
+        doc = fitz.open()
+        p1 = doc.new_page(width=595, height=842)
+        p1.insert_textbox(fitz.Rect(50, 60, 545, 130),
+                          "This paragraph ends without a full stop, so the sentence continues", fontsize=10)
+        p1.insert_textbox(fitz.Rect(505, 200, 580, 260), "margin note: see appendix", fontsize=7)
+        p1.insert_textbox(fitz.Rect(50, 800, 545, 830), "Page 1 of 2", fontsize=8)
+        p2 = doc.new_page(width=595, height=842)
+        p2.insert_textbox(fitz.Rect(50, 60, 545, 130),
+                          "on the next page and only then ends here.", fontsize=10)
+        p2.insert_textbox(fitz.Rect(50, 800, 545, 830), "Page 2 of 2", fontsize=8)
+        doc.save(str(edge))
+        doc.close()
+
+        ed = tmp / "edge_out"
+        run([ROOT / "scripts/reflow.py", "--pdf", edge, "--out", ed, "--audit"])
+        eo = json.loads((ed / "reflow.json").read_text(encoding="utf-8"))
+        rows = [json.loads(l) for l in (ed / "paragraphs.jsonl").read_text(encoding="utf-8").splitlines() if l.strip()]
+        assert len(eo["dropped_headers_footers"]) == 2, eo["dropped_headers_footers"]
+        assert all(d.get("reason") == "页码形态" for d in eo["dropped_headers_footers"]), eo["dropped_headers_footers"]
+        assert not any(r["text"].startswith("Page ") for r in rows), [r["text"] for r in rows]
+        ok.append("每页变化的页码（Page 1 of 2 / Page 2 of 2）→ 2 条按页码形态剔除，正文零泄漏")
+
+        assert any(r.get("role") == "note" for r in rows), rows
+        assert eo["note_blocks"] and eo["note_blocks"][0]["text"].startswith("margin note"), eo["note_blocks"]
+        note_rows = [r for r in rows if r.get("role") == "note"]
+        assert all(r["col"] == "note" for r in note_rows), note_rows
+        ok.append("页边窄块 → role=note、col=note，进 note_blocks，不混入正文序列")
+
+        cont = [r for r in rows if r.get("continues_from")]
+        assert cont and eo["continues"], eo["continues"]
+        prev = next(r for r in rows if r["id"] == cont[0]["continues_from"])
+        assert prev["page"] == cont[0]["page"] - 1, (prev, cont[0])
+        ok.append(f"跨页断句 → {cont[0]['id']} 记 continues_from={cont[0]['continues_from']}（上页末段）")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)

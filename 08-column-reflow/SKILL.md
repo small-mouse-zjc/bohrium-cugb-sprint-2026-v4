@@ -41,7 +41,7 @@ python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 用通栏块按 y 切横向带；每条带内 **左栏自上而下 → 右栏自上而下**；带与带之间按 y 递增。这样标题在顶部、跨栏图在其所在高度插入，左右栏不会交错。
 
 **第 3 步 清理**
-- 页眉页脚：上下 7% 区域内且跨页重复的文本剔除，记入 `dropped`。
+- 页眉页脚：上下 7% 区域内的三类文本全部剔除并记入 `dropped`（含 `reason`）：① 跨页逐字重复；② 页码形态（`Page N`、`N`、`N of M`、`N/M`）；③ 跨页只有数字不同的短行（running head/章节页眉，需字号小于正文字号）。只认逐字重复会漏掉每页变化的页码。
 - 断词：行末 `-` 直接拼接（`micro-` + `structure` → `microstructure`），避免把单词拆两段。
 - 同栏续段：上一块无句末标点、下一块小写开头、垂直间距 ≤1.6 倍字号时合并。
 
@@ -70,8 +70,8 @@ python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 | 情况 | 处置 |
 |---|---|
 | 三栏及以上 | 按 x 聚类成 n 栏，仍按"带内左→右"；栏数写入 `reflow.json` |
-| 跨页续接 | 记录 `continues_from`（上一页最后一段 id），不强行合并 |
-| 边注/脚注 | 按 x 位置与宽度归入 `note` 标记，不混入正文 |
+| 跨页续接 | 上页末段无句末标点、下页首段小写开头 → 下页首段记 `continues_from`（上页末段 id），并在 `reflow.json.continues` 列明；不强行合并 |
+| 边注/脚注 | 贴页边（`x1 ≤ 0.2W` 或 `x0 ≥ 0.8W`）且宽度 `≤ 0.3W` 的窄块标 `role=note`/`col=note`，页末输出、不进正文序列；`reflow.json.note_blocks` 留坐标 |
 | 图片型表格 | 块内无文本，仅记 bbox，不猜内容 |
 | 栏间留白极小 | 判定单栏并告警，避免误切 |
 
@@ -80,4 +80,5 @@ python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 ```
 python examples/selftest.py
 ```
+自检 **10 条**：除双栏真值、基线对照、平台入口/降级外，新增 ① 每页变化的页码（`Page 1 of 2`/`Page 2 of 2`）按页码形态剔除且正文零泄漏；② 页边窄块进 `note` 不混正文；③ 跨页断句正确记 `continues_from`。
 要求：用已知真值的双栏 PDF（`examples/demo` 生成器可重建）验证：本算法输出顺序与真值 **完全一致**；朴素"按 y 再按 x"基线明显串栏（作为对照，不是分数）。

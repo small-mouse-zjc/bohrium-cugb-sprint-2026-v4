@@ -32,6 +32,67 @@ def join_lines(lines):
     return clean(buf)
 
 
+PAGE_NUM_RE = re.compile(r"^(page\s*)?\d+(\s*(of|/)\s*\d+)?$", re.I)
+
+
+def band_key(text: str) -> str:
+    """把页码/卷期这类"每页只差一个数字"的文本归一成同一键。"""
+    t = re.sub(r"\s+", " ", (text or "").strip().lower())
+    return re.sub(r"\d+", "#", t)
+
+
+def is_band_block(b, H) -> bool:
+    return b["y1"] <= H * 0.07 or b["y0"] >= H * 0.92
+
+
+def drop_band_blocks(pages):
+    """剔除页眉页脚：逐字重复 / 页码形态 / 跨页仅数字不同的短行。"""
+    freq, nfreq = {}, {}
+    for p in pages:
+        med = statistics.median([b["size"] for b in p["blocks"] if b["size"]]) if p["blocks"] else 10
+        p["med_size"] = med
+        for b in p["blocks"]:
+            if is_band_block(b, p["H"]):
+                k = re.sub(r"\s+", " ", b["text"]).lower()
+                freq[k] = freq.get(k, 0) + 1
+                nk = band_key(b["text"])
+                nfreq[nk] = nfreq.get(nk, 0) + 1
+    dropped = []
+    for pno, p in enumerate(pages, start=1):
+        kept = []
+        for b in p["blocks"]:
+            if is_band_block(b, p["H"]):
+                txt = re.sub(r"\s+", " ", b["text"]).strip()
+                k = txt.lower()
+                small = b["size"] <= p["med_size"] * 0.92
+                reason = None
+                if freq.get(k, 0) >= 2:
+                    reason = "跨页逐字重复"
+                elif PAGE_NUM_RE.match(txt):
+                    reason = "页码形态"
+                elif len(txt) <= 80 and nfreq.get(band_key(txt), 0) >= 2 and small:
+                    reason = "跨页仅数字不同（running head/页码）"
+                if reason:
+                    dropped.append({"page": pno, "text": txt[:60], "reason": reason})
+                    continue
+            kept.append(b)
+        p["blocks"] = kept
+    return dropped
+
+
+def mark_notes(pages):
+    """边注/脚注：窄块贴左右页边，标 role=note，不进正文阅读序列。"""
+    notes = []
+    for pno, p in enumerate(pages, start=1):
+        for b in p["blocks"]:
+            w = b["x1"] - b["x0"]
+            if w <= 0.3 * p["W"] and (b["x1"] <= 0.2 * p["W"] or b["x0"] >= 0.8 * p["W"]):
+                b["role"] = "note"
+                notes.append({"page": pno, "text": b["text"][:60],
+                              "bbox": [round(b["x0"], 1), round(b["y0"], 1), round(b["x1"], 1), round(b["y1"], 1)]})
+    return notes
+
+
 def read_blocks(page):
     d = page.get_text("dict")
     out = []
@@ -129,44 +190,46 @@ def main():
         W, H = page.rect.width, page.rect.height
         pages.append({"W": W, "H": H, "blocks": read_blocks(page)})
 
-    # 页眉页脚：位置带 + 跨页重复
-    freq = {}
-    for p in pages:
-        for b in p["blocks"]:
-            if b["y1"] <= p["H"] * 0.07 or b["y0"] >= p["H"] * 0.92:
-                k = re.sub(r"\s+", " ", b["text"]).lower()
-                freq[k] = freq.get(k, 0) + 1
-    dropped = []
-    for p in pages:
-        kept = []
-        for b in p["blocks"]:
-            k = re.sub(r"\s+", " ", b["text"]).lower()
-            if (b["y1"] <= p["H"] * 0.07 or b["y0"] >= p["H"] * 0.92) and freq.get(k, 0) >= 2:
-                dropped.append({"page": pages.index(p) + 1, "text": b["text"][:60]})
-                continue
-            kept.append(b)
-        p["blocks"] = kept
+    # 页眉页脚：逐字重复 + 页码形态 + 跨页仅数字不同（页码/running head）
+    dropped = drop_band_blocks(pages)
+    # 边注/脚注：贴页边的窄块标 note，不混入正文
+    notes = mark_notes(pages)
 
     paras, layout = [], 1
     for pno, p in enumerate(pages, start=1):
+        body = [b for b in p["blocks"] if b.get("role") != "note"]
         if a.baseline:
-            seq = naive_order(p["blocks"])
+            seq = naive_order(body)
             for b in seq:
                 b.setdefault("col", "?")
             nl = 1
         else:
-            seq = page_order(p["blocks"], p["W"])
-            _, cols, nl = classify(p["blocks"], p["W"])
+            seq = page_order(body, p["W"])
+            _, cols, nl = classify(body, p["W"])
             if nl > 1 and layout == 1:
                 layout = nl
             if not seq:
-                seq = naive_order(p["blocks"])
+                seq = naive_order(body)
         for b in merge_paragraphs(seq):
             paras.append({"id": f"P{len(paras)+1:04d}", "page": pno, "col": b.get("col", "span"),
                           "bbox": [round(b["x0"], 1), round(b["y0"], 1), round(b["x1"], 1), round(b["y1"], 1)],
                           "text": b["text"]})
+        for b in [x for x in p["blocks"] if x.get("role") == "note"]:
+            paras.append({"id": f"P{len(paras)+1:04d}", "page": pno, "col": "note", "role": "note",
+                          "bbox": [round(b["x0"], 1), round(b["y0"], 1), round(b["x1"], 1), round(b["y1"], 1)],
+                          "text": b["text"]})
     for i, r in enumerate(paras):
         r["order_index"] = i
+
+    # 跨页续接：上页末段无句末标点、下页首段小写开头 → 记 continues_from
+    continues = []
+    body_paras = [r for r in paras if not r.get("role")]
+    for a1, b1 in zip(body_paras, body_paras[1:]):
+        if a1["page"] == b1["page"]:
+            continue
+        if not re.search(r"[.!?。！？]\s*$", a1["text"]) and re.match(r"[a-z(]", b1["text"]):
+            b1["continues_from"] = a1["id"]
+            continues.append({"from": a1["id"], "to": b1["id"], "reason": "上页末段无句末标点、下页小写开头"})
 
     suspicious = []
     for a1, b1 in zip(paras, paras[1:]):
@@ -178,6 +241,7 @@ def main():
     info = {"pdf": Path(a.pdf).name, "pages": len(pages), "paragraphs": len(paras),
             "layout": "single" if layout == 1 else f"{layout}-column",
             "dropped_headers_footers": dropped, "suspicious": suspicious,
+            "note_blocks": notes, "continues": continues,
             "mode": "baseline" if a.baseline else "reflow",
             "chars": sum(len(r["text"]) for r in paras)}
 
