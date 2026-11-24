@@ -227,6 +227,34 @@ def main():
         assert "K08" in codes(v8) and v8["pass"] is False, v8
         ok.append("三条都是 node 查询 → K08（kind 覆盖不足）+ pass=false")
 
+        # 查询端必须继承构建端的别名归一：用别名/变体写法也要能查回同一节点
+        qa = {"queries": [
+            {"id": "Q-a1", "kind": "node", "label": "GH", "question": "缩写写法能否查回节点"},
+            {"id": "Q-a2", "kind": "node", "label": "Gas-Hydrate", "question": "连字符变体能否查回节点"},
+            {"id": "Q-a3", "kind": "edges", "predicate": "increases", "question": "关系查询占位"}]}
+        va, kga, qsa = build_case(tmp, "alias", base, rel, qa)
+        gh_id = next(n["id"] for n in kga["nodes"] if n["key"] == "gas hydrate")
+        a1 = next(x for x in qsa if x["id"] == "Q-a1")
+        a2 = next(x for x in qsa if x["id"] == "Q-a2")
+        assert a1["found"] and a1.get("node_id") == gh_id and a1["matched_by"] == "alias", a1
+        assert a2["found"] and a2.get("node_id") == gh_id, a2
+        assert a1["evidence"] and a2["evidence"], (a1, a2)
+        ok.append("查询端认别名：GH / Gas-Hydrate 都查回同一 gas hydrate 节点且带证据")
+
+        # 路径查询不得把同名多实例塌缩成一个：端点候选全交出，且 ambiguous=true
+        qp2 = {"queries": [
+            {"id": "Q-p1", "kind": "path", "from": "sediment sample", "to": "salinity",
+             "question": "同名多实例的路径查询"},
+            {"id": "Q-p2", "kind": "node", "label": "gas hydrate", "question": "占位"},
+            {"id": "Q-p3", "kind": "edges", "predicate": "increases", "question": "占位"}]}
+        vp, kgp, qsp = build_case(tmp, "path", base, rel, qp2)
+        ss_ids = {n["id"] for n in kgp["nodes"] if n["key"] == "sediment sample"}
+        p1 = next(x for x in qsp if x["id"] == "Q-p1")
+        assert len(ss_ids) >= 2, ss_ids
+        assert set(p1["from_ids"]) == ss_ids, (p1["from_ids"], ss_ids)
+        assert p1["ambiguous"] is True, p1
+        ok.append("路径查询端点多实例：from_ids 含全部实例（%d 个）且 ambiguous=true，不静默取一个" % len(ss_ids))
+
         # cannot_determine 时 notes 不残留下游 query 噪音
         c9 = copy.deepcopy(base)
         for p in c9["papers"]:

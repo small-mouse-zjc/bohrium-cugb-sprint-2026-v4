@@ -93,7 +93,7 @@ python scripts/kg.py build --corpus work/corpus.json --relations work/relations.
 ```
 python examples/selftest.py
 ```
-注入 11 类缺陷全部命中或正确拒绝：变体未归一（K01）、冲突合并（K02）、改写引文（K03 子串不成立）、同段落但与本边无关的逐字引文（K03 端点缺席）、空查询（K04）、缩写无全称（K05）、同篇同名多实例按 `paragraph_id` 正确绑定 / 段落也对不上（K09 拒绝建边）、relation 缺 `paper_id`（K06 而非 KeyError）、提及引文被改写（K10 且回退真实句）、非合并理由为"不确定"占位（K11），另有查询数 <3（K07）与查询类型覆盖不足（K08）。共 20 条断言全绿。
+注入 11 类缺陷全部命中或正确拒绝：变体未归一（K01）、冲突合并（K02）、改写引文（K03 子串不成立）、同段落但与本边无关的逐字引文（K03 端点缺席）、空查询（K04）、缩写无全称（K05）、同篇同名多实例按 `paragraph_id` 正确绑定 / 段落也对不上（K09 拒绝建边）、relation 缺 `paper_id`（K06 而非 KeyError）、提及引文被改写（K10 且回退真实句）、非合并理由为"不确定"占位（K11），另有查询数 <3（K07）与查询类型覆盖不足（K08）。共 22 条断言全绿（新增：查询端别名归一——`GH`/`Gas-Hydrate` 必须查回同一节点；路径查询端点多实例时必须交出全部候选并标 `ambiguous`，不得静默取一个）。
 
 `non_merge_reasons` 写在 `relations.json` 里：`[{"key": "sediment sample", "reason": "P1 是现场取样…P2 是实验室合成…"}]`，脚本只认具体、非占位的理由（`reason_source=author`）；缺省或占位记 K11，并把 `reason_source` 退回 `auto`。
 

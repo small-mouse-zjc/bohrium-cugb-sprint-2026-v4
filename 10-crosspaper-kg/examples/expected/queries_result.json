@@ -4,6 +4,7 @@
     "node_id": "n01",
     "label": "Gas hydrate",
     "type": "material",
+    "matched_by": "key",
     "papers": [
       "P1",
       "P2"
@@ -92,6 +93,13 @@
   {
     "from": "salinity",
     "to": "dissociation pressure",
+    "from_ids": [
+      "n06"
+    ],
+    "to_ids": [
+      "n05"
+    ],
+    "ambiguous": false,
     "found": true,
     "hops": 1,
     "edges": [
@@ -110,6 +118,7 @@
         }
       }
     ],
+    "end_id": "n05",
     "evidence": [
       {
         "paper_id": "P1",

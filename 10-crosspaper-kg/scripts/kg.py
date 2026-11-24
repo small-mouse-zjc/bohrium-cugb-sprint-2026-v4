@@ -281,14 +281,34 @@ def build(corpus: dict, relations: dict, queries):
 def execute_queries(papers, para, nodes, edges, non_merge, queries, violations):
     """在已建好的图上跑 queries：build 与 query 两条命令共用，query 不再重跑构建。"""
 
-    def node_result(label):
+    def _label_hits(label):
+        """查询端的归一必须和构建端同口径：key / aliases / 每篇的 surface 任一命中即算命中，
+        否则别名归一在查询侧白做（用 GH 查不到 gas hydrate 就等于没归一）。"""
         n = norm(label)
-        nd = next((x for x in nodes if x["key"] == n), None)
-        if not nd:
+        out = []
+        for x in nodes:
+            if x["key"] == n or any(norm(a) == n for a in x.get("aliases", [])) \
+                    or any(norm(m["surface"]) == n for m in x["mentions"]):
+                out.append(x)
+        return out
+
+    def node_result(label):
+        hits = _label_hits(label)
+        if not hits:
             return {"found": False, "label": label, "evidence": []}
+        if len(hits) > 1:
+            # 同一写法对应多个实例（非合并词）：不静默取第一个，把候选连同证据一并交出
+            return {"found": True, "ambiguous": True, "label": label,
+                    "candidate_ids": [x["id"] for x in hits],
+                    "candidates": [{"node_id": x["id"], "label": x["label"], "attrs": x["attrs"]} for x in hits],
+                    "evidence": [{"paper_id": m["paper_id"], "paragraph_id": m["paragraph_id"],
+                                  "doi": papers[m["paper_id"]].get("doi"), "quote": _quote_for(para, m)}
+                                 for x in hits for m in x["mentions"]]}
+        nd = hits[0]
         ev = [{"paper_id": m["paper_id"], "paragraph_id": m["paragraph_id"],
                "doi": papers[m["paper_id"]].get("doi"), "quote": _quote_for(para, m)} for m in nd["mentions"]]
         return {"found": True, "node_id": nd["id"], "label": nd["label"], "type": nd["type"],
+                "matched_by": "key" if nd["key"] == norm(label) else "alias",
                 "papers": sorted({m["paper_id"] for m in nd["mentions"]}), "evidence": ev}
 
     def edges_result(pred):
@@ -297,19 +317,21 @@ def execute_queries(papers, para, nodes, edges, non_merge, queries, violations):
                 "evidence": [e["evidence"] for e in es]}
 
     def path_result(src, dst):
-        s, d = norm(src), norm(dst)
+        sh, dh = _label_hits(src), _label_hits(dst)
+        if not sh or not dh:
+            return {"from": src, "to": dst, "found": False, "evidence": []}
+        sids = {x["id"] for x in sh}
+        dids = {x["id"] for x in dh}
         adj = defaultdict(list)
         for e in edges:
             adj[e["subject"]].append((e["object"], e))
             adj[e["object"]].append((e["subject"], e))
-        ids = {x["key"]: x["id"] for x in nodes}
-        if s not in ids or d not in ids:
-            return {"from": src, "to": dst, "found": False, "evidence": []}
-        q, seen, prev = [ids[s]], {ids[s]}, {}
+        # 多源 BFS：起点/终点各自可能对应多个实例（非合并词），全部纳入，不塌缩成最后一个
+        q, seen, prev = list(sids), set(sids), {}
         hit = None
         while q:
             cur = q.pop(0)
-            if cur == ids[d]:
+            if cur in dids:
                 hit = cur
                 break
             for nxt, e in adj[cur]:
@@ -317,15 +339,17 @@ def execute_queries(papers, para, nodes, edges, non_merge, queries, violations):
                     seen.add(nxt)
                     prev[nxt] = (cur, e)
                     q.append(nxt)
+        base = {"from": src, "to": dst, "from_ids": sorted(sids), "to_ids": sorted(dids),
+                "ambiguous": len(sids) > 1 or len(dids) > 1}
         if not hit:
-            return {"from": src, "to": dst, "found": False, "evidence": []}
+            return dict(base, found=False, evidence=[])
         chain, cur = [], hit
         while cur in prev:
             cur, e = prev[cur]
             chain.append(e)
         chain.reverse()
-        return {"from": src, "to": dst, "found": True, "hops": len(chain), "edges": chain,
-                "evidence": [e["evidence"] for e in chain]}
+        return dict(base, found=True, hops=len(chain), edges=chain, end_id=hit,
+                    evidence=[e["evidence"] for e in chain])
 
     results = []
     for qt in queries:
