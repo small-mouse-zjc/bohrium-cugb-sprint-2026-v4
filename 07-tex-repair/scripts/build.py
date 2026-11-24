@@ -47,9 +47,13 @@ def find_engine(prefer: str | None = None):
     return None, None
 
 
-def run(cmd, cwd):
+def run(cmd, cwd, env=None):
+    import os
+    e = dict(os.environ)
+    if env:
+        e.update(env)
     return subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True,
-                          encoding="utf-8", errors="replace")
+                          encoding="utf-8", errors="replace", env=e)
 
 
 def needs_bib(proj: Path, main_tex: Path) -> bool:
@@ -115,13 +119,13 @@ def main():
             bibtex = shutil.which("bibtex")
             biber = shutil.which("biber")
             if bibtex and aux_path.exists():
-                br = run([bibtex, aux_path.stem], out)
+                br = run([bibtex, aux_path.stem], out, {"BIBINPUTS": f"{out}:{proj}:"})
                 bib_runs += 1
                 bib_failed = br.returncode != 0
                 log_text += "\n" + br.stdout + "\n" + br.stderr
                 continue  # 跑完 bib 必须再编
             elif biber:
-                br = run([biber, aux_path.stem], out)
+                br = run([biber, aux_path.stem], out, {"BIBINPUTS": f"{out}:{proj}"})
                 bib_runs += 1
                 bib_failed = br.returncode != 0
                 log_text += "\n" + br.stdout + "\n" + br.stderr

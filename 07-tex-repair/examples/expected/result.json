@@ -1,0 +1,33 @@
+{
+  "case_id": "c1",
+  "status": "success",
+  "metrics": {
+    "project": "/input/case1/paper",
+    "template": "/input/case1/template.yaml",
+    "texfit_rc": 0,
+    "violations": 0,
+    "violation_counts": {},
+    "build_rc": 0,
+    "build_status": "success",
+    "errors": 0,
+    "converged": true,
+    "rerun_required": false,
+    "bibtex_runs": 1,
+    "pages": 2,
+    "pdf": "main.pdf",
+    "error_count": 0,
+    "warning_count": 0,
+    "error_codes": {},
+    "undefined_cites": []
+  },
+  "artifacts": [
+    "texfit.json",
+    "texfit.md",
+    "build_manifest.json",
+    "logdiag.json",
+    "run.log"
+  ],
+  "notes": [],
+  "decided_at": "2026-11-24T23:19:40",
+  "_evidence": "云主机实测 scripts/run.py --input <含 case.json 的目录> --output <out> 的输出；status 取值 success / partial / cannot_determine / rejected，success 必须同时满足 violations=0、errors=0、converged=true、PDF 存在。"
+}

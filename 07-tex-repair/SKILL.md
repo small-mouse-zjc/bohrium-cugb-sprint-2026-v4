@@ -25,8 +25,11 @@ description: 把已有 LaTeX 稿件迁入指定模板：先做静态合规检查
 | `main.tex` 等 | 修复后的可编译源码（保留原有结构，不整体重写） |
 | `texfit.json` | 静态合规检查结果（规则 id、文件、行号、修法） |
 | `logdiag.json` | 编译日志结构化诊断（根因、行号、是否级联） |
-| `build_manifest.json` | 引擎与版本、命令、轮次、输入哈希、产物路径、状态 |
-| `result.json` | 契约字段 + `case_id` + `status` + `metrics` |
+| `build_manifest.json` | 引擎与版本、命令、轮次、bib 处理次数、输入哈希、产物路径、`status`/`converged`/`rerun_required` |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，**由 `scripts/run.py` 产出** |
+
+`result.json` 不是手写的：平台入口 `scripts/run.py` 读 `/input/case.json`、跑 `texfit → build → logdiag`、写 `/app/output/result.json`，并原样留下 `texfit.json / build_manifest.json / logdiag.json / run.log` 四份证据。
+
 
 ## 3. 流程
 
@@ -51,7 +54,8 @@ python scripts/texfit.py --project work/paper --template work/template.yaml --ou
 ```
 python scripts/build.py --project work/paper --out /app/output --rounds 3
 ```
-- 有 `latexmk/pdflatex/xelatex`：按 `-interaction=nonstopmode -file-line-error` 编译，读到 `Rerun` 就再编一轮，最多 3 轮。
+- 引擎默认 `pdflatex`，其次 `xelatex`；`latexmk` 只在显式 `--engine latexmk` 时用（它对 pdflatex 专用旗标会报 `Bad options specified`，不能当默认）。
+- 首轮编完若工程有 `.bib`/`\bibliography`，自动跑 `bibtex`（`BIBINPUTS` 指向工程目录）再复编，否则引文永远是 `[?]`，`converged=false`。
 - 没有 TeX：`status=static_only`，只出静态检查结果并注明"未做真实编译"，**不许写"编译通过"**。
 诊断把日志映射到 `E01–E10`（见 `references/error_catalog.md`），并标出**级联错误**：同一文件 20 行内的后续报错通常由第一条引起，修第一条再看。
 
@@ -60,10 +64,14 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 每改一处，重新跑第 2 步，直到 `errors=0` 且 `rerun=false`。
 
 **第 4 步 收敛与清单**
-`build.py` 在收敛时写 `build_manifest.json`：引擎与版本、完整命令、轮次、主文件/子文件/.bib 的 sha256、产物路径与页数（可用 `pdfinfo`，没有就留空）。**换机器照这个清单能复现同一产物**。
+`build.py` 写 `build_manifest.json`：引擎与版本、完整命令、轮次、`bibtex_runs`、主文件/子文件/.bib 的 sha256、产物路径与页数（`pdfinfo`），并显式写 `status / converged / rerun_required / errors / pages / undefined_cites`。**换机器照这个清单能复现同一产物**。
 
 **第 5 步 交付**
-`result.json` 的 `status`：`success`（编译通过且模板项齐全）/ `partial`（编译通过但模板项缺，列出缺项）/ `cannot_determine`（无 TeX 且静态检查无法判定）/ `rejected`（输入不是可编译工程）。
+`result.json` 的 `status`（由 `run.py` 按同一口径判定，不手填）：
+- `success`：`violations=0` 且 `errors=0` 且 `converged=true` 且 PDF 存在；
+- `partial`：PDF 出来了，但仍有引用未解析 / 需再编 / 模板项缺（`notes` 里逐条列）；
+- `cannot_determine`：无 TeX 只剩静态结论；
+- `rejected`：输入不是可编译工程（缺 `main.tex`）。
 
 ## 4. 预算与降级
 
@@ -84,4 +92,4 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 ```
 python examples/selftest.py
 ```
-要求：损坏工程被静态检查抓出 ≥6 条并给出修法；修复版 0 违规；用真实日志样本验证 `E01/E02/E05/E06/E08` 分类与行号定位；无 TeX 时 `build.py` 必须报 `static_only` 而不是假称通过。
+要求：损坏工程被静态检查抓出 8 条规则 / 10 处违规并给出修法；修复版 0 违规；用真实日志样本验证 `E01/E02/E05/E06/E08` 分类与行号定位；有 TeX 时 `build.py` 必须到 `success`（`converged=true`、`bibtex_runs≥1`、`errors=0`），无 TeX 时必须报 `static_only` 而不是假称通过；`scripts/run.py` 必须能从 `case.json` 产出合法 `result.json`。

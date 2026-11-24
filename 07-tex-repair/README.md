@@ -19,8 +19,8 @@ v3 因此定死两条：**先静态体检再编译**，**没有 TeX 就明说 `s
 | `main.tex` 等 | 修复后的可编译源码，保留原结构，不整体重写 |
 | `texfit.json` | 静态合规结果：规则 id、文件、行号、修法 |
 | `logdiag.json` | 编译日志结构化诊断：错误码、根因、行号、是否级联 |
-| `build_manifest.json` | 引擎与版本、完整命令、轮次、输入 sha256、产物路径与页数、状态 |
-| `result.json` | 契约字段 + `case_id` + `status` + `metrics` |
+| `build_manifest.json` | 引擎与版本、完整命令、轮次、`bibtex_runs`、输入 sha256、产物路径与页数，以及 `status/converged/rerun_required/errors` |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，由 `scripts/run.py` 产出（平台入口：读 `/input/case.json`） |
 
 ## 3. 静态规则 T01–T08
 
@@ -65,17 +65,20 @@ python scripts/texfit.py --project work/paper --template work/template.yaml --ou
 **第 2 步 编译一轮并诊断**
 
 ```
-python scripts/build.py --project work/paper --out /app/output --rounds 3
+python scripts/build.py --project work/paper --out out --rounds 3
+# 平台入口（读 /input/case.json，一次串完三步并写 result.json）
+python scripts/run.py --input /input --output /app/output
 ```
 
-- 有 `latexmk/pdflatex/xelatex`：按 `-interaction=nonstopmode -file-line-error` 编译，读到 `Rerun` 再编，最多 3 轮；
+- 引擎默认 `pdflatex`，其次 `xelatex`；`latexmk` 只有显式 `--engine latexmk` 才用（给 latexmk 传 `-halt-on-error=false` 这类 pdflatex 旗标它会直接 `Bad options specified`）；
+- 首轮后若工程有 `.bib`，自动 `bibtex`（`BIBINPUTS` 指向工程目录）再复编，否则引文恒为 `[?]`、`converged=false`；
 - 没有 TeX：`status=static_only`，只出静态结果并注明"未执行真实编译"，**不许写"编译通过"**。
 
 **第 3 步 按根因修复**，每改一处重跑第 2 步，直到 `errors=0` 且 `rerun=false`。
 
-**第 4 步 收敛与清单**：写 `build_manifest.json`（引擎与版本、命令、轮次、主文件/子文件/`.bib` 的 sha256、产物路径与页数）。换机器照清单能复现同一产物。
+**第 4 步 收敛与清单**：写 `build_manifest.json`（引擎与版本、命令、轮次、`bibtex_runs`、主文件/子文件/`.bib` 的 sha256、产物与页数、`converged`）。换机器照清单能复现同一产物。
 
-**第 5 步 交付**：`success`（编译通过且模板项齐全）/ `partial`（通过但模板项缺，列缺项）/ `cannot_determine`（无 TeX 且静态无法判定）/ `rejected`（输入不是可编译工程）。
+**第 5 步 交付**（`run.py` 按同一口径判定，不手填）：`success` 需 `violations=0` 且 `errors=0` 且 `converged=true` 且 PDF 存在；`partial` 是有 PDF 但引用未收敛/模板项缺；`cannot_determine` 是无 TeX 只剩静态结论；`rejected` 是缺 `main.tex`。
 
 ## 6. 实测证据（自建工程 + 真实 TeX 日志，非平台案例）
 
@@ -88,14 +91,16 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 
 | 对象 | 结果 |
 |---|---|
-| 修复版 | `errors=0`、`undefined=0`、`rerun=0`、`Pages=2`（pdflatex → bibtex → 复编两轮） |
+| 修复版 | `status=success`、`errors=0`、`converged=true`、`bibtex_runs=1`、`Pages=2`（pdflatex → bibtex → 复编两轮，共 3 轮） |
 | 损坏版 | 两轮后仍失败：E10×2（main.tex:13/14）、E01×2（:19/:23）、E02×1（:30）、E03×1、E05×1、E06×1 |
 
 日志片段存于 `examples/demo/fixtures/pdflatex_2022_broken.log`，供 `logdiag.py` 回归；完整证据见 `examples/demo/compile_evidence.md`。
 
-本机（Windows，无 TeX）跑 `build.py` 时，产物 `build_manifest.json` 是 `engine=none, status=static_only, note="本机无 latexmk/pdflatex/xelatex，未执行真实编译；只做静态检查，不得声称编译通过"`——这是**设计行为**，不是失败。
+本机（Windows，无 TeX）跑 `build.py` 时，产物 `build_manifest.json` 是 `engine=none, status=static_only, converged=false, note="本机无 pdflatex/xelatex/latexmk，未执行真实编译；只做静态检查，不得声称编译通过"`——这是**设计行为**，不是失败。
 
-缺陷注入自检（`python examples/selftest.py`）4 条断言全绿：损坏工程 ≥6 条违规且给修法、修复版 0 违规、真实日志 E01/E02/E05/E06/E08 分类与行号正确、无 TeX 时返回 `static_only`。
+缺陷注入自检（`python examples/selftest.py`）**5 条断言全绿**，两台机器都跑过：Windows（无 TeX）与云主机（TeX Live 2022）——损坏工程 8 规则/10 处违规且给修法、修复版 0 违规、真实日志 E01/E02/E05/E06/E08 分类与行号正确、有 TeX 时 `status=success & converged=true & bibtex_runs=1 & pages=2`、无 TeX 时返回 `static_only` 不假称通过；并额外验证 `run.py` 由 `case.json` 产出合法 `result.json`。
+
+> 2026-11-24 深夜修订：上一版 `build.py` 把 `latexmk` 排在默认第一位且给它传了 pdflatex 专用旗标，在有 latexmk 的机器上直接 `Bad options specified`；pdflatex 路径又从不跑 `bibtex`，导致引文恒为 `[?]` 而 `status` 仍写 `compiled`。现已改为 pdflatex 优先、自动 bibtex、`status` 按 `errors=0 & !rerun & pdf 存在` 判定，并新增 `scripts/run.py` 补上 `/input/case.json → /app/output/result.json` 的平台入口。本节数字全部来自修订后的实跑。
 
 ## 7. 异常与降级
 

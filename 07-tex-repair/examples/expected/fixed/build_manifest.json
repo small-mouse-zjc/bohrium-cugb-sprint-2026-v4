@@ -2,21 +2,33 @@
   "project": "fixed",
   "main": "main.tex",
   "inputs_sha256": {
-    "main.tex": "34ab3215c4b9193069a8e904f94eddceda3c8e7f9ab0f4f886adeb331785ca6b",
-    "refs.bib": "192f1d6527573b8e733f97743cc82ce840879e6033c2a3b87056bfccdaffccb8"
+    "main.tex": "34ab3215c4b91930",
+    "refs.bib": "192f1d6527573b8e"
   },
-  "engine": "pdfTeX 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian)",
+  "engine": "pdflatex",
   "command": [
-    "pdflatex -interaction=nonstopmode -file-line-error -output-directory=<OUT> main.tex",
-    "bibtex main",
-    "pdflatex ... (rerun x2)"
+    "/usr/bin/pdflatex",
+    "-interaction=nonstopmode",
+    "-file-line-error",
+    "-output-directory=<OUT>",
+    "main.tex"
   ],
   "rounds": 3,
+  "bibtex_runs": 1,
   "status": "success",
+  "note": "",
+  "pdf": {
+    "path": "main.pdf",
+    "bytes": 80293,
+    "pages": 2
+  },
+  "log": "run.log",
+  "converged": true,
+  "rerun_required": false,
   "errors": 0,
-  "undefined": 0,
-  "rerun": false,
+  "bibtex_failed": false,
   "pages": 2,
-  "note": "在云主机 TeX Live 2022 实编（本机 Windows 无 TeX，static_only 结果见 build_manifest.static_only.json）；日志与证据见 examples/demo/compile_evidence.md",
-  "pdf": "main.pdf"
+  "undefined_cites": [],
+  "engine_version": "pdfTeX 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian)",
+  "_evidence": "2026-11-24 云主机（TeX Live 2022/dev/Debian + bibtex 0.99d）实测 scripts/build.py 的原始输出，非手写；pdflatex 路径会自行调用 bibtex（BIBINPUTS 指向工程目录），rounds=3 后 converged=true。"
 }
