@@ -29,7 +29,9 @@ def align(draft, out):
 
 def check(manifest, steps, params, out):
     return run([ROOT / "scripts/repro_check.py", "--manifest", manifest, "--steps", steps,
-                "--params", params, "--out", out, "--no-fail"], rc=(0, 1))
+                "--params", params, "--out", out, "--no-fail",
+                "--draft", DEMO / "methods.md",
+                "--sources", DEMO / "config.yaml", DEMO / "train.log", DEMO / "model.py"], rc=(0, 1))
 
 
 def main():
@@ -169,6 +171,20 @@ def main():
         assert any(v["type"] == "manifest_seed_conflict" for v in s7["violations"]), s7["violations"]
         assert s7["pass"] is False, "manifest seed 矛盾仍 pass"
         ok.append("manifest seed=7 vs config seed=42 → manifest_seed_conflict、seed_consistency=False、pass=False")
+
+        # 其余可比清单字段：version / rounds / split 与来源、正文交叉核对
+        m8 = json.loads((DEMO / "manifest.json").read_text(encoding="utf-8"))
+        m8["data"]["version"] = "v9.9"
+        m8["runtime"]["rounds"] = 999
+        m8["data"]["split"] = "7:2:1"
+        mp8 = tmp / "xc.json"
+        mp8.write_text(json.dumps(m8, ensure_ascii=False), encoding="utf-8")
+        check(mp8, DEMO / "steps.json", eout / "params.csv", tmp / "xcheck")
+        x8 = json.loads((tmp / "xcheck/repro.json").read_text(encoding="utf-8"))
+        types8 = {v["type"] for v in x8["violations"]}
+        assert {"manifest_version_conflict", "manifest_rounds_conflict", "manifest_split_conflict"} <= types8, types8
+        assert x8["manifest_cross_checks"] == 3 and x8["pass"] is False, x8
+        ok.append("manifest version=v9.9 / rounds=999 / split=7:2:1 → 三条 conflict、cross_checks=3、pass=False")
 
         # 来源只有 CLI 日志（--lr 0.001 / --batch-size 32 / seed 42 / weight_decay=0.01 / epochs 50）
         cli = tmp / "cli.log"

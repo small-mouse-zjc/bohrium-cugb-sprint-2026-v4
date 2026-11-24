@@ -111,7 +111,8 @@ def main():
 
     if manifest and manifest.exists() and steps and steps.exists():
         rr = call([ROOT / "scripts/repro_check.py", "--manifest", manifest, "--steps", steps,
-                   "--params", out / "params.csv", "--out", out, "--no-fail"])
+                   "--params", out / "params.csv", "--out", out, "--no-fail",
+                   "--draft", draft, "--sources"] + list(sources))
         repro_p = out / "repro.json"
         if repro_p.exists():
             repro = json.loads(repro_p.read_text(encoding="utf-8"))

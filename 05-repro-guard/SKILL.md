@@ -75,7 +75,7 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 | 复现九项覆盖 | = 1.00 |
 | 步骤四要素完整率 | = 1.00 |
 | 限制条件具体率 | = 1.00（每条限制含条件/数值/失效场景，不是套话） |
-| 清单 seed 自洽 | manifest `data.seed` 与正文/来源溯源出的 seed 一致（矛盾记 `manifest_seed_conflict`，pass=False） |
+| 清单自洽 | `data.seed` / `data.version` / `runtime.rounds` / `data.split` 四项与来源、正文交叉核对（矛盾记 `manifest_seed_conflict` / `version_conflict` / `rounds_conflict` / `split_conflict`，pass=False） |
 
 两条容易被"粗判据"放过的门槛，脚本按下面口径卡：
 
@@ -106,4 +106,5 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 ```
 python examples/selftest.py
 ```
-自检 **18 条**：正例六项全过；注入四类缺陷（正文改值造成冲突、删清单字段、步骤缺判断、正文凭空加温度）全部命中；再加反向用例锁死粗判据——① limitations 清空 → `limitation_specificity=None` + `limitation_missing` + pass=False（不虚报 1.00）；② 裸小数 0.85 被抓、章节编号 3.1–3.4 不误判；③ `200 epochs / 128 channels / 3 blocks` 全部命中且章节编号不误判；④ 限制小节比较式阈值 `2 μm` 免溯源、同节 `25 °C` 仍被抓；⑤ 套话限制"数据规模变化时可能失效" → 0.00 + `limitation_vague`；⑥ 本 SKILL §5 示例"随机种子未固定，结果不可逐位复现"（无数字但点名失效机制）仍判 specific、pass=True；⑦ `manifest.data.seed=7` 与正文/来源 `seed=42` 矛盾 → `manifest_seed_conflict` + `seed_consistency=False` + pass=False；⑧ 来源只有 CLI 写法（`--lr 0.001` / `--batch-size 32` / `seed 42` / `weight_decay=0.01`）时 4 参数仍全 `sourced`；⑨ 并列句"学习率与批大小分别为 0.001 与 32"一对一配值，`batch_size=32`、`conflicts=0`；⑩ 正文零参数 → `sourced_rate=None` + `no_params_declared`。
+自检 **19 条**：正例六项全过；注入四类缺陷（正文改值造成冲突、删清单字段、步骤缺判断、正文凭空加温度）全部命中；再加反向用例锁死粗判据——① limitations 清空 → `limitation_specificity=None` + `limitation_missing` + pass=False（不虚报 1.00）；② 裸小数 0.85 被抓、章节编号 3.1–3.4 不误判；③ `200 epochs / 128 channels / 3 blocks` 全部命中且章节编号不误判；④ 限制小节比较式阈值 `2 μm` 免溯源、同节 `25 °C` 仍被抓；⑤ 套话限制"数据规模变化时可能失效" → 0.00 + `limitation_vague`；⑥ 本 SKILL §5 示例"随机种子未固定，结果不可逐位复现"（无数字但点名失效机制）仍判 specific、pass=True；⑦ `manifest.data.seed=7` 与正文/来源 `seed=42` 矛盾 → `manifest_seed_conflict` + `seed_consistency=False` + pass=False；⑦b `version=v9.9` / `rounds=999` / `split=7:2:1` 与来源、正文矛盾 → 三条 conflict（`version_/rounds_/split_conflict`）、`manifest_cross_checks=3`；⑧ 来源只有 CLI 写法（`--lr 0.001` / `--batch-size 32` / `seed 42` / `weight_decay=0.01`）时 4 参数仍全 `sourced`；⑨ 并列句"学习率与批大小分别为 0.001 与 32"一对一配值，`batch_size=32`、`conflicts=0`；⑩ 正文零参数 → `sourced_rate=None` + `no_params_declared`。
+

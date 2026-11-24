@@ -9,6 +9,7 @@
   "bad_steps": [],
   "vague_limits": [],
   "seed_consistency": true,
+  "manifest_cross_checks": 0,
   "failed_gates": [],
   "pass": true,
   "violations": []

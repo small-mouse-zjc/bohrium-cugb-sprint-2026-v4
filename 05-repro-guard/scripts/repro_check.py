@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 import csv
 import json
+import re
 from pathlib import Path
 
 COND_WORDS = ["压力", "温度", "规模", "分辨率", "样本", "范围", "条件", "场景", "仅", "低于", "高于", "少于", "大于", "当"]
@@ -41,12 +42,39 @@ def nonempty(v):
     return v is not None
 
 
+def src_lookup(files, keys, numeric=False):
+    """在来源文件里找某个键的值（config 键值 / 日志报告值），用于清单交叉核对。"""
+    import re
+    out = None
+    for f in files or []:
+        p = Path(f)
+        if not p.exists():
+            continue
+        for i, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), start=1):
+            for k in keys:
+                mm = re.search(rf"[\"']?{re.escape(k)}[\"']?\s*[:=]\s*([^\s,#]+)", line)
+                if mm:
+                    out = out or (mm.group(1), f"{p.name}:{i}")
+    return out
+
+
+def same_val(x, y, numeric=False):
+    if numeric:
+        try:
+            return abs(float(str(x)) - float(str(y))) <= 1e-12 * max(1.0, abs(float(str(y))))
+        except ValueError:
+            return False
+    return str(x).strip().lower() == str(y).strip().lower()
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--manifest", required=True)
     ap.add_argument("--steps", required=True)
     ap.add_argument("--params", required=True)
     ap.add_argument("--out", required=True)
+    ap.add_argument("--sources", nargs="*", default=[])
+    ap.add_argument("--draft", default=None)
     ap.add_argument("--no-fail", action="store_true")
     a = ap.parse_args()
 
@@ -94,6 +122,27 @@ def main():
             if str(mseed).strip().lower() != str(prow_seed.get("value")).strip().lower():
                 seed_mismatch = {"manifest": str(mseed), "params": prow_seed.get("value"),
                                  "locator": prow_seed.get("source_locator")}
+    # 另外三项可比的清单字段也要与来源/正文交叉核对（同样只查非空会把自相矛盾的清单放行）
+    xchecks = []
+    mv_ver = (m.get("data") or {}).get("version")
+    src_ver = src_lookup(a.sources, ["data_version", "dataset_version", "version"])
+    if nonempty(mv_ver) and src_ver and not same_val(mv_ver, src_ver[0]):
+        xchecks.append({"type": "manifest_version_conflict",
+                        "detail": f"manifest data.version={mv_ver}，来源 {src_ver[0]}（{src_ver[1]}）"})
+    mv_rounds = (m.get("runtime") or {}).get("rounds")
+    src_rounds = src_lookup(a.sources, ["epochs", "num_epochs", "rounds", "max_epochs"])
+    if nonempty(mv_rounds) and src_rounds and not same_val(mv_rounds, src_rounds[0], numeric=True):
+        xchecks.append({"type": "manifest_rounds_conflict",
+                        "detail": f"manifest runtime.rounds={mv_rounds}，来源 {src_rounds[0]}（{src_rounds[1]}）"})
+    mv_split = (m.get("data") or {}).get("split")
+    if nonempty(mv_split) and a.draft:
+        dp = Path(a.draft)
+        if dp.exists():
+            found = re.search(r"\b\d+\s*:\s*\d+\s*:\s*\d+\b", dp.read_text(encoding="utf-8"))
+            if found and not same_val(str(mv_split).replace(" ", ""), found.group(0).replace(" ", "")):
+                xchecks.append({"type": "manifest_split_conflict",
+                                "detail": f"manifest split={mv_split}，正文为 {found.group(0)}"})
+
     rates = {
         "repro_coverage": round((9 - len(missing)) / 9, 4),
         "step_completeness": round((len(st) - len(bad_steps)) / max(1, len(st)), 4) if st else None,
@@ -108,6 +157,7 @@ def main():
         viol.append({"type": "manifest_seed_conflict",
                      "detail": f"manifest seed={seed_mismatch['manifest']}，正文/来源 seed={seed_mismatch['params']}"
                                f"（{seed_mismatch['locator']}）"})
+    viol += xchecks
     if not limits:
         viol.append({"type": "limitation_missing", "detail": "manifest 没有 limitations：无法证明作者知道方法边界"})
     if not st:
@@ -123,6 +173,7 @@ def main():
     failed_gates = [k for k, v in gates.items() if rates[k] is None or rates[k] < v]
     report = {"rates": rates, "missing": missing, "bad_steps": bad_steps, "vague_limits": vague,
               "seed_consistency": (None if not prow_seed else (False if seed_mismatch else True)),
+              "manifest_cross_checks": len(xchecks),
               "failed_gates": failed_gates,
               "pass": not viol and not failed_gates, "violations": viol}
     out = Path(a.out)
@@ -145,3 +196,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
