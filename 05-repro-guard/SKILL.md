@@ -27,7 +27,7 @@ description: 从配置、日志、代码里抽参数并与方法章节正文逐�
 | `params.csv` | 参数台账：`key,value,unit,source,source_locator,status` |
 | `repro.md` | 复现清单（九项）与缺口 |
 | `audit.json` | 参数与清单的核对结果（供 `result.json` 引用） |
-| `result.json` | 契约字段 + `case_id` + `status` + `metrics` |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，由 `scripts/run.py` 按 audit/repro 产出 |
 
 ## 3. 流程
 
@@ -80,7 +80,7 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 ## 4. 预算与降级
 
 64 请求 / 900 秒。顺序：读材料（0 请求）→ 建别名（1）→ 抽对齐（脚本）→ 写章节（2–3）→ 核对（脚本）→ 回填（1–2）。
-材料只给一半时交付 `partial`，在 `result.json` 列出"缺配置文件/缺日志/缺数据说明"，**不补造数值**。
+`scripts/run.py --input /input --output /app/output` 是平台入口，status 由产物判定（audit.pass 且 repro.pass 才 success；无来源文件 cannot_determine；缺方法/参数 rejected）。材料只给一半时交付 `partial`，在 `result.json` 列出"缺配置文件/缺日志/缺数据说明"，**不补造数值**。
 
 ## 5. 异常
 

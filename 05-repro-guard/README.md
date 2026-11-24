@@ -25,7 +25,7 @@ v3 把"参数溯源"和"复现清单"做成两个独立脚本，避免"模型自
 | `params.csv` | 参数台账：`key,value,unit,source,source_locator,status` |
 | `repro.md` | 复现清单（九项）与缺口 |
 | `audit.json` | 参数与清单的核对结果，供 `result.json` 引用 |
-| `result.json` | 契约字段 + `case_id` + `status` + `metrics` |
+| `result.json` | 契约字段 `case_id` + `status` + `metrics`，**由 `scripts/run.py` 产出**（取自 audit/repro） |
 
 ## 3. 参数四状态
 
@@ -89,23 +89,25 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 
 `examples/demo/` 是一份构造的实验配置（`config.yaml`、`train.log`、`model.py`）与方法草稿，`examples/expected/` 是真实产物：
 
-- 3 个声明参数（`learning_rate=0.001`、`batch_size=32`、`seed=42`）全部 `sourced`，定位到 `config.yaml:1 / :2 / :4`；
+- 4 个声明参数（`learning_rate=0.001`、`batch_size=32`、`seed=42`、`weight_decay=0.01`）全部 `sourced`，前三条定位到 `config.yaml:1 / :2 / :4`；
 - **有源率 1.00、无源数值 0、冲突 0**；
 - 复现九项**覆盖 1.00**，`missing` 为空；
 - 步骤四要素**完整率 1.00**，`bad_steps` 为空；
 - 限制具体率 **1.00**，`vague_limits` 为空；
-- `audit.json` 与 `repro.json` 的 `violations` 均为空，`pass=true`。
+- `audit.json` 与 `repro.json` 的 `violations` 均为空、`failed_gates` 为空，`pass=true`。
 
 缺陷注入自检（`python examples/selftest.py`）要求四类破坏全部命中：
 
 | 注入 | 预期违规 |
 |---|---|
-| F1 正文改值造成冲突 | `conflict` |
-| F2 正文凭空加温度数值 | `unsourced` / `unsourced_number` |
-| F3 删清单字段 | `missing_repro_item` |
+| F1 正文改值造成冲突 | `param_conflict` |
+| F2 正文凭空加带单位/裸小数值 | `unsourced_number` |
+| F3 删清单字段 | `repro_field_missing` |
 | F4 步骤缺判断条件 | `step_incomplete` |
 
-5 条断言全绿。
+自检 **11 条**全绿，另覆盖：平台入口（`case.json → result.json`，`status=success`、4 参数全溯源）、`limitations` 置空时 `limitation_specificity=None` + `limitation_missing` + `pass=false`（旧版记 `0.0` 却放过）、裸小数 `0.85` 被抓而章节编号 `3.1–3.4` 不误判、正文零参数时 `sourced_rate=None` + `no_params_declared`、基线对照（Skill `pass` vs 裸 Agent `fail`，九项差 +0.6667、步骤 +1.0、限制 +1.0）、缺 `audit.json`/`repro.json` 的基线段记 `None` 不崩溃。
+
+**上岗入口**：`python scripts/run.py --input /input --output /app/output`，读 `case.json` 的 `draft / params / sources / manifest / steps`，串 `param_align.py → repro_check.py`，写 `result.json`；`status` 由产物判定：`success` 需 `audit.pass` 且 `repro.pass`；有产物未过门槛为 `partial`；完全没给来源文件为 `cannot_determine`（只交待核草稿）；缺方法章节或参数声明为 `rejected`。
 
 ## 7. 异常与降级
 

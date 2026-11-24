@@ -80,11 +80,74 @@ def main():
             assert set(f["expect_types"]) <= types, f"{f['name']} 未检出，实际 {sorted(types)}"
             ok.append(f"{f['name']} → {sorted(set(f['expect_types']))}")
 
+        # 平台入口：case.json → result.json
+        ein, eout = tmp / "entry_in", tmp / "entry_out"
+        shutil.copytree(DEMO, ein)
+        run([ROOT / "scripts/run.py", "--input", ein, "--output", eout])
+        rj = json.loads((eout / "result.json").read_text(encoding="utf-8"))
+        assert rj["status"] == "success" and rj["metrics"]["pass"] is True, rj
+        assert (eout / "audit.json").exists() and (eout / "repro.json").exists(), "产物缺失"
+        ok.append("平台入口：case.json→result.json，status=success、参数 4 条全溯源、九项/步骤/限制均 1.00")
+
+        # limitations 置空：必须 limitation_missing + rate=None + pass=False（旧版记 0.0 却 pass=true）
+        m = json.loads((DEMO / "manifest.json").read_text(encoding="utf-8"))
+        m.pop("limitations", None)
+        mp = tmp / "nolimit.json"
+        mp.write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
+        check(mp, DEMO / "steps.json", eout / "params.csv", tmp / "nolimit")
+        nl = json.loads((tmp / "nolimit/repro.json").read_text(encoding="utf-8"))
+        assert nl["rates"]["limitation_specificity"] is None, nl["rates"]
+        assert {"limitation_missing"} <= {v["type"] for v in nl["violations"]}, nl["violations"]
+        assert nl["pass"] is False and "limitation_specificity" in nl["failed_gates"], nl
+        ok.append("limitations 为空 → limitation_specificity=None + limitation_missing + pass=False")
+
+        # 裸小数（无单位、无别名）必须被抓；章节编号不算
+        t = (DEMO / "methods.md").read_text(encoding="utf-8").replace(
+            "权重衰减为 0.01", "权重衰减为 0.01，dropout 设为 0.85")
+        dp = tmp / "bare.md"
+        dp.write_text(t, encoding="utf-8")
+        align(dp, tmp / "bare")
+        ba = json.loads((tmp / "bare/audit.json").read_text(encoding="utf-8"))
+        assert any("0.85" in v["detail"] for v in ba["violations"]), ba["violations"]
+        assert ba["pass"] is False, "裸小数未卡 pass"
+        assert not any("3." in v["detail"] for v in ba["violations"]), "章节编号被误判"
+        ok.append("裸小数 0.85 被捕获、章节编号 3.1–3.4 不误判")
+
+        # 正文零参数：sourced_rate 记 None（旧版记 1.0），并报 no_params_declared
+        empty = tmp / "empty.md"
+        empty.write_text("# 3 方法\n\n我们训练了一个模型，效果不错。\n", encoding="utf-8")
+        align(empty, tmp / "empty")
+        ea = json.loads((tmp / "empty/audit.json").read_text(encoding="utf-8"))
+        assert ea["rates"]["sourced_rate"] is None and ea["pass"] is False, ea
+        assert any(v["type"] == "no_params_declared" for v in ea["violations"]), ea["violations"]
+        ok.append("零参数声明 → sourced_rate=None + no_params_declared，不再虚报 1.0")
+
+        # 基线对照：Skill pass=True vs 裸 Agent pass=False，九项/步骤/限制差值可复现
+        bo = tmp / "base_out"
+        run([ROOT / "examples/baseline.py", "--demo", DEMO, "--out", bo])
+        r = run([ROOT / "eval/metrics.py", "--out_dir", eout, "--base_dir", bo])
+        md = json.loads(r.stdout[:r.stdout.index("| 指标")].strip())
+        assert md["skill"]["pass"] is True and md["base"]["pass"] is False and md["pass_gap"], md
+        assert md["delta"]["repro_coverage"] and md["delta"]["repro_coverage"] > 0, md["delta"]
+        ok.append(f"基线对照：Skill pass vs 基线 fail；九项差值 {md['delta']['repro_coverage']:+.4f}、"
+                  f"步骤 {md['delta']['step_completeness']:+.4f}、限制 {md['delta']['limitation_specificity']:+.4f}")
+
+        # 缺 audit/repro 时 metrics 不崩，记 None
+        eb = tmp / "empty_dir"; eb.mkdir()
+        r = run([ROOT / "eval/metrics.py", "--out_dir", eout, "--base_dir", eb])
+        assert "Traceback" not in r.stderr, r.stderr[-300:]
+        md2 = json.loads(r.stdout[:r.stdout.index("| 指标")].strip())
+        assert md2["base"]["sourced_rate"] is None and "audit.json" in md2["base"]["missing"], md2["base"]
+        ok.append("缺 audit.json/repro.json 的基线段：记 None 不崩溃")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)
     except AssertionError as e:
-        err.append(str(e))
+        import traceback, os
+        if os.environ.get("SELFTEST_TRACE"):
+            traceback.print_exc()
+        err.append(str(e) or repr(e))
     finally:
         shutil.rmtree(tmp, ignore_errors=True)
     if err:

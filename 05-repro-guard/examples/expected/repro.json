@@ -8,6 +8,7 @@
   "missing": [],
   "bad_steps": [],
   "vague_limits": [],
+  "failed_gates": [],
   "pass": true,
   "violations": []
 }

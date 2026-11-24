@@ -112,13 +112,32 @@ def main():
             viol.append({"type": "unsourced_number", "detail": f"带单位数值 {m.group(0)} 在全部来源里找不到",
                          "span": [m.start(), m.end()]})
 
+    # 裸小数（如 dropout 0.7）：不带单位也不在前述参数别名里，仍是可复现性漏洞；阈值类句子除外
+    CMP = ("超过", "高于", "低于", "少于", "大于", "小于", "不低于", "不超过", "不少于", "不多于", "±", "约为")
+    for m in re.finditer(r"(?<![A-Za-z0-9.])(\d+\.\d+)(?![0-9])", text):
+        val = m.group(1)
+        if val in declared_numbers:
+            continue
+        head = text[max(0, m.start() - 8):m.start()]
+        line_head = text[text.rfind("\n", 0, m.start()) + 1:m.start()]
+        if re.fullmatch(r"[#*\s>-]*", line_head):
+            continue  # 行首的 3.1 / 3.2 是章节编号，不是参数
+        if any(w in head for w in CMP):
+            continue
+        if any(same(val, g[0]) for g in generic):
+            continue
+        viol.append({"type": "unsourced_number", "detail": f"裸小数 {val} 未在任何来源出现，也无参数别名绑定",
+                     "span": [m.start(), m.end()]})
+
     n_src = sum(1 for r in rows if r["status"] == "sourced")
     rates = {
         "declared_params": len({r["key"] for r in rows}),
-        "sourced_rate": round(n_src / max(1, len(rows)), 4) if rows else 1.0,
+        "sourced_rate": round(n_src / len(rows), 4) if rows else None,
         "unsourced": sum(1 for r in rows if r["status"] == "unsourced") + sum(1 for v in viol if v["type"] == "unsourced_number"),
         "conflicts": sum(1 for r in rows if r["status"] == "conflict"),
     }
+    if not rows:
+        viol.append({"type": "no_params_declared", "detail": "正文没有声明任何可溯源参数，无法证明可复现"})
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     with (out / "params.csv").open("w", encoding="utf-8", newline="") as f:
@@ -126,7 +145,8 @@ def main():
         w.writeheader()
         w.writerows(rows)
     audit = {"rates": rates, "rows": rows, "violations": viol,
-             "pass": rates["unsourced"] == 0 and rates["conflicts"] == 0 and not any(v["type"] == "param_omitted" for v in viol)}
+             "pass": bool(rows) and rates["unsourced"] == 0 and rates["conflicts"] == 0
+                     and not any(v["type"] == "param_omitted" for v in viol)}
     (out / "audit.json").write_text(json.dumps(audit, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"pass": audit["pass"], **rates, "violations": len(viol)}, ensure_ascii=False))
     if not a.no_fail and not audit["pass"]:

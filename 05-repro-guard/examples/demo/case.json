@@ -1,0 +1,9 @@
+{
+  "case_id": "demo-repro-01",
+  "draft": "methods.md",
+  "params": "params.json",
+  "sources": ["config.yaml", "train.log", "model.py"],
+  "manifest": "manifest.json",
+  "steps": "steps.json",
+  "note": "自建演示案例，非平台固定案例"
+}

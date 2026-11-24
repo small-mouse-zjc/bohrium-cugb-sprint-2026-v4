@@ -2,3 +2,4 @@ key,value,unit,source,source_locator,status,note
 learning_rate,0.001,,config.yaml,config.yaml:1,sourced,
 batch_size,32,,config.yaml,config.yaml:2,sourced,
 seed,42,,config.yaml,config.yaml:4,sourced,
+weight_decay,0.01,,config.yaml,config.yaml:6,sourced,

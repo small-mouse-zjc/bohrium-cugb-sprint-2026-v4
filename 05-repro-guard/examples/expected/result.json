@@ -1,23 +1,22 @@
 {
   "case_id": "demo-repro-01",
-  "mode": "self-demo",
-  "note": "示例运行的平台契约样例：输入为自建演示材料，非平台案例。",
   "status": "success",
-  "artifacts": [
-    "methods.md",
-    "params.csv",
-    "repro.md",
-    "audit.json"
-  ],
   "metrics": {
-    "declared_params": 3,
+    "declared_params": 4,
     "sourced_rate": 1.0,
     "unsourced": 0,
     "conflicts": 0,
     "repro_coverage": 1.0,
     "step_completeness": 1.0,
     "limitation_specificity": 1.0,
-    "unsourced_params": 0
+    "pass": true
   },
-  "uncertainties": []
+  "notes": [],
+  "artifacts": [
+    "params.csv",
+    "audit.json",
+    "repro.json",
+    "repro.md"
+  ],
+  "input_mode": "local"
 }
