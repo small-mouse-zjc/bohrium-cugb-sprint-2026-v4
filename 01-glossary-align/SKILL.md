@@ -86,7 +86,7 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 | 扫描件、无文字层 | `partial` + 指出页码 + 建议 OCR，不猜正文 |
 | 双栏串行错乱（段落读起来是两栏拼接） | 先 `python scripts/pdf_to_paras.py --check-order` 看串栏警告，再用题 08 的列重排逻辑；仍错则在 `uncertainties` 标出受影响段落 |
 | 公式/表格是图片 | 该段 `status=uncertain`，`risk=["公式为图片，未转写"]`，正文照译并保留编号 |
-| 原文残缺、句子中断 | 该段 `status=untranslatable`，保留原文片段，不补写 |
+| 原文残缺、句子中断 | 该段 `status=untranslatable`，保留原文片段，不补写；该段不计入术语/数字/引用/长度四项译文保真比对（片段本身是源语言），覆盖率仍计入 |
 | 参考文献只有编号无条目 | 保留 `[n]` 标记，`uncertainties` 记录"条目缺失，未核对" |
 
 ## 6. 自检
@@ -94,11 +94,11 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 ```
 python examples/selftest.py
 ```
-自检共 **15 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁四类「存在性检查/口径偏差抓不到」的错：
+自检共 **16 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁四类「存在性检查/口径偏差抓不到」的错：
 
 - **数值互换**：把 P0002 的 `3.5 wt%` 与 `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94、报 `number_unit_mismatch`（硬违规）→ `pass=false`；
 - **`basis` 全删**：12 段 `missing_basis`、`basis_coverage=0.00` → `pass=false`；
-- **降级段覆盖率**：`status=untranslatable` + 非空原文片段仍计入覆盖率（1.00），不把降级当漏译；
+- **降级段口径**：`status=untranslatable` + 非空原文片段仍计入覆盖率（1.00），且不参与术语/数字/引用/长度比对（片段是源语言原文，参与比对必然误判），只受 `risk` 与 `basis` 约束；
 - **父子术语**：术语表同时有 `天然气水合物` 与 `水合物` 时，只出现长术语的段落不误判 `term_drift`（遮蔽式最长匹配）。
 
 未命中即视为质检器失效，不得提交。

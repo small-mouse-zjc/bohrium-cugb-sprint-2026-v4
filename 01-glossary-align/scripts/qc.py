@@ -131,6 +131,9 @@ def main():
         r = rows.get(i) or {}
         if not r:
             continue
+        if r.get("status") == "untranslatable":
+            # 降级段保留源语言片段，不参与术语保真比对，否则必然误判 term_drift
+            continue
         tgt = r.get("target") or ""
         for g in glos:
             longer_src = [x for x in src_all if len(x) > len(g["source"]) and g["source"] in x]
@@ -149,6 +152,8 @@ def main():
     for i, s in src.items():
         r = rows.get(i) or {}
         if not r:
+            continue
+        if r.get("status") == "untranslatable":
             continue
         sp, sb = facts(s["text"])
         tp, tb = facts(r.get("target") or "")
@@ -172,6 +177,8 @@ def main():
     for i, s in src.items():
         r = rows.get(i) or {}
         if not r:
+            continue
+        if r.get("status") == "untranslatable":
             continue
         tgt_raw = (r.get("target") or "")
         for pat in CITE:
@@ -215,6 +222,8 @@ def main():
     # 6 长度异常（中文/英文）
     for i, s in src.items():
         r = rows.get(i) or {}
+        if r.get("status") == "untranslatable":
+            continue
         tgt = (r.get("target") or "").strip()
         words = max(1, len(s["text"].split()))
         ratio = len(tgt) / words
