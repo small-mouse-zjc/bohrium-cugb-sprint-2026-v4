@@ -91,9 +91,10 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 | 指标 | 定义 | 门槛 |
 |---|---|---|
 | 论断挂引用率 | 含数字/比较/因果/"首次"的句子中，带 `[n]` 的比例 | = 1.00 |
+| 论断数字一致性 | 句内"数字+单位"必须能在所引 work 的记录里找到（`3.2 MPa` 写成 `9.9 MPa` 即违例） | 违例 = 0 |
 | 悬空引用 | 引用编号不在 `works.json` 里的条数 | = 0 |
 | 关键文献覆盖率 | `key=true` 与近 2 年工作被引入正文的比例 | = 1.00 |
-| 空白支撑度 | 每个空白 ≥2 篇 `limits` 支撑的比例 | = 1.00 |
+| 空白支撑度 | 按 `matrix.json` 的每个 gap 逐个复核：必须有一句落在空白/局限小节（或点名该 gap 的限制词）且同时引到该 gap 的 ≥2 篇 `support_wids`；"任意 2 篇"不算 | `gaps_covered = gaps_total` |
 | 贡献证据率 | 每条贡献指向真实存在的 §/Fig./Table 的比例 | = 1.00 |
 
 ## 6. 实测证据（构造演示，非平台案例）
@@ -104,7 +105,7 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 - 自动推出 **1 条空白**：`长期监测` 被 W4、W6 两篇列为局限且无人 `addresses`；
 - 自动登记 **1 处冲突**：`CO2 提高露点` 由 W1/W3 支持、W2 反对，正文按条件差异处理；
 - 按 route 分成 **3 组、每组 2 篇**，`thin_groups` 为空；
-- 正文 **8 条论断全部挂引用**、**1 条空白句有 2 篇支撑**、**3 条贡献全部指向 manuscript 中真实章节/图表**；
+- 正文 **8 条论断全部挂引用**、**5 处句内数字全部能在所引记录里对上**、**2 条空白句均有 ≥2 篇支撑（矩阵 1/1 个空白获支撑）**、**3 条贡献全部指向 manuscript 中真实章节/图表**；
 - 四项比率均 1.00，`violations` 为空，`pass=true`。
 
 缺陷注入自检（`python examples/selftest.py`）要求四类破坏全部命中：
@@ -124,7 +125,11 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 
 **基线对照（`examples/baseline.py` = 逐篇摘要、不建矩阵、不做绑定）**：裸 Agent 只有 `summary.md`，`group_total=None / pass=False`；本 Skill `group_total=3 / pass=True`。差值可用 `eval/metrics.py --out_dir <skill输出> --base_dir <基线输出>` 复算。
 
-自检共 **10 条断言**：原 6 条 + 平台入口、零贡献不虚报、悬空引用不算挂上、基线对照。
+自检共 **14 条断言**：原 6 条（矩阵/正例 + F1–F4）＋ 平台入口、零贡献不虚报、悬空引用不算挂上、基线对照 ＋ 本轮 4 条：
+1. 转述数字与所引记录不一致（`3.2 MPa` → `9.9 MPa`）→ `claim_evidence_conflict`、`pass=false`；
+2. 空白改引非支撑文献（引 `W1/W2`，而该 gap 支撑是 `W4/W6`）→ `gap_support_rate=0.0`，逐 gap 报"长期监测未获 ≥2 篇支撑"；
+3. 重述式空白句（"现有工作在这一尺度上仍有明显不足"，不含"覆盖/研究/工作"字样）仍被识别为空白、仍卡支撑；
+4. `result.json.metrics` 的 `gaps_total/gaps_covered/claim_evidence_checks` 与 `bind.json` 及 `bind_report.md` 的 ✓ 行逐项相等（口径不许两套）。
 
 ## 7. 异常与降级
 

@@ -57,7 +57,47 @@ def main():
             assert not got["pass"], f"{fx['name']} 判为通过"
             ok.append(f"{fx['name']} → {sorted(set(fx['expect_types']))}")
 
-        # 平台入口：case.json → /app/output/result.json
+        # 转述数字必须与所引作品记录一致：3.2 MPa 改成 9.9 MPa 仍挂 [W1] 也要报
+        t = src.replace("露点偏移可达 3.2 MPa [W1]", "露点偏移可达 9.9 MPa [W1]")
+        dp = tmp / "num_conflict.md"
+        dp.write_text(t, encoding="utf-8")
+        od = tmp / "num_conflict"
+        run([ROOT / "scripts/matrix.py", "build", "--works", demo / "works.json",
+             "--dims", demo / "dimensions.json", "--out", od])
+        run([ROOT / "scripts/claim_bind.py", "--draft", dp, "--works", demo / "works.json",
+             "--manuscript", demo / "manuscript.json", "--out", od, "--no-fail"], rc=(0, 1))
+        nc = json.loads((od / "bind.json").read_text(encoding="utf-8"))
+        assert any(v["type"] == "claim_evidence_conflict" and "9.9" in v["detail"] for v in nc["violations"]), nc["violations"]
+        assert nc["pass"] is False, nc["rates"]
+        ok.append("论断数字 9.9 MPa 在所引 W1 记录里找不到 → claim_evidence_conflict、pass=False")
+
+        # 空白改引非支撑文献 [W1][W2]（该空白支撑是 W4/W6）→ 按矩阵每个 gap 复核，必须报
+        t = src.replace("现有工作均未覆盖长期监测 [W4][W6]", "这一尺度的研究存在明显空白 [W1][W2]")
+        dp = tmp / "gap_wrong_support.md"
+        dp.write_text(t, encoding="utf-8")
+        od = tmp / "gap_wrong_support"
+        run([ROOT / "scripts/matrix.py", "build", "--works", demo / "works.json",
+             "--dims", demo / "dimensions.json", "--out", od])
+        run([ROOT / "scripts/claim_bind.py", "--draft", dp, "--works", demo / "works.json",
+             "--manuscript", demo / "manuscript.json", "--out", od, "--no-fail"], rc=(0, 1))
+        gw = json.loads((od / "bind.json").read_text(encoding="utf-8"))
+        assert any(v["type"] == "gap_unsupported" and "长期监测" in v["detail"] for v in gw["violations"]), gw["violations"]
+        assert gw["rates"]["gap_support_rate"] == 0.0 and gw["pass"] is False, gw["rates"]
+        ok.append("空白改引 W1/W2 → gap_support_rate=0.0、逐 gap 报「长期监测未获 >=2 篇支撑」、pass=False")
+
+        # 重述式空白（不含「覆盖/研究/工作」字样）仍要被识别为空白句，并卡支撑
+        t = src.replace("现有工作均未覆盖长期监测 [W4][W6]", "现有工作在这一尺度上仍有明显不足 [W1][W2]")
+        dp = tmp / "gap_restated.md"
+        dp.write_text(t, encoding="utf-8")
+        od = tmp / "gap_restated"
+        run([ROOT / "scripts/matrix.py", "build", "--works", demo / "works.json",
+             "--dims", demo / "dimensions.json", "--out", od])
+        run([ROOT / "scripts/claim_bind.py", "--draft", dp, "--works", demo / "works.json",
+             "--manuscript", demo / "manuscript.json", "--out", od, "--no-fail"], rc=(0, 1))
+        gr = json.loads((od / "bind.json").read_text(encoding="utf-8"))
+        assert gr["gap_sentences"] >= 1 and gr["pass"] is False, gr
+        assert any(v["type"] == "gap_unsupported" for v in gr["violations"]), gr["violations"]
+        ok.append("重述式空白句（无「覆盖/研究/工作」字样）仍被识别、gap 支撑仍被卡")
         ein = tmp / "entry_in"
         ein.mkdir()
         for f in ("works.json", "dimensions.json", "manuscript.json", "intro_draft.md"):
@@ -71,6 +111,19 @@ def main():
         assert rj["case_id"] == "selftest-04" and rj["status"] == "success", rj
         assert {"matrix.json", "bind.json"} <= set(rj["artifacts"]), rj["artifacts"]
         ok.append(f"平台入口：case.json→result.json，status={rj['status']}，works={rj['metrics']['works']}")
+
+        # result.json 的空白口径必须与 bind.json 一致，且带数字核对计数
+        eb = json.loads((eo / "bind.json").read_text(encoding="utf-8"))
+        met = rj["metrics"]
+        assert met["gaps_total"] == eb["gaps_total"] == 1 and met["gaps_covered"] == eb["gaps_covered"] == 1, met
+        assert met["claim_evidence_checks"] == eb["claim_evidence_checks"] >= 1, met
+        md = (eo / "bind_report.md").read_text(encoding="utf-8")
+        assert f"论断 {eb['claims']} 条，挂引用 {eb['claim_cited']} 条" in md, md
+        assert f"空白句 {eb['gap_sentences']} 条，支撑充分 {eb['gap_supported']} 条" in md, md
+        assert f"数字核对 {eb['claim_evidence_checks']} 处" in md, md
+        assert f"矩阵空白 {eb['gaps_total']} 个，草稿里获 >=2 篇支撑 {eb['gaps_covered']} 个" in md, md
+        assert f"贡献 {eb['contributions']} 条" in md, md
+        ok.append(f"result.json.metrics 与 bind.json/bind_report.md 同口径（空白 {met['gaps_covered']}/{met['gaps_total']}、数字核对 {met['claim_evidence_checks']} 处、✓ 行数逐项相符）")
 
         # 零贡献草稿：不能再报 1.00
         zc = tmp / "zero_contrib.md"

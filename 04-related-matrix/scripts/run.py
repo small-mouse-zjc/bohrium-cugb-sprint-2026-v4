@@ -144,9 +144,12 @@ def main():
                   "recent_work_coverage": rates.get("recent_work_coverage"),
                   "contribution_evidence_rate": rates.get("contribution_evidence_rate"),
                   "group_style": rates.get("group_style"),
+                  "gaps_total": bd.get("gaps_total"), "gaps_covered": bd.get("gaps_covered"),
+                  "claim_evidence_checks": bd.get("claim_evidence_checks"),
                   "hard_violations": len([v for v in (bd.get("violations") or [])
                                           if v.get("type") in ("claim_uncited", "dangling_citation",
-                                                                "gap_unsupported", "contribution_no_evidence",
+                                                                "gap_unsupported", "claim_evidence_conflict",
+                                                                "contribution_no_evidence",
                                                                 "contribution_evidence_missing", "key_work_uncited",
                                                                 "contribution_missing")])})
         contrib = bd.get("contributions") or 0

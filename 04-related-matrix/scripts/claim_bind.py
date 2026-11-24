@@ -16,7 +16,22 @@ CITE = re.compile(r"\[([^\]]+)\]")
 EVID = re.compile(r"(?:§|Sec\.?|Section)\s*(\d+(?:\.\d+)*)|(?:Fig|Figure|图)\s*\.?\s*(\d+)|(?:Table|表)\s*\.?\s*(\d+)|(?:Eq|Equation|式)\s*\.?\s*\(\s*(\d+)\s*\)")
 CLAIM_WORDS = ["首次", "表明", "说明", "证明", "显示", "优于", "低于", "高于", "提升", "降低", "增加", "减少",
                "导致", "因此", "然而", "相比", "差异", "空白", "尚未", "未覆盖", "缺乏", "缺少", "没有", "均未", "未能"]
-GAP_WORDS = ["空白", "尚未", "未覆盖", "缺乏", "缺少", "没有", "均未", "未能", "局限"]
+GAP_WORDS = ["空白", "尚未", "未覆盖", "均未", "未能", "缺乏", "缺少", "没有", "局限", "不足", "欠缺", "受限", "缺口", "盲区"]
+GAP_CORE = ["空白", "尚未", "未覆盖", "均未", "未能", "缺乏", "缺口", "盲区", "局限"]
+FIELD_WORDS = ["现有", "已有", "这一", "总体", "领域", "文献", "工作"]
+
+NUM_UNIT = re.compile(r"(\d+(?:\.\d+)?)\s*(MPa|GPa|kPa|°C|℃|wt%|%|μm|um|mm|cm|m³|m3|kg|g|h|min|s|篇|组|种|次|轮)")
+ALLNUM = re.compile(r"\d+(?:\.\d+)?")
+
+
+def work_numbers(w):
+    """该条工作记录里出现过的所有数（quote/data/problem/metric/limit 都算转述依据）。"""
+    hay = json.dumps(w, ensure_ascii=False)
+    return [float(x) for x in ALLNUM.findall(hay)]
+
+
+def same_num(a, b):
+    return abs(a - b) <= 1e-9 * max(1.0, abs(a))
 
 
 def parse_cites(text: str, label2wid: dict):
@@ -67,10 +82,13 @@ def main():
     claim_cited = 0
     gap_sents = 0
     gap_ok = 0
+    num_checks = 0
     contrib = 0
     contrib_ok = 0
     bullet_sections = []
     in_contrib = False
+    in_gap_section = False
+    gap_cite_hits = []  # 每个空白句（或空白小节句）的引用集合，供按 gap 复核支撑
 
     for raw in draft.splitlines():
         line = raw.strip()
@@ -78,6 +96,7 @@ def main():
             continue
         if line.startswith("#"):
             in_contrib = "贡献" in line
+            in_gap_section = ("空白" in line or "局限" in line)
             continue
         if line.startswith(("-", "*")) and in_contrib:
             bullet_sections.append(line.lstrip("-* ").strip())
@@ -93,32 +112,53 @@ def main():
 
         for s in sentences(line):
             is_claim = any(k in s for k in CLAIM_WORDS) and not s.startswith("本文")
-            is_gap = any(k in s for k in GAP_WORDS) and ("覆盖" in s or "研究" in s or "工作" in s)
+            is_gap = (in_gap_section
+                      or any(k in s for k in GAP_CORE)
+                      or (any(k in s for k in ("不足", "欠缺")) and any(k in s for k in FIELD_WORDS)))
+            ss, _ = parse_cites(s, label2wid)
+            ss = {w for w in ss if w in by_wid}
+            # 数字必须与所引作品的记录一致：引用可解析 ≠ 转述没改数字
+            hot = re.findall(NUM_UNIT, s)
+            if hot and ss:
+                num_checks += len(hot)
+                for val, unit in hot:
+                    v = float(val)
+                    if not any(same_num(v, x) for w in ss for x in work_numbers(by_wid[w])):
+                        viol.append({"type": "claim_evidence_conflict",
+                                     "detail": f"论断里的 {val} {unit} 在所引作品 {sorted(ss)} 的记录中找不到",
+                                     "text": s[:90]})
+            # 空白小节里的纯解释句（无引用、也不断言领域空白）不按"空白论断"要求引文
+            is_gap_claim = is_gap and (bool(ss) or any(k in s for k in ("空白", "未覆盖", "均未", "尚未", "缺口", "盲区")))
             if is_claim:
                 claims += 1
-                ss, _ = parse_cites(s, label2wid)
-                # 只有能解析到真实文献的引用才算"挂上"；悬空引用 [W9] 不能拿来充数
-                valid = [w for w in ss if w in by_wid]
-                if valid:
+                if ss:
                     claim_cited += 1
                 else:
                     viol.append({"type": "claim_uncited", "detail": "论断没有可解析的引用", "text": s[:90]})
-            if is_gap:
+            if is_gap_claim:
                 gap_sents += 1
-                ss, _ = parse_cites(s, label2wid)
-                support = set(ss) & cited_all
-                need = 2
-                ok = len(set(ss)) >= need
-                if ok and gaps:
-                    # 若句子对应某个已知空白，要求引用里至少 2 篇是该空白的支撑文献
-                    for g in gaps:
-                        if g["limitation"] in s or any(k in s for k in g["limitation"].split("、")):
-                            ok = len(set(ss) & set(g["support_wids"])) >= 2
-                            break
+                ok = len(ss) >= 2
                 if ok:
                     gap_ok += 1
                 else:
-                    viol.append({"type": "gap_unsupported", "detail": "空白未获 >=2 篇限制支撑", "text": s[:90]})
+                    viol.append({"type": "gap_unsupported", "detail": "空白句引用了 <2 篇文献", "text": s[:90]})
+            if (is_gap or in_gap_section) and ss:
+                gap_cite_hits.append({"cites": ss, "in_gap_section": in_gap_section, "text": s})
+
+    # 空白支撑按 matrix 的每个 gap 复核：必须落在空白/局限小节（或点名该 gap 的限制词）且同时引到 >=2 篇支撑文献
+    gap_covered = []
+    for g in gaps:
+        sup = {w.upper() for w in g.get("support_wids", [])}
+        toks = [t for t in re.split(r"[、，,；;/]", g.get("limitation") or "") if t.strip()]
+        covered = any(len(h["cites"] & sup) >= 2
+                      and (h["in_gap_section"] or any(t in h["text"] for t in toks))
+                      for h in gap_cite_hits)
+        if covered:
+            gap_covered.append(g)
+        else:
+            viol.append({"type": "gap_unsupported",
+                         "detail": f"空白「{g.get('limitation')}」未获 >=2 篇支撑（应引 {sorted(sup)} 中的 2 篇）",
+                         "text": ""})
 
     # 贡献证据
     def has_ev(tok):
@@ -176,16 +216,20 @@ def main():
 
     rates = {
         "claim_citation_rate": round(claim_cited / max(1, claims), 4) if claims else None,
-        "gap_support_rate": round(gap_ok / max(1, gap_sents), 4) if gap_sents else None,
+        "gap_support_rate": (round(len(gap_covered) / len(gaps), 4) if gaps
+                             else (round(gap_ok / max(1, gap_sents), 4) if gap_sents else None)),
         "key_work_coverage": round((key_total - len(key_uncovered)) / key_total, 4) if key_total else None,
         "recent_work_coverage": round((len(recent) - len(recent_uncited)) / len(recent), 4) if recent else None,
         "contribution_evidence_rate": round(contrib_ok / contrib, 4) if contrib else None,
         "group_style": "matrix" if not list_style else "work_by_work",
     }
     hard = [v for v in viol if v["type"] in ("claim_uncited", "dangling_citation", "gap_unsupported",
+                                             "claim_evidence_conflict",
                                              "contribution_no_evidence", "contribution_evidence_missing",
                                              "key_work_uncited", "contribution_missing")]
     report = {"claims": claims, "claim_cited": claim_cited, "gap_sentences": gap_sents, "gap_supported": gap_ok,
+              "claim_evidence_checks": num_checks,
+              "gaps_total": len(gaps), "gaps_covered": len(gap_covered),
               "contributions": contrib, "contributions_with_evidence": contrib_ok,
               "cited_wids": sorted(cited_all), "rates": rates, "pass": not hard,
               "violations": viol}
@@ -199,7 +243,9 @@ def main():
 
     lines = ["# 论断-引用绑定核对", "",
              f"- 论断 {claims} 条，挂引用 {claim_cited} 条（{pct(rates['claim_citation_rate'])}）",
+             f"- 数字核对 {num_checks} 处（句内数字+单位必须能在所引记录里找到）",
              f"- 空白句 {gap_sents} 条，支撑充分 {gap_ok} 条（{pct(rates['gap_support_rate'])}）",
+             f"- 矩阵空白 {len(gaps)} 个，草稿里获 >=2 篇支撑 {len(gap_covered)} 个",
              f"- 贡献 {contrib} 条，有可解析证据 {contrib_ok} 条（{pct(rates['contribution_evidence_rate'])}）",
              f"- 关键文献覆盖 {pct(rates['key_work_coverage'])}（分母=key=true 篇数 {key_total}）",
              f"- 近作（>=2022）覆盖 {pct(rates['recent_work_coverage'])}",

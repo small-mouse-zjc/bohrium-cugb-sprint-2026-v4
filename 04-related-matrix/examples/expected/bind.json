@@ -1,8 +1,11 @@
 {
   "claims": 8,
   "claim_cited": 8,
-  "gap_sentences": 1,
-  "gap_supported": 1,
+  "gap_sentences": 2,
+  "gap_supported": 2,
+  "claim_evidence_checks": 5,
+  "gaps_total": 1,
+  "gaps_covered": 1,
   "contributions": 3,
   "contributions_with_evidence": 3,
   "cited_wids": [

@@ -69,13 +69,16 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 | 指标 | 门槛 |
 |---|---|
 | 论断挂引用率（含数字/比较/因果/首次类句子） | = 1.00 |
+| 论断数字一致性（句内"数字+单位"必须能在所引 work 的记录里找到） | 违例 = 0（`claim_evidence_conflict`） |
 | 悬空引用（引了库里没有的 wid） | = 0 |
 | 关键文献覆盖率（`key=true` 与近 2 年工作） | = 1.00 |
-| 空白支撑度（每个空白 ≥2 篇限制支撑） | = 1.00 |
+| 空白支撑度（**按 matrix 的每个 gap 逐个复核**：必须有一句落在空白/局限小节、或点名该 gap 的限制词，且同时引到该 gap 的 ≥2 篇 `support_wids`） | = 1.00，`gaps_covered=gaps_total` |
 | 贡献证据率（每条贡献指向存在的章节/图表） | = 1.00 |
 
 **第 5 步 回填**
 把 `bind.json` 的 `violations` 逐条改掉再重跑；仍无法满足的（例如材料里确实没有关键文献），在 `result.json` 的 `uncertainties` 写明"缺 X，未覆盖"，**不许补造条目**。
+
+注意口径：转述他人数值必须与库内记录同值（`3.2 MPa` 写成 `9.9 MPa` 属于数字造假，直接阻断，不是笔误）；空白小节里的纯解释句（不带引用、也不断言领域空白）不强制挂引用，但**断言空白的句子必须引到该 gap 的支撑文献**，"任意 2 篇"不算过关。
 
 ## 4. 预算与降级
 
@@ -96,4 +99,10 @@ python scripts/claim_bind.py --draft /app/output/intro_draft.md --works work/wor
 ```
 python examples/selftest.py
 ```
-要求：正例 `bind.json` 五项全过；注入的四类缺陷（论断无引用、悬空引用、空白单篇支撑、贡献证据不存在）必须全部命中；另加四条：`run.py` 由 `case.json` 产出合法 `result.json`（demo 上 `status=success`）、零贡献草稿不虚报 1.00、悬空引用不计入挂引用率、基线（逐篇摘要）`group_total=null / pass=false`。
+要求（共 14 条，全绿才算过）：正例 `bind.json` 五项全过；注入的四类缺陷（论断无引用、悬空引用、空白单篇支撑、贡献证据不存在）必须全部命中；再加六条：
+1. 论断数字与所引记录不一致（`3.2 MPa` 改 `9.9 MPa`）→ `claim_evidence_conflict`、`pass=false`；
+2. 空白句改引非支撑文献（引 `W1/W2` 而该 gap 支撑是 `W4/W6`）→ `gap_support_rate=0.0`、报"长期监测未获 ≥2 篇支撑"；
+3. 重述式空白句（"现有工作在这一尺度上仍有明显不足"，不含"覆盖/研究/工作"字样）仍被识别为空白、仍卡支撑；
+4. `run.py` 由 `case.json` 产出合法 `result.json`（demo 上 `status=success`）；
+5. 零贡献草稿不虚报 1.00（`contribution_evidence_rate=null` + `contribution_missing`）、悬空引用不计入挂引用率、基线（逐篇摘要）`group_total=null / pass=false`；
+6. `result.json.metrics` 的 `gaps_total`/`gaps_covered`/`claim_evidence_checks` 与 `bind.json`、`bind_report.md` 的 ✓ 行逐项相等（论断条数、空白句条数、矩阵空白个数、贡献条数、数字核对处数），口径只允许一套。
