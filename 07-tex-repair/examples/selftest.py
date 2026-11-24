@@ -61,10 +61,38 @@ def main():
             assert "未执行真实编译" in m["note"]
             ok.append("本机无 TeX：切到 static_only 并明确未编译（未谎称通过）")
         else:
-            assert m["status"] in ("success", "partial"), f"有 TeX 却 failed：{m.get('note')}"
-            assert m.get("rerun_required") is not None and m.get("converged") is not None, "manifest 缺收敛字段"
-            ok.append(f"本机有 TeX：status={m['status']} converged={m['converged']} "
-                      f"bibtex_runs={m['bibtex_runs']} errors={m['errors']} pages={m['pages']}")
+            # SKILL §6 的收敛门槛必须在这里被锁住，不能把 partial 当通过
+            assert m["status"] == "success", f"有 TeX 但未到 success：status={m['status']} {m.get('note')}"
+            assert m.get("converged") is True, f"converged={m.get('converged')}"
+            assert m.get("errors") == 0, f"errors={m.get('errors')}"
+            assert (m.get("bibtex_runs") or 0) >= 1, f"bibtex_runs={m.get('bibtex_runs')}"
+            assert m.get("rerun_required") is False, f"rerun_required={m.get('rerun_required')}"
+            assert m.get("pdf", {}).get("sha256"), "manifest 未记录 PDF sha256"
+            ok.append(f"本机有 TeX：硬门槛全过 status={m['status']} converged={m['converged']} "
+                      f"bibtex_runs={m['bibtex_runs']} errors={m['errors']} pages={m['pages']} "
+                      f"pdf.sha256={m['pdf']['sha256'][:12]}…")
+
+            # 字节级复现：同工程再编一次，PDF sha256 必须相同且与清单一致
+            bd2 = tmp / "build2"
+            run([ROOT / "scripts/build.py", "--project", DEMO / "fixed", "--out", bd2], rc=(0, 1))
+            m2 = json.loads((bd2 / "build_manifest.json").read_text(encoding="utf-8"))
+            assert m2["pdf"]["sha256"] == m["pdf"]["sha256"], (
+                "两次编译 PDF 不一致：", m["pdf"]["sha256"], m2["pdf"]["sha256"])
+            import hashlib
+            got = hashlib.sha256((bd2 / m2["pdf"]["path"]).read_bytes()).hexdigest()
+            assert got == m2["pdf"]["sha256"], "清单里的 sha256 与实际文件不符"
+            ok.append(f"字节复现：两次编译 PDF sha256 相同（{m['pdf']['sha256'][:12]}…），"
+                      f"且与清单记录一致（SOURCE_DATE_EPOCH={m['compile_env']['SOURCE_DATE_EPOCH']}）")
+
+            # 反向锁定：故意跳过 bibtex → 必须降级为 partial，不许 success
+            bd3 = tmp / "build_nobib"
+            rr = subprocess.run([PY, str(ROOT / "scripts/build.py"), "--project", str(DEMO / "fixed"),
+                                 "--out", str(bd3), "--no-bibtex"], capture_output=True, text=True,
+                                encoding="utf-8")
+            assert rr.returncode != 0, "跳过 bibtex 仍返回 0（门槛失效）"
+            m3 = json.loads((bd3 / "build_manifest.json").read_text(encoding="utf-8"))
+            assert m3["status"] == "partial" and m3["converged"] is False, m3["status"]
+            ok.append(f"反向锁定：--no-bibtex 时 status={m3['status']} converged=False（引文未解析不判 success）")
 
         # 平台入口：/input/case.json → /app/output/result.json
         rp = tmp / "run"
