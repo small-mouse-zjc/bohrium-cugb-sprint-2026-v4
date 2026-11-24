@@ -139,6 +139,42 @@ def main():
         assert prev["page"] == cont[0]["page"] - 1, (prev, cont[0])
         ok.append(f"跨页断句 → {cont[0]['id']} 记 continues_from={cont[0]['continues_from']}（上页末段）")
 
+        # audit 反向路径：左栏末块无句末标点 → 必须报 suspicious、--audit 退出 3
+        sus = tmp / "suspect.pdf"
+        doc = fitz.open()
+        sp = doc.new_page(width=595, height=842)
+        sp.insert_textbox(fitz.Rect(50, 60, 280, 110), "[[L1]] Left column paragraph that runs on without any terminal mark", fontsize=10)
+        sp.insert_textbox(fitz.Rect(320, 60, 570, 110), "[[R1]] Right column first paragraph ends here.", fontsize=10)
+        sp.insert_textbox(fitz.Rect(320, 130, 570, 180), "[[R2]] Right column second paragraph ends here too.", fontsize=10)
+        sp.insert_textbox(fitz.Rect(320, 200, 570, 250), "[[R3]] Right column third paragraph also ends properly.", fontsize=10)
+        doc.save(str(sus))
+        doc.close()
+
+        so = tmp / "suspect_out"
+        rs = run([ROOT / "scripts/reflow.py", "--pdf", sus, "--out", so, "--audit"], rc=(3,))
+        sj = json.loads((so / "reflow.json").read_text(encoding="utf-8"))
+        assert rs.returncode == 3, rs.returncode
+        assert sj["suspicious"] and sj["audit"]["fail"], sj
+        ok.append(f"audit 反向路径：串栏疑似 {len(sj['suspicious'])} 处（{sj['suspicious'][0]['reason']}）→ 退出码 3、audit.fail={sj['audit']['fail']}")
+
+        run([ROOT / "scripts/reflow.py", "--pdf", sus, "--out", tmp / "suspect_plain"])
+        pj = json.loads((tmp / "suspect_plain/reflow.json").read_text(encoding="utf-8"))
+        assert pj["suspicious"] and pj["audit"]["enabled"] is False, pj
+        ok.append("不加 --audit 时只报不拦：suspicious 照写、退出码 0（门是选装，不许静默放过）")
+
+        si = tmp / "entry_suspect"
+        si.mkdir()
+        shutil.copy(sus, si / "sus.pdf")
+        (si / "truth.json").write_text(json.dumps({"order": ["L1", "R1", "R2", "R3"]}, ensure_ascii=False), encoding="utf-8")
+        (si / "case.json").write_text(json.dumps({"case_id": "suspect", "pdf": "sus.pdf", "truth": "truth.json"},
+                                                 ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/run.py", "--input", si, "--output", tmp / "suspect_entry_out"], rc=(1,))
+        sr = json.loads((tmp / "suspect_entry_out/result.json").read_text(encoding="utf-8"))
+        assert sr["status"] == "partial" and sr["metrics"]["pass"] is False, sr
+        assert sr["metrics"]["suspicious"] == 1 and sr["metrics"]["order_match"] is True, sr["metrics"]
+        assert any("audit" in n for n in sr["notes"]), sr["notes"]
+        ok.append("顺序与真值一致但 audit 不过 → status=partial（不冒充 success），notes 写明 audit 原因")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)

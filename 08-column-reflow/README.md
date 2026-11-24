@@ -78,7 +78,7 @@ python scripts/reflow.py --pdf paper.pdf --out /app/output --audit
 - 跨页重复的 2 条页眉各出现 2 次，共 4 条全部被剔除并记录（`Demo Journal of Reflow 2026 - preprint`、`Demo preprint, not for citation`）；
 - 产物在 `examples/expected/reflow/` 与 `examples/expected/baseline/`，两份 `measure.json` 可直接复算。
 
-自检 `python examples/selftest.py` **11 条**全绿：3 页演示（第 3 页为不规则双栏：左栏短、右栏长、半页宽块插栏中、跨块断词）与真值逐段一致（0 逆序、0 串栏、页眉页脚 6 条全剔除）；`micro-`+`structure` 合成 `microstructure`；朴素基线明显串栏（位置命中 39%、23 逆序、23 错位，作为对照不是分数）；平台入口 `case.json → result.json` 在正例给 `success`；没有真值时记 `partial` + `order_match=None`（不宣称通过）；缺 PDF 给 `rejected`；基线差值表 逆序 23→0、位置命中 39%→100%；缺 `truth.json` 时指标记 `None` 不崩；每页变化页码两页各一条按「页码形态」剔除、正文零泄漏；页边窄块 `role=note` 不进正文；跨页断句记 `continues_from`（上页末段 id）。`--audit` 已实装：串栏疑似 >0 或覆盖率 <95% 以退出码 3 失败，`run.py` 的 success 也卡 `suspicious==0` 与 `coverage>=0.95`。
+自检 `python examples/selftest.py` **14 条**全绿：3 页演示（第 3 页为不规则双栏：左栏短、右栏长、半页宽块插栏中、跨块断词）与真值逐段一致（0 逆序、0 串栏、页眉页脚 6 条全剔除）；`micro-`+`structure` 合成 `microstructure`；朴素基线明显串栏（位置命中 39%、23 逆序、23 错位，作为对照不是分数）；平台入口 `case.json → result.json` 在正例给 `success`；没有真值时记 `partial` + `order_match=None`（不宣称通过）；缺 PDF 给 `rejected`；基线差值表 逆序 23→0、位置命中 39%→100%；缺 `truth.json` 时指标记 `None` 不崩；每页变化页码两页各一条按「页码形态」剔除、正文零泄漏；页边窄块 `role=note` 不进正文；跨页断句记 `continues_from`（上页末段 id）；audit 反向路径（左栏末块无句末标点）退出码 3 且 `audit.fail` 非空、不加 `--audit` 时只报不拦；顺序与真值一致但 audit 不过时 `run.py` 给 `partial` 而非 `success`。`--audit` 已实装：串栏疑似 >0 或覆盖率 <95% 以退出码 3 失败，`run.py` 的 success 也卡 `suspicious==0` 与 `coverage>=0.95`，且 rc=3 不再当 `rejected` 丢掉产物，而是照交重排、降级为 `partial` 并在 `notes` 写明 audit 原因。
 
 ## 6. 异常与降级
 

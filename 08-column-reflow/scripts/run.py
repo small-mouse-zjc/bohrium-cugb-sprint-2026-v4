@@ -71,12 +71,15 @@ def main():
                            "notes": [f"缺少 PDF: {pdf}"], "artifacts": []}, 2)
 
     r = call([ROOT / "scripts/reflow.py", "--pdf", pdf, "--out", out, "--audit"])
-    if r.returncode != 0 or not (out / "reflow.json").exists():
+    audit_failed = r.returncode == 3  # 重排已产出，但 audit 门未过：照样交付，不许判 success
+    if r.returncode not in (0, 3) or not (out / "reflow.json").exists():
         return write(out, {"case_id": case_id, "status": "rejected", "metrics": {"pass": False, "step": "reflow"},
                            "notes": [r.stdout[-300:], r.stderr[-300:]], "artifacts": []}, 2)
     info = json.loads((out / "reflow.json").read_text(encoding="utf-8"))
     artifacts = ["paragraphs.jsonl", "reflow.json", "reflow.md"]
     notes = []
+    if audit_failed:
+        notes.append("audit 门未过：" + "；".join((info.get("audit") or {}).get("fail", [])) + "（重排已交付，需人工复核）")
 
     metrics = {"pages": info.get("pages"), "paragraphs": info.get("paragraphs"),
                "layout": info.get("layout"), "dropped_headers_footers": len(info.get("dropped_headers_footers", [])),
