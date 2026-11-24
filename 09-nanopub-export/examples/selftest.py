@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import subprocess
 import sys
 import tempfile
@@ -112,6 +113,29 @@ def main():
         assert sb["atomic_rate"] is None and sb["pass"] is False, sb
         assert ss["pass"] is True and ss["export_roundtrip"] is True, ss
         ok.append("基线对照：裸 Agent 率=None/pass=False vs Skill pass=True/roundtrip=True")
+
+        # 9) JSON-LD 与 TriG 的 DOI 必须同一 IRI（纯 DOI 时两边都是 https://doi.org/...）
+        sys.path.insert(0, str(ROOT / "scripts"))
+        import nanopub as npb
+        d5 = json.loads(json.dumps(base))
+        src5 = json.loads((DEMO / "sources.json").read_text(encoding="utf-8"))
+        src5["sources"][0]["doi"] = "10.1234/foo.2026"
+        p5 = {"title": src5["sources"][0].get("title"), "year": src5["sources"][0].get("year"),
+              "doi": src5["sources"][0]["doi"]}
+        as5, _ = npb.build(d5["assertions"], src5["sources"], p5)
+        jl = npb.export_jsonld(as5, p5, "demo-09")
+        tg = npb.export_trig(as5, p5, "demo-09")
+        jl_doi = next(g for g in jl["@graph"] if g.get("@type") == "np:Provenance")["prov:wasDerivedFrom"]["@id"]
+        tg_doi = re.search(r"prov:wasDerivedFrom <([^>]+)>", tg).group(1)
+        assert jl_doi == tg_doi == "https://doi.org/10.1234/foo.2026", (jl_doi, tg_doi)
+        assert "urn:doi:urn:doi" not in tg, tg[:200]
+        ok.append("JSON-LD 与 TriG 的 DOI 同一 IRI：都是 https://doi.org/10.1234/foo.2026")
+
+        # 10) TriG 的主/客体/关系是 IRI 节点，不是裸字面量
+        assert "rel:subject <https://example.org/np/" in tg, tg[:400]
+        assert "rel:relation <https://example.org/rel/" in tg, tg[:400]
+        assert 'rel:subject "' not in tg and 'rel:relation "' not in tg, "TriG 仍有字面量主客体"
+        ok.append("TriG 主语/关系为 IRI 节点（无裸字面量）")
 
         print("SELFTEST OK")
         for line in ok:

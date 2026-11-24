@@ -37,7 +37,9 @@
     {
       "@id": "https://example.org/np/demo-nanopub-01/A1/provenance",
       "@type": "np:Provenance",
-      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "prov:wasDerivedFrom": {
+        "@id": "urn:case:demo-nanopub-01"
+      },
       "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
       "rel:sourceYear": 2026,
       "rel:paragraphId": "JATS-3",
@@ -82,7 +84,9 @@
     {
       "@id": "https://example.org/np/demo-nanopub-01/A2/provenance",
       "@type": "np:Provenance",
-      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "prov:wasDerivedFrom": {
+        "@id": "urn:case:demo-nanopub-01"
+      },
       "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
       "rel:sourceYear": 2026,
       "rel:paragraphId": "JATS-3",
@@ -127,7 +131,9 @@
     {
       "@id": "https://example.org/np/demo-nanopub-01/A3/provenance",
       "@type": "np:Provenance",
-      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "prov:wasDerivedFrom": {
+        "@id": "urn:case:demo-nanopub-01"
+      },
       "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
       "rel:sourceYear": 2026,
       "rel:paragraphId": "JATS-6",
@@ -172,7 +178,9 @@
     {
       "@id": "https://example.org/np/demo-nanopub-01/A4/provenance",
       "@type": "np:Provenance",
-      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "prov:wasDerivedFrom": {
+        "@id": "urn:case:demo-nanopub-01"
+      },
       "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
       "rel:sourceYear": 2026,
       "rel:paragraphId": "JATS-6",
@@ -217,7 +225,9 @@
     {
       "@id": "https://example.org/np/demo-nanopub-01/A5/provenance",
       "@type": "np:Provenance",
-      "prov:wasDerivedFrom": "urn:doi:none:demo-nanopub-01",
+      "prov:wasDerivedFrom": {
+        "@id": "urn:case:demo-nanopub-01"
+      },
       "rel:sourceTitle": "Demo manuscript on gas hydrate (constructed)",
       "rel:sourceYear": 2026,
       "rel:paragraphId": "JATS-3",

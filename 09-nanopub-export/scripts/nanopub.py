@@ -40,6 +40,23 @@ def lit(s: str) -> str:
     return '"' + esc(s) + '"'
 
 
+def slug(s: str) -> str:
+    """把中文/英文标签压成 IRI 片段；中文按 UTF-8 百分号编码，避免 IRI 里出现裸空格或引号。"""
+    from urllib.parse import quote
+    t = (s or "").strip().lower()
+    t = re.sub(r"\s+", "-", t)
+    t = re.sub(r"[\"'<>{}\\\\]", "", t)
+    return quote(t, safe="-._~") or "unknown"
+
+
+def ent_iri(label: str, case_id: str) -> str:
+    return f"https://example.org/np/{slug(case_id)}/ent/{slug(label)}"
+
+
+def rel_iri(relation: str) -> str:
+    return f"https://example.org/rel/{slug(relation)}"
+
+
 def build(assertions, sources, paper):
     src = {s["paragraph_id"]: s for s in sources}
     all_text = {k: norm(v["text"]) for k, v in src.items()}
@@ -114,7 +131,7 @@ def export_jsonld(asserts, paper, case_id):
                       "rel:object": a["object"], "rel:qualifier": a["qualifier"],
                       "rel:text": a["text"]})
         graph.append({"@id": gid + "/provenance", "@type": "np:Provenance",
-                      "prov:wasDerivedFrom": paper.get("doi") or f"urn:doi:none:{case_id}",
+                      "prov:wasDerivedFrom": {"@id": doi_iri(paper.get("doi"), case_id)},
                       "rel:sourceTitle": paper.get("title"), "rel:sourceYear": paper.get("year"),
                       "rel:paragraphId": a["evidence"]["paragraph_id"], "rel:quote": a["evidence"]["quote"],
                       "rel:derivation": a["derivation"]})
@@ -140,9 +157,9 @@ def export_trig(asserts, paper, case_id):
              f"      np:hasProvenance <{gid}/provenance> ;\n"
              f"      np:hasPublicationInfo <{gid}/pubinfo> .\n"
              f"  <{gid}/assertion> a np:Assertion ;\n"
-             f"      rel:relation {lit(a['relation'])} ;\n"
-             f"      rel:subject {lit(str(a['subject'].get('label','')))} ;\n"
-             f"      rel:object {lit(str(a['object'].get('label','')))} ;\n"
+             f"      rel:relation <{rel_iri(a['relation'])}> ;\n"
+             f"      rel:subject <{ent_iri(str(a['subject'].get('label','')), case_id)}> ;\n"
+             f"      rel:object <{ent_iri(str(a['object'].get('label','')), case_id)}> ;\n"
              f"      rel:qualifier {lit(a['qualifier'])} ;\n"
              f"      rel:text {lit(a['text'])} .\n"
              f"  <{gid}/provenance> a np:Provenance ;\n"

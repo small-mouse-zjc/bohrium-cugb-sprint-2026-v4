@@ -89,7 +89,7 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 - **5 条断言**，`atomic_rate=1.00`、`verbatim_rate=1.00`、`provenance_rate=1.00`；
 - 回解析：**5 个命名图 / 5 个断言节点 / 5 条引文**，`ok=true`；
 - `violations` 为空，`pass=true`；
-- `nanopub.jsonld` 带 `@context` 与四层结构；`nanopub.trig` 每条断言独立命名图。**回解析只做结构计数**（命名图 / 断言节点 / 引文数是否等于断言数），不是完整 RDF 解析——这一点如实标注，不宣称"TriG 解析器已验收"。
+- `nanopub.jsonld` 带 `@context` 与四层结构；`nanopub.trig` 每条断言独立命名图。**回解析只做结构计数**（命名图 / 断言节点 / 引文数是否等于断言数），不是完整 RDF 解析——这一点如实标注，不宣称"TriG 解析器已验收"。TriG 的 `rel:subject`/`rel:object`/`rel:relation` 已输出为 IRI 节点（`…/ent/<slug>`、`https://example.org/rel/<slug>`），不再是裸字符串字面量；JSON-LD 与 TriG 的 DOI 统一走 `doi_iri()`，同一篇论文两种序列化给同一个 IRI。
 - `prov:wasDerivedFrom` 统一为单一 IRI：纯 DOI 补 `https://doi.org/`，已是 URL/urn 的原样用，缺 DOI 用 `urn:case:<id>`（修掉了旧的 `urn:doi:urn:doi:...` 双前缀畸形）。
 
 缺陷注入自检（`python examples/selftest.py`）要求四类破坏全部命中：
@@ -103,7 +103,7 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 
 5 条断言全绿。
 
-**本轮补强（2026-11-25）**：新增 `scripts/run.py`（读 `/input/case.json` → 校验 → 导出 → `/app/output/result.json`）、N04 纳入逐字率（证据不含主体/客体表面形式会拉低 `verbatim_rate`，实测 5 条里 1 条违规 → 0.80）、零断言时三比率记 `null` 并报 `N00`、`relation_extensions` 真正生效、DOI 统一 IRI、新增 `examples/baseline.py`（裸基线：只把断言转存 JSON，不校验不导出）。自检 **9 条**：原 5 条 + 平台入口、零断言、N04、TriG IRI、基线对照。
+**本轮补强（2026-11-25）**：新增 `scripts/run.py`（读 `/input/case.json` → 校验 → 导出 → `/app/output/result.json`）、N04 纳入逐字率（证据不含主体/客体表面形式会拉低 `verbatim_rate`，实测 5 条里 1 条违规 → 0.80）、零断言时三比率记 `null` 并报 `N00`、`relation_extensions` 真正生效、DOI 统一 IRI、新增 `examples/baseline.py`（裸基线：只把断言转存 JSON，不校验不导出）。自检 **11 条**：原 5 条 + 平台入口、零断言、N04、TriG IRI、基线对照、JSON-LD/TriG DOI 一致性、TriG 主语与关系为 IRI 节点。
 
 ## 7. 异常与降级
 
