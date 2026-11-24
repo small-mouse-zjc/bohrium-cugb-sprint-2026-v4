@@ -72,6 +72,7 @@ def main():
     ap.add_argument("--template")
     ap.add_argument("--main", default="main.tex")
     ap.add_argument("--rounds", type=int, default=3)
+    ap.add_argument("--time-budget", type=int, default=900)
     a = ap.parse_args()
 
     inp = Path(a.input)
@@ -148,7 +149,8 @@ def main():
 
     # 2) 真实编译（无 TeX 时由 build.py 自己降级为 static_only）
     rc, text = run([sys.executable, str(HERE / "build.py"), "--project", str(project),
-                    "--out", str(outp), "--main", a.main, "--rounds", str(a.rounds)])
+                    "--out", str(outp), "--main", a.main, "--rounds", str(a.rounds),
+                    "--time-budget", str(a.time_budget)])
     metrics["build_rc"] = rc
     try:
         bm = json.loads((outp / "build_manifest.json").read_text(encoding="utf-8"))
@@ -161,6 +163,9 @@ def main():
     metrics["rerun_required"] = bm.get("rerun_required")
     metrics["bibtex_runs"] = bm.get("bibtex_runs")
     metrics["pages"] = bm.get("pages")
+    metrics["elapsed_s"] = bm.get("elapsed_s")
+    metrics["time_budget_s"] = bm.get("time_budget_s", a.time_budget)
+    metrics["budget_hit"] = bm.get("budget_hit", False)
     metrics["pdf"] = (bm.get("pdf") or {}).get("path")
 
     # 3) 日志诊断
@@ -186,6 +191,12 @@ def main():
         result["notes"].append("本机无 TeX，只完成静态检查；没有编译证据，不能判 success")
     else:
         result["status"] = "rejected" if bstat == "rejected" else "cannot_determine"
+
+    # 预算闸门命中：说明没编到收敛就被按下暂停，绝不能仍报 success
+    if metrics.get("budget_hit") and result["status"] == "success":
+        result["status"] = "partial"
+        result["notes"].append(f"编译预算 {metrics.get('time_budget_s')}s 已用尽（{metrics.get('elapsed_s')}s），"
+                               "未确认收敛完毕，降级为 partial")
 
     result["artifacts"] = [p for p in ("texfit.json", "texfit.md", "build_manifest.json",
                                        "logdiag.json", "run.log")

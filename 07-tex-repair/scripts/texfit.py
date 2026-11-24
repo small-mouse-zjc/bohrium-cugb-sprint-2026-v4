@@ -10,6 +10,27 @@ import json
 import re
 from pathlib import Path
 
+def count_cols(spec: str) -> int:
+    """列格式里的真实列数。
+
+    旧实现 `len(re.findall(r"[clrpmbXS]|>", ...))` 会数出三类假列：
+    1) `>{...}` 列前声明（里面的 `\\raggedright` 还有一堆字母）；
+    2) `S[table-format=2.1]` 的方括号选项（"table-format" 里的 r/m/b/S 全被算进去）；
+    3) `p{3cm}` 花括号里的 `cm`。
+    这里先展开 `*{n}{...}`，再剥 @{..}/>{..}/<{..}/!{..}，把 p/m/b 宽度列折叠成一个 p，
+    最后去掉 `[..]` 选项再数列类型字符。
+    """
+    def expand(m):
+        return m.group(2) * min(int(m.group(1)), 20)          # 星号重复，最多 20 份
+    spec = re.sub(r"\*\{(\d+)\}\{([^{}]*)\}", expand, spec)
+    for _ in range(3):                                        # 嵌套装饰剥三层
+        spec = re.sub(r"[@!<>]\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", "", spec)
+    spec = re.sub(r"[pmb]\{[^{}]*(?:\{[^{}]*\}[^{}]*)*\}", "p", spec)   # 宽度列算一列
+    spec = re.sub(r"\[[^\]]*\]", "", spec)                    # S[table-format=..] 选项
+    spec = re.sub(r"\s+|\|", "", spec)
+    return len(re.findall(r"[clrpmbXS]", spec))
+
+
 MACRO_PKG = {
     r"\toprule": "booktabs", r"\midrule": "booktabs", r"\bottomrule": "booktabs",
     r"\includegraphics": "graphicx", r"\textcolor": "xcolor", r"\colorbox": "xcolor",
@@ -123,7 +144,7 @@ def check(project: Path, template: dict):
         txt = f.read_text(encoding="utf-8", errors="replace")
         for mm in re.finditer(r"\\begin\{tabular\}\{([^}]*)\}", txt):
             spec = mm.group(1)
-            ncol = len(re.findall(r"[clrpmbXS]|>", re.sub(r"@\{[^}]*\}|<\{[^}]*\}", "", spec)))
+            ncol = count_cols(spec)
             start = txt[:mm.start()].count("\n") + 1
             end = txt.find("\\end{tabular}", mm.end())
             body = txt[mm.end():end if end > 0 else len(txt)]
