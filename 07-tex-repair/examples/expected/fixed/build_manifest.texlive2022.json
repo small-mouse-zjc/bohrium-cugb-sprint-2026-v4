@@ -1,0 +1,50 @@
+{
+  "_note": "真实编译回执：TeX Live 2022/dev/Debian（云主机）上对 examples/demo/fixed 的 build.py 输出，原样粘贴，未做删改。Windows 本机无 TeX，对应产物见 build_manifest.static_only.json。",
+  "project": "fixed",
+  "main": "main.tex",
+  "inputs_sha256": {
+    "main.tex": "34ab3215c4b91930",
+    "refs.bib": "192f1d6527573b8e"
+  },
+  "engine": "pdflatex",
+  "command": [
+    "/usr/bin/pdflatex",
+    "-interaction=nonstopmode",
+    "-file-line-error",
+    "-output-directory=<OUT>",
+    "main.tex"
+  ],
+  "rounds": 3,
+  "bibtex_runs": 1,
+  "status": "success",
+  "note": "",
+  "pdf": {
+    "path": "main.pdf",
+    "bytes": 80280,
+    "sha256": "dc2a541303bafcb0e3f1c5277d41da792c2aaa378fa6fefb82695f7e1e478bdc",
+    "id_normalized": true,
+    "pages": 2,
+    "bbl_sha256": "ade50caa9e522590cef474525c427b6cb57ecb024f14bf89fb9b17224cac201b"
+  },
+  "log": "run.log",
+  "converged": true,
+  "rerun_required": false,
+  "errors": 0,
+  "compile_env": {
+    "SOURCE_DATE_EPOCH": 1577836800,
+    "FORCE_SOURCE_DATE": "1",
+    "reproducible": true
+  },
+  "bibtex_enabled": true,
+  "elapsed_s": 0.3,
+  "time_budget_s": 900,
+  "budget_hit": false,
+  "bibtex_failed": false,
+  "bbl": {
+    "path": "main.bbl",
+    "bytes": 193
+  },
+  "pages": 2,
+  "undefined_cites": [],
+  "engine_version": "pdfTeX 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian)"
+}

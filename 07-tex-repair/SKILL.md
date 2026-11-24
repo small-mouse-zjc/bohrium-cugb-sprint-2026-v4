@@ -88,6 +88,10 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 | Overfull 无法消除 | 记录具体行与溢出量，标"版式警告，非错误"，不靠缩字号掩盖 |
 | 中文/字体问题 | 报 E09，建议 `ctex` 或 `xeCJK`，不擅自换引擎 |
 
+## 可复现与产物指纹
+
+`build_manifest.json` 记录 `pdf.sha256`（以及跑过 bibtex 时的 `pdf.bbl_sha256`）与 `compile_env`。编译注入 `SOURCE_DATE_EPOCH`（默认 2020-01-01，可 `--epoch` 或 `template.yaml: source_date_epoch` 覆盖）与 `FORCE_SOURCE_DATE=1`，并在写出 PDF 后把 pdfTeX 的 `/ID` 归一化为 `sha256(输入哈希+epoch)` 派生的等长十六进制串；因此同一输入在不同输出目录、不同机器上得到字节相同的 PDF，可直接用 `sha256sum` 对照清单验证。
+
 ## 6. 自检
 
 ```

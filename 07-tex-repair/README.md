@@ -161,3 +161,32 @@ python examples/selftest.py
 **多文件案例（`examples/demo/multi`，实测）**：`main.tex` 用 `\input` 拆出 `sections/intro`、`sections/method` 两章，含子目录图、两张表、`\citep/\citet` 跨文件引用，并在注释里故意写了 `\toprule` 与 `\cite{ghost2099}` 作干扰。`run.py` 端到端结果：`status=success / violations=0 / errors=0 / converged=true / bibtex_runs=1 / pages=2`，注释里的伪违规没有误报。
 
 **基线对照（同机同工程，`examples/baseline.py` = 单轮 pdflatex、不跑 bibtex、不体检）**：修复版基线 `partial / converged=false / 6 条引文警告 / 1 轮 / 0 次 bib`，本 Skill `success / converged=true / 0 警告 / 3 轮 / 1 次 bib`；损坏版两边都是 10 条错误，差别是本 Skill 在编译前就用 8 条规则定位了 10 处问题（含文件行号），基线编完才知道错。完整表见 `examples/demo/compile_evidence.md`，差值可用 `eval/metrics.py --out_dir <skill输出> --base_dir <基线输出>` 复算。
+
+## 可复现产物（2026-11-25 补强）
+
+`build_manifest.json` 现在记录**产物指纹**，不只是输入指纹：
+
+| 字段 | 内容 |
+|---|---|
+| `pdf.sha256` | 产出 PDF 的完整 SHA-256 |
+| `pdf.bbl_sha256` / `bbl` | bibtex 产出的 .bbl 指纹（跑过 bibtex 时） |
+| `pdf.id_normalized` | 是否已把 pdfTeX 的 `/ID` 归一化为确定性值 |
+| `compile_env` | `SOURCE_DATE_EPOCH` / `FORCE_SOURCE_DATE` / `reproducible` |
+
+做法与理由：
+
+1. **时间戳固定**：编译时注入 `SOURCE_DATE_EPOCH=1577836800`（2020-01-01，可用 `--epoch` 或项目 `template.yaml: source_date_epoch` 覆盖）与 `FORCE_SOURCE_DATE=1`，让 pdfTeX 的 `CreationDate`/`ModDate` 与 `\today` 都不随机器时间变。
+2. **`/ID` 归一化**：pdfTeX 的 `/ID` 由输出路径与编译时刻参与生成，同一输入放到 `/tmp/a` 与 `/tmp/b` 编出来字节不同。`normalize_pdf_id()` 把它替换成 `sha256(输入哈希 + epoch)` 派生的 32 位十六进制串——等长原地替换，xref 偏移不动，`pdfinfo` 仍能正常读出 2 页。
+3. **实测**：TeX Live 2022 云主机上两目录各编一次，`sha256sum` 完全相同（`dc2a5413…`），且等于清单记录值；回执见 `examples/expected/fixed/build_manifest.texlive2022.json`。
+
+## 收敛门槛被回归测试锁住
+
+`examples/selftest.py` 在有 TeX 的分支不再接受 `partial`：
+
+```python
+assert m["status"] == "success" and m["converged"] is True
+assert m["errors"] == 0 and m["bibtex_runs"] >= 1 and m["rerun_required"] is False
+assert m["pdf"]["sha256"]                      # 清单必须有产物指纹
+```
+
+再加两条反向用例：同一工程再编一次必须得到相同 `sha256`（字节级复现）；`--no-bibtex` 时必须降级为 `partial`/`converged=False` 且进程返回非 0——把"引文未解析不判成功"这条规则钉死。
