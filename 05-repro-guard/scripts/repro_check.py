@@ -13,14 +13,19 @@ from pathlib import Path
 COND_WORDS = ["压力", "温度", "规模", "分辨率", "样本", "范围", "条件", "场景", "仅", "低于", "高于", "少于", "大于", "当"]
 FAIL_WORDS = ["失效", "不可用", "不适用", "无法", "退化", "波动", "偏差", "溢出", "超出", "误差", "发散", "不可复现",
               "无法复现", "不成立", "需复核", "偏差增大", "精度下降"]
+# 不带数值但点名了具体失效机制的说法（SKILL §5 让作者写的「未固定种子 → 结果不可逐位复现」就属这类）
+MECH_FAIL = ["不可逐位复现", "无法逐位复现", "不可复现", "无法复现", "不可重现", "逐位复现",
+             "发散", "溢出", "结果不可比", "不可比"]
 
 
 def limitation_is_specific(x: str) -> bool:
     """SKILL §4：每条限制要落到"条件/阈值 + 失效场景"，只含关键词的套话不算。
 
-    判据：句内必须有具体数值（阈值/范围/量级），且同时点名条件或失效方式。
-    只有"规模/条件"这类词而无任何数值 → 判 vague（旧版按"含关键词"即放行，是 false-pass）。
+    判据二选一：(a) 句内有具体数值，且同时点名条件或失效方式；(b) 无数字但点名了具体失效机制
+    （"随机种子未固定，结果不可逐位复现"）。只出现"规模/条件/失效"这类泛词而无数值、无机制 → vague。
     """
+    if any(m in x for m in MECH_FAIL):
+        return True
     if not any(ch.isdigit() for ch in x):
         return False
     return any(w in x for w in COND_WORDS) or any(w in x for w in FAIL_WORDS)
@@ -74,6 +79,21 @@ def main():
     vague = [x for x in limits if not limitation_is_specific(x)]
 
     unsourced = [r for r in prows if r.get("status") != "sourced"]
+
+    # 清单自洽：manifest 里的 seed 必须与正文/配置溯源出的 seed 一致（字段非空不等于说对了）
+    seed_mismatch = None
+    mseed = (m.get("data") or {}).get("seed")
+    prow_seed = next((r for r in prows if (r.get("key") or "").lower() == "seed"), None)
+    if prow_seed and nonempty(mseed):
+        try:
+            mv, pv = float(str(mseed)), float(str(prow_seed.get("value")))
+            if abs(mv - pv) > 1e-12 * max(1.0, abs(pv)):
+                seed_mismatch = {"manifest": str(mseed), "params": prow_seed.get("value"),
+                                 "locator": prow_seed.get("source_locator")}
+        except ValueError:
+            if str(mseed).strip().lower() != str(prow_seed.get("value")).strip().lower():
+                seed_mismatch = {"manifest": str(mseed), "params": prow_seed.get("value"),
+                                 "locator": prow_seed.get("source_locator")}
     rates = {
         "repro_coverage": round((9 - len(missing)) / 9, 4),
         "step_completeness": round((len(st) - len(bad_steps)) / max(1, len(st)), 4) if st else None,
@@ -84,6 +104,10 @@ def main():
     viol += [{"type": "step_incomplete", "detail": f"步骤 {b['step']} 缺 {b['lack']}"} for b in bad_steps]
     viol += [{"type": "limitation_vague", "detail": x} for x in vague]
     viol += [{"type": "param_not_sourced", "detail": f"{r['key']}={r['value']}"} for r in unsourced]
+    if seed_mismatch:
+        viol.append({"type": "manifest_seed_conflict",
+                     "detail": f"manifest seed={seed_mismatch['manifest']}，正文/来源 seed={seed_mismatch['params']}"
+                               f"（{seed_mismatch['locator']}）"})
     if not limits:
         viol.append({"type": "limitation_missing", "detail": "manifest 没有 limitations：无法证明作者知道方法边界"})
     if not st:
@@ -98,6 +122,7 @@ def main():
     }
     failed_gates = [k for k, v in gates.items() if rates[k] is None or rates[k] < v]
     report = {"rates": rates, "missing": missing, "bad_steps": bad_steps, "vague_limits": vague,
+              "seed_consistency": (None if not prow_seed else (False if seed_mismatch else True)),
               "failed_gates": failed_gates,
               "pass": not viol and not failed_gates, "violations": viol}
     out = Path(a.out)
@@ -108,7 +133,8 @@ def main():
     lines = ["# 复现核对", "", f"- 复现九项覆盖 {p(rates['repro_coverage'])}；缺: {', '.join(missing) or '无'}",
              f"- 步骤四要素完整率 {p(rates['step_completeness'])}",
              f"- 限制条件具体率 {p(rates['limitation_specificity'])}（无 limitations 记 —，直接卡 pass）",
-             f"- 未溯源参数 {rates['unsourced_params']} 个", ""]
+             f"- 未溯源参数 {rates['unsourced_params']} 个",
+             f"- 清单 seed 与来源一致：{'未核对（无 seed 行）' if not prow_seed else ('是' if not seed_mismatch else '否')}", ""]
     if viol:
         lines += ["| 类型 | 说明 |", "|---|---|"] + [f"| {v['type']} | {v['detail']} |" for v in viol]
     (out / "repro.md").write_text("\n".join(lines) + "\n", encoding="utf-8")

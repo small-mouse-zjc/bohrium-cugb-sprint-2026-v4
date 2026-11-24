@@ -147,6 +147,29 @@ def main():
             any(v["type"] == "limitation_vague" for v in vl["violations"]), vl
         ok.append("套话限制（含\"规模\"但无数值阈值）→ limitation_specificity=0.0 + limitation_vague + pass=False")
 
+        # SKILL §5 的合法写法"随机种子未固定，结果不可逐位复现"没有数字，但不许被判 vague
+        m5 = json.loads((DEMO / "manifest.json").read_text(encoding="utf-8"))
+        m5["limitations"] = ["随机种子未固定，结果不可逐位复现"] + m5["limitations"]
+        mp5 = tmp / "mechlimit.json"
+        mp5.write_text(json.dumps(m5, ensure_ascii=False), encoding="utf-8")
+        check(mp5, DEMO / "steps.json", eout / "params.csv", tmp / "mechlimit")
+        ml = json.loads((tmp / "mechlimit/repro.json").read_text(encoding="utf-8"))
+        assert ml["rates"]["limitation_specificity"] == 1.0 and not ml["vague_limits"], ml["rates"]
+        assert ml["pass"] is True, ml["violations"]
+        ok.append("SKILL §5 示例限制（无数字但点名失效机制\"不可逐位复现\"）→ 仍判 specific、pass=True")
+
+        # 清单自洽：manifest seed 与 config 矛盾必须报，不许"字段非空就算九项齐"
+        m7 = json.loads((DEMO / "manifest.json").read_text(encoding="utf-8"))
+        m7["data"]["seed"] = 7
+        mp7 = tmp / "seed7.json"
+        mp7.write_text(json.dumps(m7, ensure_ascii=False), encoding="utf-8")
+        check(mp7, DEMO / "steps.json", eout / "params.csv", tmp / "seed7")
+        s7 = json.loads((tmp / "seed7/repro.json").read_text(encoding="utf-8"))
+        assert s7["seed_consistency"] is False, s7
+        assert any(v["type"] == "manifest_seed_conflict" for v in s7["violations"]), s7["violations"]
+        assert s7["pass"] is False, "manifest seed 矛盾仍 pass"
+        ok.append("manifest seed=7 vs config seed=42 → manifest_seed_conflict、seed_consistency=False、pass=False")
+
         # 来源只有 CLI 日志（--lr 0.001 / --batch-size 32 / seed 42 / weight_decay=0.01 / epochs 50）
         cli = tmp / "cli.log"
         cli.write_text("python train.py --lr 0.001 --batch-size 32 seed 42 weight_decay=0.01 epochs 50\n",
