@@ -98,7 +98,7 @@ python scripts/run.py --input /input --output /app/output
 
 本机（Windows，无 TeX）跑 `build.py` 时，产物 `build_manifest.json` 是 `engine=none, status=static_only, converged=false, note="本机无 pdflatex/xelatex/latexmk，未执行真实编译；只做静态检查，不得声称编译通过"`——这是**设计行为**，不是失败。
 
-缺陷注入自检（`python examples/selftest.py`）**10 条断言全绿**，两台机器都跑过：Windows（无 TeX）与云主机（TeX Live 2022）——损坏工程 8 规则/10 处违规且给修法、修复版 0 违规、真实日志 E01/E02/E05/E06/E08 分类与行号正确、有 TeX 时 `status=success & converged=true & bibtex_runs=1 & pages=2`、无 TeX 时返回 `static_only` 不假称通过；并额外验证 `run.py` 由 `case.json` 产出合法 `result.json`、**T06 不把 `\&` 当列分隔且报真实行号**、**字体日志真报 E09 并给 `ctex/xeCJK` 修法**（本轮补强）。
+缺陷注入自检（`python examples/selftest.py`）**10 条断言全绿**，两台机器都跑过：Windows（无 TeX）与云主机（TeX Live 2022）——损坏工程 8 规则/10 处违规且给修法、修复版 0 违规、真实日志 E01/E02/E05/E06/E08 分类与行号正确、有 TeX 时 `status=success & converged=true & bibtex_runs=1 & pages=2`、无 TeX 时返回 `static_only` 不假称通过；并额外验证 `run.py` 由 `case.json` 产出合法 `result.json`、**T06 不把 `\&` 当列分隔且报真实行号**、**字体日志真报 E09 并给 `ctex/xeCJK` 修法**、**平台布局下 `input/template.yaml` 的 `source_date_epoch` 真落到编译清单**（本轮补强）。
 
 > 2026-11-24 深夜修订：上一版 `build.py` 把 `latexmk` 排在默认第一位且给它传了 pdflatex 专用旗标，在有 latexmk 的机器上直接 `Bad options specified`；pdflatex 路径又从不跑 `bibtex`，导致引文恒为 `[?]` 而 `status` 仍写 `compiled`。现已改为 pdflatex 优先、自动 bibtex、`status` 按 `errors=0 & !rerun & pdf 存在` 判定，并新增 `scripts/run.py` 补上 `/input/case.json → /app/output/result.json` 的平台入口。本节数字全部来自修订后的实跑。
 

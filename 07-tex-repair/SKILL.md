@@ -97,4 +97,4 @@ python scripts/build.py --project work/paper --out /app/output --rounds 3
 ```
 python examples/selftest.py
 ```
-要求（共 10 条，全绿才算过）：损坏工程被静态检查抓出 8 条规则 / 10 处违规并给出修法；修复版 0 违规；用真实日志样本验证 `E01/E02/E05/E06/E08` 分类与行号定位；有 TeX 时 `build.py` 必须到 `success`（`converged=true`、`bibtex_runs≥1`、`errors=0`），无 TeX 时必须报 `static_only` 而不是假称通过；`scripts/run.py` 必须能从 `case.json` 产出合法 `result.json`；**T06 不得把 `\&` 当列分隔**（含 `\&` 的 3 列表 0 违规，真缺列时报源码真实行号）；**字体日志必须报 E09 并给 `ctex/xeCJK` 修法**（旧实现落 E00）。
+要求（共 10 条，全绿才算过）：损坏工程被静态检查抓出 8 条规则 / 10 处违规并给出修法；修复版 0 违规；用真实日志样本验证 `E01/E02/E05/E06/E08` 分类与行号定位；有 TeX 时 `build.py` 必须到 `success`（`converged=true`、`bibtex_runs≥1`、`errors=0`），无 TeX 时必须报 `static_only` 而不是假称通过；`scripts/run.py` 必须能从 `case.json` 产出合法 `result.json`；**T06 不得把 `\&` 当列分隔**（含 `\&` 的 3 列表 0 违规，真缺列时报源码真实行号）；**字体日志必须报 E09 并给 `ctex/xeCJK` 修法**（旧实现落 E00）；**平台布局（`input/template.yaml` + `input/project/`）下模板里的 `source_date_epoch` 必须真正落到 `build_manifest.json.compile_env`**，模板不写时仍用默认 `1577836800`（旧实现只在工程目录里找，输入目录模板的覆盖被静默吞掉，换机器 sha256 对不上）。

@@ -172,6 +172,28 @@ def main():
         assert "ctex" in e9["fix"] or "xeCJK" in e9["fix"], e9
         ok.append(f"字体日志 → E09×{dg['counts']['E09']}，修法含 ctex/xeCJK（不再落到 E00）")
 
+        # 平台布局下 input/template.yaml 的 source_date_epoch 必须真正落到编译环境
+        pin = tmp / "epoch_in"; pj7 = pin / "project"
+        pj7.mkdir(parents=True)
+        (pj7 / "main.tex").write_text("\\documentclass{article}\\begin{document}x\\end{document}\n",
+                                     encoding="utf-8")
+        (pin / "template.yaml").write_text("source_date_epoch: 1234567890\n", encoding="utf-8")
+        (pin / "case.json").write_text(json.dumps({"case_id": "ep", "project": "project"}),
+                                     encoding="utf-8")
+        o7 = tmp / "epoch_out"
+        run([ROOT / "scripts/run.py", "--input", pin, "--output", o7], rc=(0, 1))
+        bm7 = json.loads((o7 / "build_manifest.json").read_text(encoding="utf-8"))
+        assert int(bm7["compile_env"]["SOURCE_DATE_EPOCH"]) == 1234567890, bm7["compile_env"]
+        ok.append("input/template.yaml 的 source_date_epoch=1234567890 → 编译清单同值（不再退回默认）")
+
+        # 回归：模板没写 epoch 时仍用默认 2020-01-01
+        (pin / "template.yaml").write_text("documentclass: article\n", encoding="utf-8")
+        o7b = tmp / "epoch_default_out"
+        run([ROOT / "scripts/run.py", "--input", pin, "--output", o7b], rc=(0, 1))
+        bm7b = json.loads((o7b / "build_manifest.json").read_text(encoding="utf-8"))
+        assert int(bm7b["compile_env"]["SOURCE_DATE_EPOCH"]) == 1577836800, bm7b["compile_env"]
+        ok.append("模板无 source_date_epoch → 仍用默认 1577836800（回归）")
+
         for line in ok:
             print("  ✓", line)
     except AssertionError as e:

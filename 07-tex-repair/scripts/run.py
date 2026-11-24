@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import subprocess
 import sys
 from pathlib import Path
@@ -57,6 +58,18 @@ def find_template(root: Path, project: Path | None):
     if project:
         cands += list(project.rglob("template.yaml"))
     return cands[0] if cands else None
+
+
+def read_epoch(template: Path | None):
+    """从模板文件里取 source_date_epoch（yaml/json 都用同一正则，不引第三方依赖）。"""
+    if not template or not template.exists():
+        return None
+    try:
+        txt = template.read_text(encoding="utf-8", errors="replace")
+    except Exception:
+        return None
+    m = re.search(r"(?:source_date_epoch|source-date-epoch|epoch)\s*[:=]\s*\"?(\d+)", txt)
+    return int(m.group(1)) if m else None
 
 
 def run(cmd):
@@ -148,9 +161,17 @@ def main():
         result["notes"].append("输入里没有 template.yaml/json，跳过 T01–T08 静态检查")
 
     # 2) 真实编译（无 TeX 时由 build.py 自己降级为 static_only）
+    #    epoch 必须从"输入目录的模板"里取：平台布局把 template.yaml 放在 /input/、
+    #    工程在 /input/project/，build.py 只在工程目录里找会静默退回默认值，
+    #    用户按 SKILL 配的 source_date_epoch 就会失效（换机器 sha256 对不上）。
+    epoch_args = []
+    ep = read_epoch(template) if template else None
+    if ep:
+        epoch_args = ["--epoch", str(ep)]
+        metrics["source_date_epoch"] = ep
     rc, text = run([sys.executable, str(HERE / "build.py"), "--project", str(project),
                     "--out", str(outp), "--main", a.main, "--rounds", str(a.rounds),
-                    "--time-budget", str(a.time_budget)])
+                    "--time-budget", str(a.time_budget)] + epoch_args)
     metrics["build_rc"] = rc
     try:
         bm = json.loads((outp / "build_manifest.json").read_text(encoding="utf-8"))
