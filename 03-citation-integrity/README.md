@@ -21,7 +21,7 @@
 │   ├── demo/case.json          # 自建演示稿（非平台案例）
 │   ├── baseline.py             # 裸 Agent 基线（粗合并 / 留缺号 / 编 DOI / 删卷期）
 │   ├── expected/               # 真实 run 的 result/manuscript/bibliography/cite_chain
-│   └── selftest.py             # 23 条断言
+│   └── selftest.py             # 25 条断言
 └── references/output_contract.md
 ```
 
@@ -44,4 +44,4 @@
 | claim_map_coverage | 1.0000 | 0.0000 |
 | 阻断 | 无 | C02/C09/C10/C11 |
 
-自检：`python examples/selftest.py` → 23 条全绿。
+自检：`python examples/selftest.py` → 25 条全绿。

@@ -115,7 +115,7 @@ def audit(result: dict, case: dict) -> dict:
                              "bib_ids": nums, "hint": "编号须按正文首次出现顺序"})
 
     # 2 重复残留 / key 冲突 / 误合并
-    groups, conflicts = renumber.merge_candidates(bib)
+    groups, conflicts, advisories = renumber.merge_candidates(bib)
     if groups:
         blocking.append({"type": "duplicate_left", "groups": groups})
     keys = [b.get("key") for b in bib if b.get("key")]
@@ -124,6 +124,8 @@ def audit(result: dict, case: dict) -> dict:
         blocking.append({"type": "key_collision", "keys": coll})
     if conflicts:
         blocking.append({"type": "merge_conflict", "pairs": conflicts})
+    if advisories:
+        advisory.append({"type": "possible_same_year_pair", "pairs": advisories})
 
     # 2c 重排身份保持：from_id 指向的原论文必须与 bib 条目同一篇（DOI+标题）
     orig_by_id2 = {str(o.get("id")): o for o in orig}

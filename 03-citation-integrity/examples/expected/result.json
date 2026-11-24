@@ -127,6 +127,7 @@
       ]
     ],
     "version_conflicts": [],
+    "merge_advisories": [],
     "unused": [
       {
         "id": "5",
@@ -151,8 +152,8 @@
       "4"
     ],
     "artifacts": {
-      "manuscript": "C:\\Users\\86198\\AppData\\Local\\Temp\\e03\\manuscript.md",
-      "bibliography": "C:\\Users\\86198\\AppData\\Local\\Temp\\e03\\bibliography.json"
+      "manuscript": "C:\\Users\\86198\\AppData\\Local\\Temp\\e03b\\manuscript.md",
+      "bibliography": "C:\\Users\\86198\\AppData\\Local\\Temp\\e03b\\bibliography.json"
     }
   },
   "evidence": [

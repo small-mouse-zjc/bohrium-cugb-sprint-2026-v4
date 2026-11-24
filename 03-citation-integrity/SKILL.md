@@ -56,6 +56,7 @@ python scripts/run.py --input examples/demo --output out
 | C08 | 原始来源为空的字段被填了值（编造 DOI/卷期/页码） |
 | C09 | 原始来源有值，输出却被删空（元数据丢失） |
 | C10 | DOI 不同的会议版/期刊版被合并 |
+| A06 | 同作者同年、标题相似但非逐字相同（0.9<sim<1.0）且无同 DOI：不自动合并，记 merge_advisories 待人工确认（如同一作者 2020a/2020b） |
 | C11 | `claim_source_map` 没覆盖正文里的引用 |
 | C12 | 重排后编号指向了另一篇论文（DOI/标题身份变了） |
 | C13 | DOI 出现 `urn:doi:urn:doi:` 之类重复前缀 |
@@ -72,7 +73,7 @@ python scripts/run.py --input examples/demo --output out
 ## 6. 自检
 
 ```bash
-python examples/selftest.py      # 23 条断言
+python examples/selftest.py      # 25 条断言
 ```
 
 覆盖：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C13 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`。

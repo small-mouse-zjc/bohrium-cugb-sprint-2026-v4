@@ -76,8 +76,13 @@ def similar_title(a: str, b: str) -> float:
 
 
 def merge_candidates(bib: list) -> tuple:
-    """返回 (merge_groups, version_conflicts)。"""
-    groups, conflicts = [], []
+    """返回 (merge_groups, version_conflicts, advisories)。
+
+    合并只在两种情形放行：标题逐字相同（similarity == 1.0）且 DOI 不冲突；
+    或同 DOI（同一篇）。同作者+同年+标题相似但非逐字相同（0.9 < sim < 1.0）
+    一律不合并，改记 advisory——真实手稿里这通常是 Smith J. 2020a / 2020b 两篇。
+    """
+    groups, conflicts, advisories = [], [], []
     used = set()
     for i, a in enumerate(bib):
         if i in used:
@@ -96,11 +101,15 @@ def merge_candidates(bib: list) -> tuple:
                     conflicts.append({"a": a.get("id"), "b": b.get("id"), "similarity": round(sim, 3),
                                       "doi_a": a.get("doi"), "doi_b": b.get("doi")})
                     continue
+                if sim < 1.0 and not (doi_a and doi_a == doi_b):
+                    advisories.append({"a": a.get("id"), "b": b.get("id"), "similarity": round(sim, 3),
+                                       "hint": "同作者同年标题高度相似但非逐字相同，疑似同年两篇（需 a/b 后缀），未自动合并，请人工确认"})
+                    continue
                 group.append(j)
                 used.add(j)
         if len(group) > 1:
             groups.append(group)
-    return groups, conflicts
+    return groups, conflicts, advisories
 
 
 def richer(a: dict, b: dict) -> dict:
@@ -111,7 +120,7 @@ def richer(a: dict, b: dict) -> dict:
 
 
 def renumber(manuscript: str, bib: list, style: str = "numeric") -> dict:
-    merge_groups, conflicts = merge_candidates(bib)
+    merge_groups, conflicts, advisories = merge_candidates(bib)
     merged_into, merged_ids = {}, []
     canonical = {}
     for group in merge_groups:
@@ -220,7 +229,7 @@ def renumber(manuscript: str, bib: list, style: str = "numeric") -> dict:
     return {"editable_manuscript": new_manuscript, "bibliography": new_bib,
             "number_mapping": mapping, "claim_source_map": claim_map,
             "merged_ids": merged_ids, "merge_groups": merge_groups,
-            "version_conflicts": conflicts, "unused": unused,
+            "version_conflicts": conflicts, "merge_advisories": advisories, "unused": unused,
             "unresolved": unresolved, "uncertainty": uncertainty,
             "style": style, "cited_order": order}
 

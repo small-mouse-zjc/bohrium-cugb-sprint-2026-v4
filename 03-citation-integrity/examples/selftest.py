@@ -169,10 +169,29 @@ def main():
         {"id": "2", "key": "smithr2020", "author": "Smith R.", "year": "2020",
          "title": "Gas hydrate stability in marine sediments", "source": "J2", "doi": None},
     ]
-    groups, _ = renumber.merge_candidates(bib_ab)
+    groups, _, adv_ab = renumber.merge_candidates(bib_ab)
     assert not groups, groups
     assert renumber.author_norm(bib_ab[0]) != renumber.author_norm(bib_ab[1])
     ok.append("同姓不同首字母（Smith J. vs Smith R.）不合并 → 作者 key 含首字母")
+
+    # 同作者同年、标题相似但非逐字相同 → advisory，不合并
+    bib_sy = [
+        {"id": "1", "key": "smithj2020a", "author": "Smith J.", "year": "2020",
+         "title": "Gas hydrate stability in marine sediment", "source": "J1", "doi": None},
+        {"id": "2", "key": "smithj2020b", "author": "Smith J.", "year": "2020",
+         "title": "Gas hydrate stability in marine sediments", "source": "J2", "doi": None},
+    ]
+    g_sy, c_sy, adv_sy = renumber.merge_candidates(bib_sy)
+    assert not g_sy, g_sy
+    assert adv_sy and "人工确认" in adv_sy[0]["hint"], adv_sy
+    assert not c_sy
+    ok.append("同年两篇（标题非逐字相同、DOI 缺失）→ 不合并，记 merge_advisories")
+
+    # 标题逐字相同且同 DOI → 真重复，合并
+    bib_same = [dict(bib_sy[0], doi="10.1000/dup"), dict(bib_sy[0], id="2", key="k2", doi="https://doi.org/10.1000/dup")]
+    g_same, _, _ = renumber.merge_candidates(bib_same)
+    assert g_same == [[0, 1]], g_same
+    ok.append("标题逐字相同且 DOI 归一后相同 → 仍合并为一条")
 
     tmp = Path(tempfile.mkdtemp(prefix="t03-"))
     try:
