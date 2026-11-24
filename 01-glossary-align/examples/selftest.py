@@ -153,7 +153,7 @@ def main():
         assert cd["rates"]["coverage"] == 1.0 and cd["pass"] is True, cd["rates"]
         bad = {v["type"] for v in cd["violations"]} & {"term_drift", "number_lost", "citation_lost", "length_ratio"}
         assert not bad, f"降级段仍被译文保真检查误判: {bad}"
-        ok.append("untranslatable 段保留非空片段 → coverage 仍 1.00（不再把降级段当漏译）")
+        ok.append("untranslatable 段保留非空片段 → coverage 1.00、pass=True、四项保真零误判（不把降级当漏译）")
 
         # 父子术语：只出现"天然气水合物"时不要求"水合物"的译名
         sub = tmp / "subterm"

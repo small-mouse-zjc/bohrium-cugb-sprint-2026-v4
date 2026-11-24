@@ -94,7 +94,7 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 ```
 python examples/selftest.py
 ```
-自检共 **16 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁四类「存在性检查/口径偏差抓不到」的错：
+自检共 **15 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁四类「存在性检查/口径偏差抓不到」的错：
 
 - **数值互换**：把 P0002 的 `3.5 wt%` 与 `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94、报 `number_unit_mismatch`（硬违规）→ `pass=false`；
 - **`basis` 全删**：12 段 `missing_basis`、`basis_coverage=0.00` → `pass=false`；
