@@ -12,10 +12,30 @@ NOT_REPORTED = "not_reported"
 NUM_RE = re.compile(r"(?<![A-Za-z0-9_.])(\d+(?:\.\d+)?)")
 TRIVIAL = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"}
 
+# 结构性数字（章节号、图号、年份、页码）可以不计；但带单位/量词的小数字是数据，
+# 必须纳入比对，否则 "n=3"、"重复 8 次" 这类编造值会被 0–10 的排除规则放过。
+UNIT_AFTER = (r"(?:wt\s?%|%|MPa|mD|mD\b|°C|℃|°|km|Ma|cm|mm|kg|mg|mL|min|hrs?|hours?|"
+              r"samples?|cores?|specimens?|replicates?|sites?|times?|个样品|个岩心|次重复|次)")
+DATA_AFTER_RE = re.compile(r"(?<![A-Za-z0-9_.])(\d+(?:\.\d+)?)\s*" + UNIT_AFTER)
+DATA_BEFORE_RE = re.compile(r"(?:n\s*=\s*|重复\s*|×\s*|repeat(?:ed)?\s*|共\s*)(\d+(?:\.\d+)?)")
+ROLE_TO_FIELD = {"problem": "problem", "data": "data", "method": "method",
+                 "finding": "findings", "limitation": "limitations", "premise": "premises"}
+FIELD_TO_ROLE = {v: k for k, v in ROLE_TO_FIELD.items()}
+
 
 def numbers(text):
-    return {m.group(1) for m in NUM_RE.finditer(text or "")
-            if m.group(1) not in TRIVIAL and not re.fullmatch(r"(?:19|20)\d{2}", m.group(1))}
+    """返回需要核对的数字集合：非平凡值 ∪ 带单位/量词/前缀的小值。"""
+    text = text or ""
+    out = set()
+    for m in NUM_RE.finditer(text):
+        v = m.group(1)
+        if v not in TRIVIAL and not re.fullmatch(r"(?:19|20)\d{2}", v):
+            out.add(v)
+    for m in DATA_AFTER_RE.finditer(text):
+        out.add(m.group(1))
+    for m in DATA_BEFORE_RE.finditer(text):
+        out.add(m.group(1))
+    return out
 
 
 def _norm(s):
@@ -106,6 +126,33 @@ def audit(result, doc):
     if card_nonverbatim:
         blocking.append({"type": "card_value_not_verbatim", "items": card_nonverbatim, "code": "N11c"})
 
+    # 支撑笔记的 role 必须与字段对应（findings 不能拿 data 句当唯一支撑）
+    role_mismatch = []
+    by_id = {n.get("note_id"): n for n in notes}
+    for f in CARD_FIELDS:
+        val = str(card.get(f, ""))
+        if not val or val == NOT_REPORTED:
+            continue
+        want = FIELD_TO_ROLE.get(f)
+        sid = [str(x) for x in (support.get(f) or [])]
+        hit = [by_id[x] for x in sid if x in by_id]
+        if hit and not any(n.get("role") == want for n in hit):
+            role_mismatch.append({"field": f, "want_role": want,
+                                  "support_roles": [n.get("role") for n in hit]})
+    if role_mismatch:
+        blocking.append({"type": "card_support_role_mismatch", "items": role_mismatch, "code": "N11d"})
+
+    # 六角色覆盖：某字段填了值，但整份笔记里没有对应角色的句子 → 该值无角色来源
+    role_gap = []
+    present = {n.get("role") for n in notes}
+    for f in CARD_FIELDS:
+        val = str(card.get(f, ""))
+        want = FIELD_TO_ROLE.get(f)
+        if val and val != NOT_REPORTED and want not in present:
+            role_gap.append({"field": f, "missing_role": want})
+    if role_gap:
+        blocking.append({"type": "card_field_role_absent", "items": role_gap, "code": "N13"})
+
     # 数字来源
     src_nums = numbers(text)
     used = " ".join(n.get("quote", "") for n in notes) + " " + json.dumps(card, ensure_ascii=False)
@@ -135,6 +182,7 @@ def audit(result, doc):
         "card_support_rate": rate(sum(1 for f in CARD_FIELDS if str(card.get(f, "")) not in ("", NOT_REPORTED)),
                                   sum(1 for f in CARD_FIELDS if str(card.get(f, "")) != NOT_REPORTED)),
         "number_sourced_rate": rate(len(note_nums & src_nums), len(note_nums)),
+        "role_coverage_rate": rate(len(present & set(FIELD_TO_ROLE.values())), len(FIELD_TO_ROLE)),
         "notes_count": len(notes),
         "sections": len(doc["sections"]),
     }

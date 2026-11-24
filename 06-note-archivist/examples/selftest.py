@@ -104,6 +104,20 @@ def main():
     # N11c 卡片值不是原文句
     r = copy.deepcopy(base_res); r["result"]["reading_card"]["findings"] = "CO2 让相态变了很多。"
     check("N11c 卡片值非原文 → card_value_not_verbatim", "N11c" in codes(auditlib.audit(r, base_doc)))
+    # N11d 支撑笔记 role 与字段不符（findings 拿 data 句当支撑）
+    r = copy.deepcopy(base_res)
+    data_note = next(n for n in r["result"]["notes"] if n["role"] == "data")
+    r["result"]["card_support"]["findings"] = [data_note["note_id"]]
+    r["result"]["reading_card"]["findings"] = data_note["quote"]
+    check("N11d 卡片 findings 只挂 data 角色支撑 → card_support_role_mismatch",
+          "N11d" in codes(auditlib.audit(r, base_doc)))
+    # N13 字段填了值但整份笔记没有该角色
+    r = copy.deepcopy(base_res)
+    r["result"]["notes"] = [x for x in r["result"]["notes"] if x["role"] != "premise"]
+    rep13 = auditlib.audit(r, base_doc)
+    check("N13 premises 有值但笔记里没有 premise 角色 → card_field_role_absent",
+          "N13" in codes(rep13))
+
     # N12 有节没笔记
     r = copy.deepcopy(base_res)
     r["result"]["notes"] = [x for x in r["result"]["notes"] if x["section_index"] != 5]
@@ -151,9 +165,20 @@ def main():
     check("基线：锚点可反查率 0.0、章节覆盖率 0.0（真实结果 1.0/1.0）",
           brep["rates"]["anchor_resolvability_rate"] == 0.0 and brep["rates"]["section_coverage_rate"] == 0.0,
           json.dumps(brep["rates"]))
-    check("基线：编造的数字（30、3）被 N09 抓住并列入值表",
-          any(b["type"] == "unsourced_numbers" and {"3", "30"} & set(b["values"]) for b in brep["blocking"]),
+    check("基线：编造的大数字（30 个样品）被 N09 抓住；其中“3 次”因原文确有 3 sites/cores 已属有源，不误报",
+          any(b["type"] == "unsourced_numbers" and "30" in b["values"] for b in brep["blocking"])
+          and "3" not in next(b["values"] for b in brep["blocking"] if b["type"] == "unsourced_numbers"),
           json.dumps([b for b in brep["blocking"] if b["type"] == "unsourced_numbers"], ensure_ascii=False))
+    # 小样本量编造：原文无 7，卡片写 n = 7 → N09 必须抓（旧版 0–10 排除会漏）
+    r = copy.deepcopy(base_res); r["result"]["reading_card"]["data"] = "n = 7 个样品。"
+    r["result"]["card_support"]["data"] = [base_res["result"]["notes"][0]["note_id"]]
+    rep7 = auditlib.audit(r, base_doc)
+    check("N09：编造小样本量 n = 7（原文不存在）→ unsourced_numbers 含 7",
+          any(b["type"] == "unsourced_numbers" and "7" in b["values"] for b in rep7["blocking"]),
+          json.dumps([b for b in rep7["blocking"] if b["type"] == "unsourced_numbers"], ensure_ascii=False))
+    check("数字解析：带量词的小数字纳入比对（n=4 / 重复 3 次 / 8 samples），纯结构数字仍排除（Section 2 / Fig. 3 / 2020）",
+          auditlib.numbers("共 30 个样品，重复 3 次，n = 4，12 MPa，8 samples") >= {"3", "4", "8", "12", "30"}
+          and auditlib.numbers("See Section 2 and Fig. 3 in 2020.") == set())
 
     for name in ok:
         print(f"  ✓ {name}")

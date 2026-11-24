@@ -4,14 +4,16 @@
     "section_coverage_rate": 1.0,
     "verbatim_support_rate": 1.0,
     "card_support_rate": 1.0,
-    "number_sourced_rate": 1.0
+    "number_sourced_rate": 1.0,
+    "role_coverage_rate": 1.0
   },
   "baseline": {
     "anchor_resolvability_rate": 0.0,
     "section_coverage_rate": 0.0,
     "verbatim_support_rate": 0.0,
     "card_support_rate": 0.6667,
-    "number_sourced_rate": 0.0
+    "number_sourced_rate": 0.5,
+    "role_coverage_rate": 0.0
   },
   "table": {
     "anchor_resolvability_rate": {
@@ -39,6 +41,12 @@
       "pass": true
     },
     "number_sourced_rate": {
+      "real": 1.0,
+      "baseline": 0.5,
+      "delta": 0.5,
+      "pass": true
+    },
+    "role_coverage_rate": {
       "real": 1.0,
       "baseline": 0.0,
       "delta": 1.0,

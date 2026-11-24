@@ -81,11 +81,13 @@ python eval/metrics.py --result /app/output/result.json --case /input/case.json 
 | N11 | `card_field_unsupported` | 卡片字段没有 `card_support` |
 | N11b | `card_support_unknown_id` | support 指向不存在的 note_id |
 | N11c | `card_value_not_verbatim` | 卡片值不是原文句 |
+| N11d | `card_support_role_mismatch` | 支撑笔记的 role 与字段不符（findings 只挂 data 句） |
+| N13 | `card_field_role_absent` | 字段填了值，但整份笔记没有该角色（值无角色来源） |
 | N12 | `section_without_note` | 原文某节一句笔记都没有 |
 
 比率（`result.metrics`，分母为 0 一律 `null`，不写 1.00）：
 
-`anchor_resolvability_rate`、`section_coverage_rate`、`verbatim_support_rate`、`card_support_rate`、`number_sourced_rate`。
+`anchor_resolvability_rate`、`section_coverage_rate`、`verbatim_support_rate`、`card_support_rate`、`number_sourced_rate`、`role_coverage_rate`（六 role 覆盖数 / 6）。
 
 `status` 判定：输入缺失/不可解析 → `rejected`；正文 < 50 字符 → `cannot_determine`；有阻断 → `needs_attention`；有字段 `not_reported` 或提示 → `partial`；全绿 → `success`。
 

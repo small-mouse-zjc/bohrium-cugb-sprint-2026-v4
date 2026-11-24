@@ -6,7 +6,7 @@
 
 ```bash
 python scripts/run.py --input /input/case.json --output /app/output
-python examples/selftest.py          # 23 条断言
+python examples/selftest.py          # 27 条断言
 ```
 
 产物：`result.json`、`notes.md`、`reading_card.json`、`section_align.md`。
@@ -44,7 +44,8 @@ examples/expected/   真跑产物快照 + 指标表
 | 章节覆盖率 | 1.0 | 0.0 | +1.0 |
 | 逐字支撑率 | 1.0 | 0.0 | +1.0 |
 | 卡片有据率 | 1.0 | 0.6667 | +0.3333 |
-| 数字有源率 | 1.0 | 0.0 | +1.0 |
+| 数字有源率 | 1.0 | 0.5 | +0.5 |
+| 六角色覆盖率 | 1.0 | 0.0 | +1.0 |
 
 基线阻断码：N01/N02/N03/N06/N07/N09/N11/N12（模板四节与原文 6 节不符、复述句无锚点、卡片编造"30 个样品 / 重复 3 次"）。
 

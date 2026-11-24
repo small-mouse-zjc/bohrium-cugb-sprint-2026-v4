@@ -16,7 +16,7 @@ import audit as auditlib   # noqa: E402
 import extract             # noqa: E402
 
 KEYS = ["anchor_resolvability_rate", "section_coverage_rate", "verbatim_support_rate",
-        "card_support_rate", "number_sourced_rate"]
+        "card_support_rate", "number_sourced_rate", "role_coverage_rate"]
 HIGHER_BETTER = dict.fromkeys(KEYS, True)
 
 

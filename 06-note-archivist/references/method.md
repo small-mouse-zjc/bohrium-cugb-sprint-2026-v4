@@ -76,6 +76,8 @@ SECTION_PRIORITY = {limitations: [limitation, discussion, conclusion], ...}
 | N10 | `quote` 不是 `text` 的子串（复述/改写） |
 | N09 | 笔记与卡片中出现的数字（排除 0–10、19xx/20xx 年份）不在原文数字集 |
 | N11/N11b/N11c | 卡片字段无支撑 / 支撑 id 不存在 / 卡片值非原文子串 |
+| N11d | 支撑笔记的 role 与字段要求的 role 不符（findings 不能只挂 data 句） |
+| N13 | 字段有值，但笔记集合里没有该角色（值无角色来源） |
 | N02/N03 | 小节数与原文不符 / 小节名归一化后不在原文 |
 | N12 | 原文某节 `section_index` 无任何笔记 |
 
@@ -87,6 +89,7 @@ section_coverage_rate     = 有笔记的小节数 / 原文小节数
 verbatim_support_rate     = quote 是原文子串的笔记数 / 笔记数
 card_support_rate         = 有支撑的已填字段数 / 已填字段数（全 not_reported 时为 null）
 number_sourced_rate       = 有源数字数 / 笔记与卡片出现的数字数
+role_coverage_rate        = 出现的六类 role 数 / 6
 ```
 
 分母为 0 一律 `null`。
@@ -97,6 +100,12 @@ number_sourced_rate       = 有源数字数 / 笔记与卡片出现的数字数
 2. **图表/公式**：文本层之外的信息不抽取；N09 只保证"出现的数字在原文有"，不保证"原文所有数字都被记下"。
 3. **重要性判断**：抽取式笔记覆盖角色与章节，但无法判断某句在该领域的分量；需要解读时应由上层模型另写，且不得混入 `quote`（否则 N10 直接拦下，这是刻意的）。
 
-## 8. 自检覆盖（23 条）
+## 8. 数字比对口径（为什么不是"排除 0–10"）
+
+- 结构数字（章节号 `Section 2`、图号 `Fig. 3`、年份 `2020`、页码）不计；
+- 但带单位/量词/前缀的小数字是**数据**，必须计入：`12 MPa`、`3 samples`、`n = 4`、`重复 3 次`、`共 30 个样品`、`3.5 wt%`。
+- 否则 `n = 7` 这种编造的小样本量会被"0–10 排除"规则放过，`number_sourced_rate` 也会虚高。
+
+## 9. 自检覆盖（27 条）
 
 正例两率、N01–N12 全部注入（含 N08 偏移错一位、N08b 引文进错节、N11b/N11c）、无标题全文降级、正文过短 → `cannot_determine`、缺 case.json → `rejected`、空集比率 None、基线对照（五率差值 + 阻断码 + N09 值表）。

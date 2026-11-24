@@ -468,8 +468,8 @@
       }
     ],
     "artifacts": {
-      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06c\\notes.md",
-      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06c\\reading_card.json"
+      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06d\\notes.md",
+      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06d\\reading_card.json"
     }
   },
   "evidence": [
@@ -556,6 +556,7 @@
       "verbatim_support_rate": 1.0,
       "card_support_rate": 1.0,
       "number_sourced_rate": 1.0,
+      "role_coverage_rate": 1.0,
       "notes_count": 18,
       "sections": 6
     },
@@ -568,6 +569,7 @@
     "verbatim_support_rate": 1.0,
     "card_support_rate": 1.0,
     "number_sourced_rate": 1.0,
+    "role_coverage_rate": 1.0,
     "notes_count": 18,
     "sections": 6
   }
