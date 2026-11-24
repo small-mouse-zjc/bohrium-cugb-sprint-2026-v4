@@ -108,8 +108,35 @@ def main():
              "--out", tmp / "hard", "--no-fail"], expect_rc=(0, 1))
         hd = json.loads((tmp / "hard/qc.json").read_text(encoding="utf-8"))
         assert hd["pass"] is False, "硬违规未卡 pass"
-        assert {"unit_lost", "dup_target"} <= {v["type"] for v in hd["violations"]}, hd["violation_counts"]
-        ok.append(f"硬违规卡 pass：unit_lost + dup_target，hard_violations={hd['hard_violations']}")
+        assert {"number_unit_mismatch", "dup_target"} <= {v["type"] for v in hd["violations"]}, hd["violation_counts"]
+        ok.append(f"硬违规卡 pass：number_unit_mismatch + dup_target，hard_violations={hd['hard_violations']}")
+
+        # 数值互换：数字总量、单位数量都没变，只查"存在性"必然漏检
+        sw = json.loads((ROOT / "examples/demo/bilingual.json").read_text(encoding="utf-8"))
+        for p in sw["paragraphs"]:
+            if p["id"] == "P0002":
+                p["target"] = p["target"].replace("3.5 wt%", "4 wt%").replace("4 °C", "3.5 °C")
+        sp = tmp / "swap.json"
+        sp.write_text(json.dumps(sw, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/qc.py", "--paras", paras, "--bi", sp, "--glossary", glos,
+             "--out", tmp / "swap", "--no-fail"], expect_rc=(0, 1))
+        sd = json.loads((tmp / "swap/qc.json").read_text(encoding="utf-8"))
+        assert sd["pass"] is False and any(v["type"] == "number_unit_mismatch" for v in sd["violations"]), sd["violation_counts"]
+        assert sd["rates"]["number_preservation"] < 1.0, sd["rates"]
+        ok.append(f"数值互换（3.5 wt% ↔ 4 °C）→ number_unit_mismatch，数字保真率 {sd['rates']['number_preservation']:.2f}")
+
+        # basis 全删：契约必填字段，不能静默通过
+        nb = json.loads((ROOT / "examples/demo/bilingual.json").read_text(encoding="utf-8"))
+        for p in nb["paragraphs"]:
+            p["basis"] = ""
+        bp2 = tmp / "nobasis.json"
+        bp2.write_text(json.dumps(nb, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/qc.py", "--paras", paras, "--bi", bp2, "--glossary", glos,
+             "--out", tmp / "nobasis", "--no-fail"], expect_rc=(0, 1))
+        nd2 = json.loads((tmp / "nobasis/qc.json").read_text(encoding="utf-8"))
+        assert nd2["pass"] is False and nd2["violation_counts"].get("missing_basis", 0) >= 8, nd2["violation_counts"]
+        assert nd2["rates"]["basis_coverage"] == 0.0, nd2["rates"]
+        ok.append(f"basis 全删 → missing_basis={nd2['violation_counts']['missing_basis']}、basis_coverage=0.00，不再静默通过")
 
         # 基线对照：同一套指标下 Skill 优于裸 Agent
         bo = tmp / "base_out"

@@ -88,7 +88,7 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 |---|---|---|
 | 段落覆盖率 | 有非空 `target` 的源段落 / 源段落总数 | ≥ 0.98 |
 | 术语一致率 | 段落出现锁定术语时，译文含其锁定译名的比例 | = 1.00 |
-| 数字保真率 | 源段数字标记在译文中原样出现的比例 | ≥ 0.95 |
+| 数字保真率 | 源段 `(数值, 紧邻单位)` 多重集与译文多重集的计数匹配比例（防数值互换、防重复数值丢失） | ≥ 0.95 |
 | 引用标记保真率 | `[n]` / `Fig.` / `Table` / `Eq.` 标记保留比例 | = 1.00 |
 | 未确定标注率 | `status != ok` 的段落必须带 `risk` 说明 | = 1.00 |
 
@@ -112,7 +112,7 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 | F2 整段漏译（删掉一段 `target`） | 报覆盖率不足 |
 | F3 数字与引用同时丢失 | 同时报 `number_lost` 与 `citation_lost` |
 
-自检 **11 条**断言全绿，除三类注入外还覆盖：平台入口（`case.json → result.json`，12 段含 5 标题）、缺译文草稿时 `status=partial`、硬违规卡 `pass`（`unit_lost` + `dup_target` 同时命中时 `hard_violations>0`、`pass=false`）、基线对照（Skill `pass=true` vs 基线 `pass=false`，术语一致率差 +80.00%）、缺 `qc.json` 的基线段记 `None` 而不崩溃。演示输入是纯文本，`paras.jsonl.meta.json` 明确记录 `warnings: 纯文本输入无版面信息，页码为估算`——不把估算页码当真实页码。
+自检 **13 条**断言全绿。除三类注入外，重点锁两条「存在性检查抓不到」的错：**数值互换**（`3.5 wt%` ↔ `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94 并报硬违规 `number_unit_mismatch`）与 **`basis` 全删**（12 段 `missing_basis`、`basis_coverage=0.00`，`pass=false`）。另覆盖：平台入口（`case.json → result.json`，12 段含 5 标题）、缺译文草稿时 `status=partial`、硬违规卡 `pass`（`number_unit_mismatch` + `dup_target` 同时命中时 `hard_violations>0`、`pass=false`）、基线对照（Skill `pass=true` vs 基线 `pass=false`，术语一致率差 +80.00%）、缺 `qc.json` 的基线段记 `None` 而不崩溃。演示输入是纯文本，`paras.jsonl.meta.json` 明确记录 `warnings: 纯文本输入无版面信息，页码为估算`——不把估算页码当真实页码。
 
 **上岗入口**：`python scripts/run.py --input /input --output /app/output`。它读 `case.json` 的 `source / glossary / bilingual`（字段名容错），依次跑取段 → 术语锁定 → 质检，写 `result.json`；`status` 由实际产物判定：`success` 需 `qc.pass=true`；有译文但未过门槛为 `partial`；无文字层为 `cannot_determine`；缺原文/`case.json` 为 `rejected`。**没有译文草稿时不冒充成功**，只交 `paras.jsonl` 与 `glossary.csv` 并写 `partial`。
 

@@ -21,13 +21,35 @@ CITE = [
     re.compile(r"\b(?:Fig|Figure|Table|Eq|Equation|Section|Sec)\.?\s*\(?\d+(?:\.\d+)?"),
 ]
 THRESH = {"coverage": 0.98, "term_consistency": 1.0, "number_preservation": 0.95,
-          "citation_preservation": 1.0, "uncertain_flagging": 1.0}
+          "citation_preservation": 1.0, "uncertain_flagging": 1.0, "basis_coverage": 0.9}
 
 
 def norm_mark(s: str) -> str:
     """统一全半角括号与空白，避免中文排版把英文标记判成丢失。"""
     table = str.maketrans({"（": "(", "）": ")", "，": ",", "：": ":", "　": " "})
     return re.sub(r"\s+", " ", s.translate(table))
+
+
+UNIT_ALT = "|".join(sorted((__import__("re").escape(u) for u in UNITS), key=len, reverse=True))
+PAIR = re.compile(r"(?<![A-Za-z0-9.])(\d+(?:[.,]\d+)*)\s?(" + UNIT_ALT + r")(?![A-Za-z])")
+
+
+def facts(text: str):
+    """把文本解析成 (数字, 紧邻单位) 的多重集 + 裸数字多重集。
+
+    只查"数字是否出现"会放过两类真错误：两个数值互换（3.5 wt% 与 4 °C 对调）
+    和重复数值丢一份（两个 12 只剩一个）。这里用计数多重集 + 单位绑定。
+    """
+    from collections import Counter
+    pairs, bare, used = Counter(), Counter(), set()
+    t = norm_num(text or "")
+    for m in PAIR.finditer(t):
+        pairs[(m.group(1), m.group(2).replace(" ", ""))] += 1
+        used.update(range(m.start(), m.end()))
+    for m in NUM.finditer(t):
+        if m.start() not in used:
+            bare[m.group(0)] += 1
+    return pairs, bare
 
 
 def norm_num(s: str) -> str:
@@ -106,18 +128,22 @@ def main():
         r = rows.get(i) or {}
         if not r:
             continue
-        tgt = norm_num((r.get("target") or ""))
-        for m in NUM.finditer(s["text"]):
-            tok = m.group(0)
-            num_checks += 1
-            if norm_num(tok) in tgt:
-                num_hits += 1
-            else:
-                viol.append({"id": i, "type": "number_lost", "detail": f"数字 {tok} 未原样保留"})
-        for u in UNITS:
-            pat = r"\d\s?" + re.escape(u) + (r"(?![A-Za-z])" if re.match(r"[A-Za-z%‰°]", u) else "")
-            if re.search(pat, s["text"]) and u not in tgt:
-                viol.append({"id": i, "type": "unit_lost", "detail": f"单位 {u} 缺失"})
+        sp, sb = facts(s["text"])
+        tp, tb = facts(r.get("target") or "")
+        for (num, unit), n_src in sp.items():
+            num_checks += n_src
+            got = (tp & __import__("collections").Counter({(num, unit): n_src}))[(num, unit)]
+            num_hits += got
+            if got < n_src:
+                viol.append({"id": i, "type": "number_unit_mismatch",
+                             "detail": f"{num} {unit} 出现 {n_src} 次、译文只保留 {got} 次（数值/单位被换位或丢失）"})
+        for num, n_src in sb.items():
+            num_checks += n_src
+            got = (tb & __import__("collections").Counter({num: n_src}))[num]
+            num_hits += got
+            if got < n_src:
+                viol.append({"id": i, "type": "number_lost",
+                             "detail": f"数字 {num} 出现 {n_src} 次、译文只保留 {got} 次"})
 
     # 4 引用/图表标记
     cite_checks = cite_hits = 0
@@ -151,6 +177,19 @@ def main():
                 viol.append({"id": i, "type": "dup_target", "detail": f"与 {seen_tgt[tgt]} 译文完全相同，疑似漏译占位"})
             seen_tgt[tgt] = i
 
+    # 5b 译法依据（basis）覆盖：SKILL 的契约字段，缺了就无法核"凭什么这么译"
+    basis_need = basis_have = 0
+    for i, r in rows.items():
+        if r.get("status") == "untranslatable":
+            continue
+        if not str(r.get("target") or "").strip():
+            continue
+        basis_need += 1
+        if str(r.get("basis") or "").strip():
+            basis_have += 1
+        else:
+            viol.append({"id": i, "type": "missing_basis", "detail": "缺译法依据 basis（术语/结构调整的理由）"})
+
     # 6 长度异常（中文/英文）
     for i, s in src.items():
         r = rows.get(i) or {}
@@ -166,11 +205,13 @@ def main():
         "number_preservation": round(num_hits / num_checks, 4) if num_checks else None,
         "citation_preservation": round(cite_hits / cite_checks, 4) if cite_checks else None,
         "uncertain_flagging": round(1.0 if need_flag == 0 else flagged / need_flag, 4),
+        "basis_coverage": round(basis_have / basis_need, 4) if basis_need else None, 
     }
     failed = [k for k, v in THRESH.items() if rates[k] is not None and rates[k] < v]
     # 违规类型决定 pass：unit_lost / dup_target / length_ratio 以前只进 violations、不影响结论，等于白检
     HARD = {"missing_para", "empty_target", "term_drift", "number_lost", "citation_lost",
-            "unit_lost", "dup_target", "unknown_id", "unflagged_uncertain"}
+            "unit_lost", "dup_target", "unknown_id", "unflagged_uncertain",
+            "number_unit_mismatch"}
     by_type = {}
     for v in viol:
         by_type[v["type"]] = by_type.get(v["type"], 0) + 1

@@ -65,9 +65,10 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 |---|---|---|
 | 段落覆盖率 | ≥ 0.98 | 有非空 `target` 的源段落 / 源段落总数 |
 | 术语一致率 | = 1.00 | 段落内出现锁定术语时，译文含其锁定译名的比例 |
-| 数字保真率 | ≥ 0.95 | 源段数字标记在译文中原样出现的比例 |
+| 数字保真率 | ≥ 0.95 | 源段 `(数值, 紧邻单位)` 多重集与译文多重集的计数匹配比例：只查「数字出现过」会放过 3.5 wt% ↔ 4 °C 互换和重复数值丢一份 |
 | 引用标记保真率 | = 1.00 | `[n]`/`Fig.`/`Table`/`Eq.` 标记保留比例 |
 | 未确定标注率 | = 1.00 | `status != ok` 的段落必须带 `risk` 说明 |
+| 译法依据覆盖率 | ≥ 0.90 | 非空 `target` 且 `status != untranslatable` 的段落含非空 `basis` 的比例（契约必填字段，缺了无法核「凭什么这么译」） |
 
 **第 5 步 回填与交付**
 把 `qc.json` 的 `violations` 逐条修掉（缺译名就差术语表、漏段就补译、丢数字就补回），再重跑第 4 步，直到过门槛或明确写清无法达标的原因。最后写 `result.json`，`metrics` 直接引用 `qc.json` 的数字，**不许手填**。
@@ -93,7 +94,12 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 ```
 python examples/selftest.py
 ```
-自检会注入 3 类已知缺陷（术语漂移、整段漏译、数字丢失），要求 `qc.py` 全部命中；未命中即视为质检器失效，不得提交。
+自检共 **13 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁两类「存在性检查抓不到」的错：
+
+- **数值互换**：把 P0002 的 `3.5 wt%` 与 `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94、报 `number_unit_mismatch`（硬违规）→ `pass=false`；
+- **`basis` 全删**：12 段 `missing_basis`、`basis_coverage=0.00` → `pass=false`。
+
+未命中即视为质检器失效，不得提交。
 
 ## 7. 边界
 

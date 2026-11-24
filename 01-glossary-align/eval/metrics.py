@@ -11,9 +11,10 @@ import argparse
 import json
 from pathlib import Path
 
-KEYS = ["coverage", "term_consistency", "number_preservation", "citation_preservation", "uncertain_flagging"]
+KEYS = ["coverage", "term_consistency", "number_preservation", "citation_preservation", "uncertain_flagging", "basis_coverage"]
 LABEL = {"coverage": "段落覆盖率", "term_consistency": "术语一致率", "number_preservation": "数字保真率",
-         "citation_preservation": "引用保真率", "uncertain_flagging": "未确定标注率"}
+         "citation_preservation": "引用保真率", "uncertain_flagging": "未确定标注率",
+         "basis_coverage": "译法依据覆盖率"}
 
 
 def load(p: Path):

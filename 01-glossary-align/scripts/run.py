@@ -21,7 +21,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 PY = sys.executable
-KEYS = ["coverage", "term_consistency", "number_preservation", "citation_preservation", "uncertain_flagging"]
+KEYS = ["coverage", "term_consistency", "number_preservation", "citation_preservation", "uncertain_flagging", "basis_coverage"]
 HARD = {"missing_para", "empty_target", "term_drift", "number_lost", "citation_lost",
         "unit_lost", "dup_target", "unknown_id", "unflagged_uncertain"}
 
