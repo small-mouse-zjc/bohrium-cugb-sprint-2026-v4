@@ -34,7 +34,7 @@ description: 把两篇相互独立的论文材料合成一个可查询图谱：�
 | `result.json` | 契约字段 `case_id` + `status` + `metrics`，由 `scripts/run.py` 产出 |
 | `kg.json` | 节点（含别名、attrs、逐条提及）+ 边（含 evidence）+ `non_merge` 判定 |
 | `queries_result.json` | 每条查询的问题、结果、证据列表 |
-| `validation.json` | 六类违规码 + 覆盖率/引文率/查询有证据率 |
+| `validation.json` | K01–K08 违规码 + 覆盖率/引文率/查询有证据率 |
 | `kg_report.md` | 人读版：哪些合并了、哪些明确不合并、为什么 |
 
 ## 3. 流程（4 步）
@@ -67,6 +67,8 @@ python scripts/kg.py build --corpus work/corpus.json --relations work/relations.
 | K04 | 查询无证据支撑 |
 | K05 | 缩写无篇内全称 |
 | K06 | 端点无法解析 / 段落号不存在 |
+| K07 | 查询少于 3 条，图谱结论无法独立复问 |
+| K08 | 查询未覆盖 node/edges/path 三类（三条同类查询不算独立复问） |
 
 ## 5. 预算与降级（64 请求 / 900 秒 / 单次 16384 tokens）
 

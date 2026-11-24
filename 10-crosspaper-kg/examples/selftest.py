@@ -148,6 +148,31 @@ def main():
         assert "K07" in codes(v6) and v6["pass"] is False, v6
         ok.append("少于 3 条查询 → K07 + pass=false")
 
+        # 三条同类查询：kind 覆盖不足 → K08
+        only_node = {"queries": [{"id": f"Q{i}", "kind": "node", "label": "salinity",
+                                  "question": f"salinity 出现在哪些段落？（{i}）"} for i in (1, 2, 3)]}
+        v8, _, _ = build_case(tmp, "kinds", base, rel, only_node)
+        assert "K08" in codes(v8) and v8["pass"] is False, v8
+        ok.append("三条都是 node 查询 → K08（kind 覆盖不足）+ pass=false")
+
+        # cannot_determine 时 notes 不残留下游 query 噪音
+        c9 = copy.deepcopy(base)
+        for p in c9["papers"]:
+            p["mentions"] = []
+        e9 = tmp / "empty_mentions"
+        e9in = e9 / "in"; e9in.mkdir(parents=True)
+        for f in ("relations.json", "queries.json"):
+            shutil.copy(DEMO / f, e9in / f)
+        (e9in / "corpus.json").write_text(json.dumps(c9, ensure_ascii=False), encoding="utf-8")
+        (e9in / "case.json").write_text(json.dumps({"case_id": "empty", "corpus": "corpus.json",
+                                                    "relations": "relations.json", "queries": "queries.json"},
+                                                   ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/run.py", "--input", e9in, "--output", e9 / "out"])
+        rj9 = json.loads((e9 / "out" / "result.json").read_text(encoding="utf-8"))
+        assert rj9["status"] == "cannot_determine", rj9
+        assert not any("未独立跑通" in n for n in rj9["notes"]), rj9["notes"]
+        ok.append("零提及：status=cannot_determine 且 notes 无 query 噪音")
+
         # 空分母记 None 而非 0.0
         c7 = copy.deepcopy(base)
         c7["papers"] = [p for p in c7["papers"] if p["paper_id"] == "P1"]

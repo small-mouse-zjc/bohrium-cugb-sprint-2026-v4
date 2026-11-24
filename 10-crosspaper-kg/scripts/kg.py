@@ -16,6 +16,7 @@ from collections import defaultdict
 from pathlib import Path
 
 ATTRS = ("site", "sample_id", "model_id", "dataset_id", "conditions")
+REQUIRED_KINDS = {"node", "edges", "path"}
 ABBR_RE = re.compile(r"([A-Z][A-Za-z\u4e00-\u9fff\-]{1,}(?:\s+[A-Za-z\u4e00-\u9fff\-]{1,}){0,4})\s*\(([A-Z]{2,6})\)")
 
 
@@ -195,6 +196,11 @@ def build(corpus: dict, relations: dict, queries):
 
     if len(queries) < 3:
         violations.append({"code": "K07", "detail": f"查询只有 {len(queries)} 条，少于 3 条，图谱结论无法被独立复问"})
+    kinds = {q.get("kind") for q in queries}
+    missing_kinds = sorted(REQUIRED_KINDS - kinds)
+    if missing_kinds:
+        violations.append({"code": "K08", "missing_kinds": missing_kinds,
+                           "detail": f"查询未覆盖节点/关系/路径三类（缺 {', '.join(missing_kinds)}），三条同类查询不构成独立复问"})
     rates = {
         "mentions": len(mentions),
         "unresolved_aliases": unresolved,
@@ -338,6 +344,10 @@ def main():
                  "nodes": len(kg["nodes"]), "edges": len(kg["edges"])}
         if len(queries) < 3:
             violations.append({"code": "K07", "detail": f"查询只有 {len(queries)} 条，少于 3 条"})
+        missing_kinds = sorted(REQUIRED_KINDS - {q.get("kind") for q in queries})
+        if missing_kinds:
+            violations.append({"code": "K08", "missing_kinds": missing_kinds,
+                               "detail": f"查询未覆盖节点/关系/路径三类（缺 {', '.join(missing_kinds)}）"})
         gates = [] if rates["query_provenance_rate"] == 1.0 else ["query_provenance_rate"]
         valid = {"pass": not violations and not gates, "rates": rates, "failed_gates": gates,
                  "violations": violations, "mode": "query-only"}

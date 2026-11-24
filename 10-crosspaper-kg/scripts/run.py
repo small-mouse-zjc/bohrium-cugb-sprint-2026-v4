@@ -109,11 +109,11 @@ def main():
                                           "non_merge", "edges", "edge_evidence_rate", "query_provenance_rate")}
     metrics.update({"queries": rates.get("queries"), "query_only_pass": query_ok})
     notes = []
-    if not query_ok:
+    if not query_ok and rates.get("mentions") not in (0, None):
         notes.append("query 子命令未独立跑通（可能缺 kg.json 或查询无证据）")
     if rates.get("mentions") in (0, None):
         status = "cannot_determine"
-        notes.append("材料里没有任何实体提及，图谱无法构建")
+        notes = ["材料里没有任何实体提及，图谱无法构建；query 失败是零节点的下游结果，不是独立故障"]
     elif v.get("pass") and query_ok:
         status = "success"
     else:
