@@ -62,6 +62,27 @@ def pick_epoch(proj: Path, cli_value) -> int:
     return DEFAULT_EPOCH
 
 
+ID_RE = re.compile(rb"/ID\s*\[\s*<([0-9A-Fa-f]+)>\s*<([0-9A-Fa-f]+)>\s*\]")
+
+
+def normalize_pdf_id(pdf: Path, inputs_sha: dict, epoch: int) -> bool:
+    """把 pdfTeX 的 /ID 换成由输入哈希 + epoch 派生的确定性值。
+
+    pdfTeX 的 /ID 由输出路径与编译时刻参与生成，所以同一输入在 /tmp/a 与 /tmp/b
+    编出来字节不同。/ID 是等长 32 位十六进制串，原地替换不移动 xref 偏移，
+    因此可以在不破坏 PDF 的前提下把它固定下来，让换机器复现真的可验证。
+    """
+    data = pdf.read_bytes()
+    m = ID_RE.search(data)
+    if not m:
+        return False
+    seed = "|".join(f"{k}:{v}" for k, v in sorted(inputs_sha.items())) + f"|{epoch}"
+    ident = hashlib.sha256(seed.encode("utf-8")).hexdigest().upper()[:32].encode()
+    new = data[:m.start(1)] + ident + data[m.end(1):m.start(2)] + ident + data[m.end(2):]
+    pdf.write_bytes(new)
+    return True
+
+
 def find_engine(prefer: str | None = None):
     """默认优先 pdflatex/xelatex；latexmk 只在显式 --engine latexmk 时使用。
 
@@ -193,7 +214,9 @@ def main():
     pdf = out / (Path(a.main).stem + ".pdf")
     pages = None
     if pdf.exists():
-        manifest["pdf"] = {"path": pdf.name, "bytes": pdf.stat().st_size, "sha256": sha_full(pdf)}
+        id_fixed = normalize_pdf_id(pdf, inputs, epoch)
+        manifest["pdf"] = {"path": pdf.name, "bytes": pdf.stat().st_size,
+                           "sha256": sha_full(pdf), "id_normalized": id_fixed}
         try:
             pi = run(["pdfinfo", str(pdf)], out)
             m = re.search(r"Pages:\s+(\d+)", pi.stdout or "")
