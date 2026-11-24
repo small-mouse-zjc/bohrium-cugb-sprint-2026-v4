@@ -45,6 +45,22 @@ def title_norm(t: str) -> str:
     return re.sub(r"[^a-z0-9 ]", "", (t or "").lower()).strip()
 
 
+def doi_norm(d: str) -> str:
+    """DOI 规范形：去 http(s)://、doi:、urn:doi:、小写、去尾斜杠。"""
+    s = (d or "").strip().lower()
+    s = re.sub(r"^https?://(dx\.)?doi\.org/", "", s)
+    s = re.sub(r"^urn:doi:", "", s)
+    s = re.sub(r"^doi:", "", s)
+    s = re.sub(r"^urn:doi:", "", s)   # 双前缀 urn:doi:urn:doi:
+    s = re.sub(r"^doi:", "", s)
+    return s.rstrip("/")
+
+
+def doi_format_bad(d: str) -> bool:
+    s = (d or "").strip().lower()
+    return bool(re.search(r"(urn:doi:|doi:)[^\s]*(urn:doi:|doi:)", s)) or s.count("doi:") > 1
+
+
 def similar_title(a: str, b: str) -> float:
     return difflib.SequenceMatcher(None, title_norm(a), title_norm(b)).ratio()
 
@@ -65,7 +81,7 @@ def merge_candidates(bib: list) -> tuple:
             same_year = str(a.get("year")) == str(b.get("year"))
             sim = similar_title(a.get("title", ""), b.get("title", ""))
             if same_author and same_year and sim > 0.9:
-                doi_a, doi_b = (a.get("doi") or "").lower(), (b.get("doi") or "").lower()
+                doi_a, doi_b = doi_norm(a.get("doi")), doi_norm(b.get("doi"))
                 if doi_a and doi_b and doi_a != doi_b:
                     conflicts.append({"a": a.get("id"), "b": b.get("id"), "similarity": round(sim, 3),
                                       "doi_a": a.get("doi"), "doi_b": b.get("doi")})

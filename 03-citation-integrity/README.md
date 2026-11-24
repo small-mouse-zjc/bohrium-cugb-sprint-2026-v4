@@ -10,7 +10,7 @@
 
 ```
 03-citation-integrity/
-├── SKILL.md                    # 输入 schema / 状态判定 / C01–C11 阻断码 / 指标
+├── SKILL.md                    # 输入 schema / 状态判定 / C01–C13 阻断码 / 指标
 ├── scripts/
 │   ├── run.py                  # 平台入口：case.json → 重排/审计 → result.json
 │   ├── renumber.py             # 重排引擎：首次出现排序、去重合并、claim 映射
@@ -21,7 +21,7 @@
 │   ├── demo/case.json          # 自建演示稿（非平台案例）
 │   ├── baseline.py             # 裸 Agent 基线（粗合并 / 留缺号 / 编 DOI / 删卷期）
 │   ├── expected/               # 真实 run 的 result/manuscript/bibliography/cite_chain
-│   └── selftest.py             # 18 条断言
+│   └── selftest.py             # 21 条断言
 └── references/output_contract.md
 ```
 
@@ -44,4 +44,4 @@
 | claim_map_coverage | 1.0000 | 0.0000 |
 | 阻断 | 无 | C02/C09/C10/C11 |
 
-自检：`python examples/selftest.py` → 18 条全绿。
+自检：`python examples/selftest.py` → 21 条全绿。

@@ -120,6 +120,31 @@ def main():
     assert "C11" in codes(cite_chain.audit(bad, case))
     ok.append("C11 只映射前两句 → claim_map_gap")
 
+    # C12 重排后编号指向另一篇论文（编号在、条目在，但身份变了）
+    bad = json.loads(json.dumps(good))
+    bad["result"]["number_mapping"][1]["from_id"] = "2"
+    bad["result"]["number_mapping"][1]["key"] = "chen2022"
+    bad["result"]["bibliography"][1] = dict(bad["result"]["bibliography"][2], id="2", key="chen2022")
+    bad["result"]["bibliography"][2] = dict(case["bibliography"][1], id="3", key="li2019", cited=True)
+    rep12 = cite_chain.audit(bad, case)
+    assert "C12" in codes(rep12), rep12["blocking"]
+    ok.append("C12 [2] 重排后指向 chen2022 → renumber_mismatch（保序双射被破坏）")
+
+    # C13 DOI 双前缀
+    bad = json.loads(json.dumps(good))
+    bad["result"]["bibliography"][0]["doi"] = "urn:doi:urn:doi:10.1000/a1"
+    assert "C13" in codes(cite_chain.audit(bad, case))
+    ok.append("C13 urn:doi:urn:doi: 双前缀 → doi_format")
+
+    # 身份保持率：删掉第 2 条被引条目后，正文 [3] 的引用不能悄悄指向第 2 条的原论文
+    bib_del = [b for b in case["bibliography"] if str(b["id"]) != "2"]
+    ms_del = case["manuscript"].replace("[2]", "[9]")
+    data_del = renumber.renumber(ms_del, bib_del, "numeric")
+    rep_del = cite_chain.audit(wrap(data_del, "del"), {"bibliography": bib_del})
+    assert rep_del["rates"]["renumber_identity_rate"] == 1.0, rep_del["rates"]
+    assert any(b["type"] in ("dangling_citation",) for b in rep_del["blocking"]) or not data_del["unresolved"], rep_del
+    ok.append("删条后重排：身份保持率 1.0，未解析引用原样保留不冒充")
+
     ay_case = {"case_id": "ay", "style": "author-year", "bibliography": case["bibliography"][:2]}
     ay_ms = "Gas hydrate occurs at CUG-3 (Smith et al., 2020). Salinity raises pressure (Li, 2019)."
     ay = renumber.renumber(ay_ms, ay_case["bibliography"], "author-year")

@@ -34,6 +34,7 @@ CODES = {
     "duplicate_left": "C04", "key_collision": "C05", "mapping_mismatch": "C06",
     "fabricated_entry": "C07", "fabricated_field": "C08", "metadata_loss": "C09",
     "merge_conflict": "C10", "claim_map_gap": "C11",
+    "renumber_mismatch": "C12", "doi_format": "C13",
     "listed_not_cited": "A01", "partial_metadata": "A02",
 }
 
@@ -110,7 +111,32 @@ def audit(result: dict, case: dict) -> dict:
     if conflicts:
         blocking.append({"type": "merge_conflict", "pairs": conflicts})
 
-    # 2b 被合并的条目与原条目 DOI 不同（会议版/期刊版被并）
+    # 2c 重排身份保持：from_id 指向的原论文必须与 bib 条目同一篇（DOI+标题）
+    orig_by_id2 = {str(o.get("id")): o for o in orig}
+    identity_ok = identity_checked = 0
+    for m in mapping:
+        fid, bid = str(m.get("from_id")), str(m.get("bib_id"))
+        o = orig_by_id2.get(fid)
+        b = next((x for x in bib if str(x.get("id")) == bid), None)
+        if not o or not b:
+            continue
+        identity_checked += 1
+        same_doi = renumber.doi_norm(o.get("doi")) == renumber.doi_norm(b.get("doi"))
+        same_title = renumber.similar_title(o.get("title", ""), b.get("title", "")) > 0.9
+        if same_doi and same_title:
+            identity_ok += 1
+        else:
+            blocking.append({"type": "renumber_mismatch", "from_id": fid, "bib_id": bid,
+                             "hint": "重排后编号指向了另一篇论文（DOI/标题变了）",
+                             "doi": [o.get("doi"), b.get("doi")],
+                             "title": [o.get("title"), b.get("title")]})
+
+    # 2d DOI 格式：双前缀/重复前缀
+    bad_doi = [{"id": b.get("id"), "doi": b.get("doi")} for b in bib
+               if b.get("doi") and renumber.doi_format_bad(b.get("doi"))]
+    if bad_doi:
+        blocking.append({"type": "doi_format", "items": bad_doi,
+                         "hint": "DOI 出现 urn:doi:urn:doi: 之类的重复前缀"})
     orig_by_id = {str(o.get("id")): o for o in orig}
     for mid in res.get("merged_ids") or []:
         o = orig_by_id.get(str(mid))
@@ -186,6 +212,7 @@ def audit(result: dict, case: dict) -> dict:
         "metadata_verbatim_rate": rate(verbatim_ok, checked),
         "claim_map_coverage": rate(len(mapped_ids & cited), len(cited)) if style == "numeric" and cited else None,
         "dedup_groups": len(groups),
+        "renumber_identity_rate": rate(identity_ok, identity_checked),
     }
     for item in blocking + advisory:
         item.setdefault("code", CODES.get(item["type"], "A00"))

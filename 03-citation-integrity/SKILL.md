@@ -57,6 +57,8 @@ python scripts/run.py --input examples/demo --output out
 | C09 | 原始来源有值，输出却被删空（元数据丢失） |
 | C10 | DOI 不同的会议版/期刊版被合并 |
 | C11 | `claim_source_map` 没覆盖正文里的引用 |
+| C12 | 重排后编号指向了另一篇论文（DOI/标题身份变了） |
+| C13 | DOI 出现 `urn:doi:urn:doi:` 之类重复前缀 |
 
 提示码：A01 `listed_not_cited`（原始条目未被引用，已保留并说明）、A02 `partial_metadata`。
 
@@ -65,14 +67,15 @@ python scripts/run.py --input examples/demo --output out
 - `citation_closure_rate` = 能解析的正文引用 / 全部正文引用
 - `metadata_verbatim_rate` = 与原始来源逐字一致的字段数 / 核对字段数
 - `claim_map_coverage` = 被 `claim_source_map` 覆盖的引用 / 全部引用
+- `renumber_identity_rate` = 重排后编号身份不变（DOI+标题同一篇）/ 可核对条数
 
 ## 6. 自检
 
 ```bash
-python examples/selftest.py      # 18 条断言
+python examples/selftest.py      # 21 条断言
 ```
 
-覆盖：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C11 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`。
+覆盖：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C13 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`。
 
 ## 7. 基线（`examples/baseline.py`）
 
