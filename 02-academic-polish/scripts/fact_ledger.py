@@ -22,6 +22,8 @@ CODES = {
     "unit_change": "F01b",
     "number_added": "F11",
     "intensity_loss": "F12",
+    "intensity_added": "F12b",
+    "unit_conversion": "F01c",
     "citation_moved": "F13",
     "citation_loss": "F02",
     "citation_added": "F03",
@@ -90,7 +92,8 @@ def audit(original: str, polished: str, changes=None) -> dict:
 
     # 1) 数字+单位：逐条判定 kept / normalized / changed / removed / added
     fact_rows = []
-    miss, unit_changed, normalized = {}, {}, {}
+    miss, unit_changed, normalized, converted = {}, {}, {}, {}
+    converted_tokens = set()
     for tok in set(orig_f["number_units"]):
         before, after = orig_f["number_units"].count(tok), pol_f["number_units"].count(tok)
         if after >= before:
@@ -98,10 +101,17 @@ def audit(original: str, polished: str, changes=None) -> dict:
             continue
         num = tok.split(" ")[0]
         equiv = _normalized_variant(tok, pol_f["number_units"])
+        conv = next((t for t in pol_f["number_units"] if t not in orig_f["number_units"]
+                     and facts.equivalent(tok, t)), None)
         if equiv:
             normalized[tok] = equiv
             fact_rows.append({"type": "number_unit", "token": tok, "status": "normalized",
                               "as": equiv})
+        elif conv:
+            converted[tok] = conv
+            converted_tokens.add(conv)
+            fact_rows.append({"type": "number_unit", "token": tok, "status": "changed",
+                              "as": conv, "note": "数值等价换算，需人工确认是否保留原单位"})
         elif num in facts.bare_numbers(polished):
             unit_changed[tok] = {"number": num, "polished_forms": [t for t in pol_f["number_units"]
                                                                    if t.split(" ")[0] == num]}
@@ -112,12 +122,15 @@ def audit(original: str, polished: str, changes=None) -> dict:
             fact_rows.append({"type": "number_unit", "token": tok, "status": "removed"})
     if miss:
         blocking.append({"type": "number_or_unit_loss", "tokens": miss})
+    if converted:
+        blocking.append({"type": "unit_conversion", "tokens": converted,
+                         "hint": "数值等价但单位换了（如 0.9 MPa→900 kPa），需人工确认"})
     if unit_changed:
         blocking.append({"type": "unit_change", "tokens": unit_changed,
                          "hint": "数值还在但单位/基准变了（wt%→% 不是同义改写）"})
     orig_nums = {t.split(" ")[0] for t in orig_f["number_units"]}
     added_nums = [t for t in set(pol_f["number_units"]) if t not in orig_f["number_units"]
-                  and t.split(" ")[0] not in orig_nums]
+                  and t.split(" ")[0] not in orig_nums and t not in converted_tokens]
     if added_nums:
         blocking.append({"type": "number_added", "tokens": added_nums,
                          "hint": "原文没有的数字不许出现（编造数据）"})
@@ -166,6 +179,11 @@ def audit(original: str, polished: str, changes=None) -> dict:
     if int_drop:
         blocking.append({"type": "intensity_loss", "tokens": int_drop,
                          "hint": "significantly/slightly/markedly 等程度被改，结论强度变了"})
+    int_new = {k: v for k, v in pol_f["intensity"].items()
+               if v > orig_f["intensity"].get(k, 0)}
+    if int_new:
+        blocking.append({"type": "intensity_added", "tokens": int_new,
+                         "hint": "原文没有的程度副词被加上，结论强度被抬高"})
     fact_rows += [{"type": "intensity", "token": k,
                    "status": "removed" if k in int_drop else "kept"} for k in orig_f["intensity"]]
 

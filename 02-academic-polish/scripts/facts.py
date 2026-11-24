@@ -22,6 +22,17 @@ NEGATIONS = ["not", "no ", "never", "none", "neither", "nor", "cannot", "can't",
              "unable", "hardly", "barely", "rarely"]
 INTENSITY = ["significantly", "slightly", "markedly", "substantially", "considerably",
              "marginally", "somewhat", "strongly", "weakly", "greatly", "moderately", "sharply"]
+
+# 单位家族（用于识别"数值也变的等价换算"，如 0.9 MPa → 900 kPa）
+UNIT_FAMILIES = {
+    "pa": ("pressure", 1.0, 0.0), "kpa": ("pressure", 1e3, 0.0),
+    "mpa": ("pressure", 1e6, 0.0), "gpa": ("pressure", 1e9, 0.0),
+    "bar": ("pressure", 1e5, 0.0), "atm": ("pressure", 101325.0, 0.0),
+    "k": ("temperature", 1.0, 0.0), "°c": ("temperature", 1.0, 273.15),
+    "c": ("temperature", 1.0, 273.15),
+    "mg": ("mass", 1e-3, 0.0), "µg": ("mass", 1e-6, 0.0), "ug": ("mass", 1e-6, 0.0),
+    "g": ("mass", 1.0, 0.0), "kg": ("mass", 1e3, 0.0),
+}
 COMPARATIVES = ["more than", "less than", "higher than", "lower than", "greater than",
                 "fewer", "larger", "smaller", "increase", "increases", "increased",
                 "decrease", "decreases", "decreased", "rise", "rises", "rose",
@@ -67,6 +78,26 @@ def numbers(text: str) -> list:
 
 def bare_numbers(text: str) -> list:
     return [m.group(1) for m in NUM_UNIT_RE.finditer(text or "")]
+
+
+def equivalent(token_a: str, token_b: str) -> bool:
+    """判断两个数字+单位是否数值等价（允许单位换算，如 0.9 MPa ↔ 900 kPa）。"""
+    def parse(tok):
+        parts = tok.split(" ")
+        if len(parts) != 2:
+            return None
+        raw, unit = parts
+        fam = UNIT_FAMILIES.get(unit.lower())
+        if not fam:
+            return None
+        try:
+            return fam[0], float(raw) * fam[1] + fam[2]
+        except ValueError:
+            return None
+    a, b = parse(token_a), parse(token_b)
+    if not a or not b or a[0] != b[0]:
+        return False
+    return abs(a[1] - b[1]) <= 1e-6 * max(1.0, abs(a[1]), abs(b[1]))
 
 
 def citations(text: str) -> list:

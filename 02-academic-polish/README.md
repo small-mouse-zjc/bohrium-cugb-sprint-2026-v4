@@ -51,4 +51,4 @@
 | fact_preservation_rate | 1.0000 | 0.6667 |
 | status | success | pass=false（4 项阻断） |
 
-自检：`python examples/selftest.py` → 18 条全绿。
+自检：`python examples/selftest.py` → 21 条全绿。

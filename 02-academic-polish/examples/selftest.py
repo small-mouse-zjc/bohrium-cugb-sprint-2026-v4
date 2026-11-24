@@ -110,6 +110,28 @@ def main():
     assert "citation_moved" in codes(rep), rep["blocking"]
     ok.append("D10 引用挪句 → citation_moved（归属变了）")
 
+    # 8f 比较方向被翻转
+    src = "The permeability is higher than that of the clay, and salinity increases with depth."
+    dst = "The permeability is lower than that of the clay, and salinity increases with depth."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "comparative_loss" in codes(rep), rep["blocking"]
+    ok.append("D11 higher than → lower than → comparative_loss（F07 回归）")
+
+    # 8g 数值也变的单位换算：0.9 MPa → 900 kPa
+    src = "The dissociation pressure is 0.9 MPa at 4 °C."
+    dst = "The dissociation pressure is 900 kPa at 4 °C."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "unit_conversion" in codes(rep), rep["blocking"]
+    assert "number_added" not in codes(rep), rep["blocking"]
+    ok.append("D12 0.9 MPa→900 kPa → unit_conversion（不误判为编造数字）")
+
+    # 8h 凭空加强程度副词
+    src = "The hydrate stability zone is deeper than predicted."
+    dst = "The hydrate stability zone is significantly deeper than predicted."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "intensity_added" in codes(rep), rep["blocking"]
+    ok.append("D13 凭空加 significantly → intensity_added（结论强度被抬高）")
+
     # 8c 编造数字：原文没有 18 MPa
     rep = fact_ledger.audit(original, polished.replace("above 12 MPa", "above 18 MPa"), changes)
     assert {"number_added", "number_or_unit_loss"} & codes(rep), rep["blocking"]

@@ -56,9 +56,11 @@ python scripts/run.py --input examples/demo --output out
 | code | 含义 | 级别 |
 |---|---|---|
 | F01 | 数字+单位整体消失 | 阻断 |
-| F01b | 数字还在但单位/基准变了（`3.5 wt%`→`3.5%`、MPa→kPa） | 阻断 |
+| F01b | 数字还在但单位/基准变了（`3.5 wt%`→`3.5%`） | 阻断 |
+| F01c | 数值也变的等价换算（`0.9 MPa`→`900 kPa`） | 阻断（需人工确认） |
 | F11 | 出现原文没有的数字（编造数据） | 阻断 |
 | F12 | 程度副词被删（significantly/slightly/markedly…） | 阻断 |
+| F12b | 凭空加了程度副词（higher→significantly higher） | 阻断 |
 | F13 | 引用被挪到别的句子（归属变了） | 阻断 |
 | F02 | 引用丢失 | 阻断 |
 | F03 | 凭空出现原文没有的引用 | 阻断 |
@@ -109,7 +111,7 @@ python eval/metrics.py --out_dir out --base_dir base_out
 ## 7. 自检
 
 ```bash
-python examples/selftest.py      # 18 条断言
+python examples/selftest.py      # 21 条断言
 ```
 
 覆盖：正例、F01/F01b/F11（单位基准变化、编造数字）、F03 编造引用、F04+F05（may→proves）、F06 否定反写、F10 未声明改事实、F09 凭空加句、T01 术语变体、合法归一（`3.5 wt%` ↔ `3.5 wt %` 放行）、平台入口（minimal-edit 与 LLM 稿两种模式）、降级（无正文/缺 case.json）、基线差值、缺基线数据记 `None`、零事实草稿记 `None`。
