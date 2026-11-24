@@ -45,11 +45,16 @@ description: 把论文结论拆成"一句一断言"，每条绑逐字证据，�
 **第 2 步 绑逐字证据（你来做）**
 `evidence.quote` 必须从原文**复制粘贴**，不改字、不合并两句、不用省略号。长度 10–400 字符，且必须包含主体或客体的表面形式。
 
+引文不仅要逐字，还要**能支撑这条断言的方向与主客角色**：
+- 关系的方向词必须出现在引文里（`increases` 要有 increases/rises/higher 这类词；`decreases` 要有 decreases/falls/lower 这类词），写反即 N10；
+- 引文必须同时出现主体与客体，且语序是"主体在前、客体在后"（被动式 `X was increased by Y` 允许），主客颠倒即 N11；
+- `located_in / has_value / uses` 这类无方向关系只查 N11，不查方向。
+
 **第 3 步 机器校验 + 导出（脚本，必跑）**
 ```
 python scripts/nanopub.py build --assertions work/assertions.json --sources work/sources.json --out /app/output
 ```
-违规码：N01 非原子、N02 引文非连续子串、N03 长度越界、N04 证据不含主体/客体、N05 来源不全、N06 关系词越界、N07 重复断言、N08 TriG 语法/计数不通过、N09 JSON-LD 与 TriG 标识不一致。
+违规码：N01 非原子、N02 引文非连续子串、N03 长度越界、N04 证据不含主体/客体、N05 来源不全、N06 关系词越界、N07 重复断言、N08 TriG 语法/计数不通过、N09 JSON-LD 与 TriG 标识不一致、**N10 关系方向与引文方向相反（或引文里没有方向词，方向不被证据支持）**、**N11 引文缺一端表面形式或客体先于主体（主客角色与引文相反）**。
 
 **第 4 步 修到全绿再交付**
 逐条修 `validation.json` 的违规后重跑；任一硬指标 < 1.00 时 `status` 最多 `partial`，并在 `result.json` 写清剩余问题。
@@ -79,7 +84,7 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 ```
 python examples/selftest.py
 ```
-注入 4 类缺陷（并列句、改写证据、缺段落号、重复断言），要求全部命中；未命中即校验器失效。
+注入 4 类缺陷（并列句、改写证据、缺段落号、重复断言），要求全部命中；未命中即校验器失效。另加 3 条断言锁死"方向与主客角色"：关系 `increases` 改成 `decreases`、证据仍写 increases → 必须报 `N10` 且 `direction_rate<1.0`；把主体/客体互换（salinity 当主语）→ 必须报 `N11` 且 `role_rate<1.0`；客体表面形式在引文里根本不存在 → 同样报 `N11`。共 **17 条**自检，全绿才算过。
 
 ## 8. 边界
 

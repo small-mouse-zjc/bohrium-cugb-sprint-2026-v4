@@ -169,7 +169,40 @@ def main():
         assert sb.get("export_roundtrip") is None or sb.get("export_roundtrip") is False, sb
         ok.append("基线：不产出 TriG/JSON-LD 对照 → roundtrip 与一致性均不可评（None）")
 
-        print("SELFTEST OK")
+        # 13b) N10 方向：证据写 increases，关系改成 decreases 必须被拦（旧的只看逐字引文照样过）
+        dn = json.loads(json.dumps(base))
+        dn["assertions"][2]["relation"] = "decreases"
+        dnp = tmp / "n10.json"
+        dnp.write_text(json.dumps(dn, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/nanopub.py", "build", "--assertions", dnp, "--sources", DEMO / "sources.json",
+             "--out", tmp / "n10", "--no-fail"], rc=(0, 1))
+        vn = json.loads((tmp / "n10" / "validation.json").read_text(encoding="utf-8"))
+        assert "N10" in {x["code"] for x in vn["violations"]}, vn["violations"]
+        assert vn["rates"]["direction_rate"] < 1.0 and vn["pass"] is False, vn["rates"]
+        ok.append(f"关系写反（increases→decreases，证据仍是 increases）→ N10、direction_rate={vn['rates']['direction_rate']}")
+
+        # 13c) N11 主客角色：把 A3 的 subject/object 互换（salinity 当主语）必须被拦；证据缺一端也算
+        dr = json.loads(json.dumps(base))
+        a3 = dr["assertions"][2]
+        a3["subject"], a3["object"] = a3["object"], a3["subject"]
+        drp = tmp / "n11.json"
+        drp.write_text(json.dumps(dr, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/nanopub.py", "build", "--assertions", drp, "--sources", DEMO / "sources.json",
+             "--out", tmp / "n11", "--no-fail"], rc=(0, 1))
+        vr = json.loads((tmp / "n11" / "validation.json").read_text(encoding="utf-8"))
+        assert "N11" in {x["code"] for x in vr["violations"]}, vr["violations"]
+        assert vr["rates"]["role_rate"] == 0.8 and vr["pass"] is False, vr["rates"]
+        dr2 = json.loads(json.dumps(base))
+        dr2["assertions"][3]["object"]["label"] = "zzq absent endpoint"
+        dr2p = tmp / "n11b.json"
+        dr2p.write_text(json.dumps(dr2, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/nanopub.py", "build", "--assertions", dr2p, "--sources", DEMO / "sources.json",
+             "--out", tmp / "n11b", "--no-fail"], rc=(0, 1))
+        vr2 = json.loads((tmp / "n11b" / "validation.json").read_text(encoding="utf-8"))
+        assert any(x["code"] == "N11" and "客体" in x["detail"] for x in vr2["violations"]), vr2["violations"]
+        ok.append(f"主客颠倒（salinity 当主语）→ N11、role_rate={vr['rates']['role_rate']}；证据缺客体表面形式同样报 N11")
+
+
         for line in ok:
             print("  ✓", line)
     except AssertionError as e:

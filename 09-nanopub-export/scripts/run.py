@@ -107,6 +107,7 @@ def main():
     m = result["metrics"]
     m.update({"build_rc": r.returncode, "assertions": rates.get("assertions"),
               "atomic_rate": rates.get("atomic_rate"), "verbatim_rate": rates.get("verbatim_rate"),
+              "direction_rate": rates.get("direction_rate"), "role_rate": rates.get("role_rate"),
               "provenance_rate": rates.get("provenance_rate"),
               "export_roundtrip": rates.get("export_roundtrip"),
               "serialization_consistency_rate": rates.get("serialization_consistency_rate"),

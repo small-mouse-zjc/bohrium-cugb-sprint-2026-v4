@@ -16,6 +16,75 @@ VOCAB = ["increases", "decreases", "supports", "contradicts", "uses", "measured_
          "located_in", "composed_of", "exceeds", "has_value"]
 CONNECT = ["并且", "而且", "以及", "；", ";", " and ", "此外"]
 
+# 方向词：证据里出现哪一类，就决定了这条关系只能写成哪个方向
+DIR_POS = ["increas", "ris", "higher", "high-", "exceed", "grow", "improv", "greater", "larger",
+           "more", "upward", "升高", "上升", "提高", "增加", "增大", "增高", "更高", "偏高", "大于", "超过"]
+DIR_NEG = ["decreas", "reduc", "fall", "lower", "declin", "drop", "diminish", "smaller", "less",
+           "downward", "下降", "降低", "减少", "减小", "更低", "偏低", "小于", "缩短"]
+DIR_POS_RE = re.compile("|".join([r"\b" + re.escape(x) + r"\w*" for x in DIR_POS[:10]]
+                                 + [re.escape(x) for x in DIR_POS[10:]]))
+DIR_NEG_RE = re.compile("|".join([r"\b" + re.escape(x) + r"\w*" for x in DIR_NEG[:10]]
+                                 + [re.escape(x) for x in DIR_NEG[10:]]))
+# 被动式：主客顺序颠倒但语义正确（"X was increased by Y"）
+PASSIVE_RE = re.compile(r"(was|were|is|are|been)\s+\w+ed\s+by\s+", re.I)
+
+
+STOP = {"of", "the", "a", "an", "and", "in", "on", "at", "that", "this", "those", "these",
+        "is", "are", "was", "were", "to", "for", "with", "by", "as", "than", "its", "their"}
+
+
+def tokens(label: str):
+    t = re.findall(r"[0-9a-z%°]+|[\u4e00-\u9fff]+", (label or "").lower())
+    return [x for x in t if x not in STOP]
+
+
+def surface_ok(label: str, q: str):
+    """表面形式要么逐字出现，要么其全部实词都在证据里（允许 'permeability of the clay' → 'that of the clay' 这类省略）。"""
+    ll = (label or "").lower()
+    if not ll:
+        return False
+    if ll in q.lower():
+        return True
+    tk = tokens(label)
+    return bool(tk) and all(t in q.lower() for t in tk)
+
+
+def anchor_pos(label: str, q: str, other: str):
+    """主/客在证据里的锚点：优先用只属于该端的实词（区分 sandy layer vs clay），否则退到整串。"""
+    ql, ll = q.lower(), (label or "").lower()
+    if ll and ll in ql:
+        return ql.find(ll)
+    spec = [t for t in tokens(label) if t not in tokens(other)]
+    hits = [ql.find(t) for t in spec if t in ql]
+    if hits:
+        return min(h for h in hits if h >= 0)
+    return ql.find(tokens(label)[0]) if tokens(label) else -1
+
+
+def polarity(word: str):
+    """关系词/方向词 → +1（增大类）、-1（减小类）、None（无方向语义）。"""
+    t = (word or "").lower()
+    if not t:
+        return None
+    hp = bool(DIR_POS_RE.search(t))
+    hn = bool(DIR_NEG_RE.search(t))
+    if hp and not hn:
+        return 1
+    if hn and not hp:
+        return -1
+    return None
+
+
+def quote_direction(q: str, anchor: str):
+    """证据片段里离主体最近的第一个方向词，决定可接受的 relation 方向。"""
+    best = None
+    for sign, rx in ((1, DIR_POS_RE), (-1, DIR_NEG_RE)):
+        for m in rx.finditer(q):
+            d = abs(m.start() - (q.lower().find(anchor.lower()) if anchor else 0))
+            if best is None or d < best[0]:
+                best = (d, sign, m.group(0))
+    return best  # (distance, sign, word) 或 None
+
 
 def norm(s: str) -> str:
     return re.sub(r"\s+", " ", s or "").strip()
@@ -102,6 +171,31 @@ def build(assertions, sources, paper):
             key_terms = [sub.get("label", ""), obj.get("label", "")]
             if key_terms and not any(k and k.lower() in q.lower() for k in key_terms):
                 viol.append({"code": "N04", "id": aid, "detail": "证据片段不含主体或客体表面形式"})
+
+            # N10 方向：relation 的方向必须与证据里对应句子的方向一致（不再只查"引文逐字"）
+            rel_sign = polarity(rel)
+            ql = q.lower()
+            sub_lbl = str(sub.get("label", ""))
+            od = quote_direction(q, sub_lbl)
+            if rel_sign is not None:
+                if od is None:
+                    viol.append({"code": "N10", "id": aid,
+                                 "detail": f"关系 '{rel}' 有方向，但证据里没有方向词，方向无法被证据支持"})
+                elif od[1] != rel_sign:
+                    viol.append({"code": "N10", "id": aid,
+                                 "detail": f"关系 '{rel}' 与证据 '{od[2]}' 方向相反"})
+
+            # N11 主客角色：证据必须同时出现两端，且语序与主客一致（被动式除外）
+            obj_lbl = str(obj.get("label", ""))
+            sok, ook = surface_ok(sub_lbl, q), surface_ok(obj_lbl, q)
+            ps, po = anchor_pos(sub_lbl, q, obj_lbl), anchor_pos(obj_lbl, q, sub_lbl)
+            if not (sok and ook):
+                miss_end = "主体" if not sok else "客体"
+                viol.append({"code": "N11", "id": aid,
+                             "detail": f"证据里找不到{miss_end}表面形式，主客角色无法核对"})
+            elif ps > po and not PASSIVE_RE.search(q):
+                viol.append({"code": "N11", "id": aid,
+                             "detail": f"证据里客体先于主体出现（{po} < {ps}），主客角色与断言相反"})
 
         # N07 重复
         dup_key = (norm(str(sub.get("label"))).lower(), rel, norm(str(obj.get("label"))).lower(), norm(a.get("qualifier", "")).lower())
@@ -277,9 +371,12 @@ def main():
     atomic_bad = bad_ids(("N01", "N06"))
     verbatim_bad = bad_ids(("N02", "N03", "N04"))   # N04（证据不含主客表面形式）也必须拉低逐字率
     prov_bad = bad_ids(("N05",))
+    direction_bad = bad_ids(("N10",))
+    role_bad = bad_ids(("N11",))
     if n == 0:
         viol.append({"code": "N00", "detail": "断言文件里没有断言，无法导出（比率记 null，不记 1.00）"})
-        rates = {"assertions": 0, "atomic_rate": None, "verbatim_rate": None, "provenance_rate": None,
+        rates = {"assertions": 0, "atomic_rate": None, "verbatim_rate": None,
+                 "direction_rate": None, "role_rate": None, "provenance_rate": None,
                  "export_roundtrip": False, "serialization_consistency_rate": None, "violations": len(viol)}
         trig = ""
         rt = {"named_graphs": 0, "assertion_nodes": 0, "quotes": 0, "ok": False}
@@ -287,6 +384,8 @@ def main():
         rates = {"assertions": n,
                  "atomic_rate": round((n - len(atomic_bad)) / n, 4),
                  "verbatim_rate": round((n - len(verbatim_bad)) / n, 4),
+                 "direction_rate": round((n - len(direction_bad)) / n, 4),
+                 "role_rate": round((n - len(role_bad)) / n, 4),
                  "provenance_rate": round((n - len(prov_bad)) / n, 4),
                  "export_roundtrip": rt["ok"],
                  "serialization_consistency_rate": ser["consistency_rate"],

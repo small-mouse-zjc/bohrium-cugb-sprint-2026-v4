@@ -71,6 +71,8 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 | N07 | 重复断言（同主-关-客-限定） |
 | N08 | TriG 语法不通过（括号/引号/缺 `.`/裸谓语）或回解析计数与断言数不一致 |
 | N09 | JSON-LD 与 TriG 对同一断言的主/客/关系 IRI 不一致 |
+| N10 | 关系方向与引文方向相反，或引文里没有方向词（方向不被证据支持） |
+| N11 | 引文缺主体/客体表面形式，或客体先于主体出现（主客角色与引文相反） |
 
 **第 4 步 修到全绿再交付**：`status` 由 `scripts/run.py` 按实际产物判定——`success` 需 `pass=true`、断言 ≥3 条、TriG 回解析成功；有违规或不满足则 `partial`；论文文本都没有则 `cannot_determine`；缺 `assertions.json`/`sources.json` 则 `rejected`。任一硬指标 < 1.00 时写清剩余问题，不许写"通过"。
 
@@ -80,6 +82,8 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 |---|---|---|
 | 原子率 | 通过 N01 的断言比例 | = 1.00 |
 | 逐字率 | `quote` 为原文连续子串的比例 | = 1.00 |
+| 方向率 | relation 的方向词与引文方向词一致（无方向关系不计入违规） | = 1.00 |
+| 角色率 | 引文同时含主体与客体，且主体在前（被动式豁免） | = 1.00 |
 | 来源率 | `source_id + paragraph_id` 齐全的比例 | = 1.00 |
 | 回解析 | TriG 通过真语法解析，命名图数/断言节点数/引文数与断言数一致 | = true |
 | 序列化一致性 | JSON-LD 与 TriG 的主/客/关系 IRI 逐项相同 | = 1.00 |
@@ -105,7 +109,7 @@ python scripts/nanopub.py build --assertions work/assertions.json --sources work
 
 5 条断言全绿。
 
-**本轮补强（2026-11-25）**：新增 `scripts/run.py`（读 `/input/case.json` → 校验 → 导出 → `/app/output/result.json`）、N04 纳入逐字率（证据不含主体/客体表面形式会拉低 `verbatim_rate`，实测 5 条里 1 条违规 → 0.80）、零断言时三比率记 `null` 并报 `N00`、`relation_extensions` 真正生效、DOI 统一 IRI、新增 `examples/baseline.py`（裸基线：只把断言转存 JSON，不校验不导出）。自检 **14 条**：原 5 条 + 平台入口、零断言、N04、TriG IRI、基线对照、JSON-LD/TriG DOI 一致性、TriG 主语与关系为 IRI 节点、真解析拒收四种坏 TriG、JSON-LD/TriG 序列化逐项对齐（15 项）、基线对照的一致性指标为 None。
+**本轮补强（2026-11-25）**：新增 `scripts/run.py`（读 `/input/case.json` → 校验 → 导出 → `/app/output/result.json`）、N04 纳入逐字率（证据不含主体/客体表面形式会拉低 `verbatim_rate`，实测 5 条里 1 条违规 → 0.80）、零断言时三比率记 `null` 并报 `N00`、`relation_extensions` 真正生效、DOI 统一 IRI、新增 `examples/baseline.py`（裸基线：只把断言转存 JSON，不校验不导出）。**本轮补强之二（2026-11-25）**：评审指出"证据逐字"保住了，但"证据支持这条断言"没查——关系写成 `decreases` 而引文说 `increases`、或把 `salinity` 当主语，照样 9 项全过。现在 `nanopub.py` 增加 **N10 方向核对**（取离主体最近的方向词，与 relation 的极性比对；引文没有方向词也算不被支持）和 **N11 主客角色核对**（两端表面形式必须都在引文里——允许 `permeability of the clay` → `that of the clay` 这种省略，但实词必须齐；客体先于主体且非被动式即判相反）。`validation.json` 新增 `direction_rate` / `role_rate`，`result.json.metrics` 同名字段透出。自检 **17 条**：原 14 条 + 关系写反 → N10、主客互换 → N11、客体缺失 → N11。
 
 ## 7. 异常与降级
 

@@ -1,11 +1,13 @@
 {
-  "case_id": "unknown",
+  "case_id": "case-09",
   "status": "success",
   "metrics": {
     "build_rc": 0,
     "assertions": 5,
     "atomic_rate": 1.0,
     "verbatim_rate": 1.0,
+    "direction_rate": 1.0,
+    "role_rate": 1.0,
     "provenance_rate": 1.0,
     "export_roundtrip": true,
     "serialization_consistency_rate": 1.0,
