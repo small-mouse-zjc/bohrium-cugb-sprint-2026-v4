@@ -21,7 +21,7 @@
 │   ├── demo/case.json          # 自建演示稿（非平台案例）
 │   ├── baseline.py             # 裸 Agent 基线（粗合并 / 留缺号 / 编 DOI / 删卷期）
 │   ├── expected/               # 真实 run 的 result/manuscript/bibliography/cite_chain
-│   └── selftest.py             # 25 条断言
+│   └── selftest.py             # 28 条断言
 └── references/output_contract.md
 ```
 
@@ -29,7 +29,7 @@
 
 1. **编号连锁重排**：新编号按正文首次出现顺序生成，正文标记与 `number_mapping` 同一次重写产出，杜绝"只改表不改文"。
 2. **去重三条件**：作者姓+首字母、年份、标题规范化相似度 >0.9；**DOI 不同不合并**（C10 专门抓误并会议版/期刊版）。作者名两种写法都取到首字母：`Smith J.` 与 `Smith, John`（逗号式漏首字母会把不同名的人误并）；粒子/双姓（`van der Berg`、`O'Brien`）按完整姓比对。
-3. **元数据逐字**：输出条目的每个字段与原始来源逐字段比对，缺值留空并进 `uncertainty`；填了原始没有的值即 C08，删掉原始有的值即 C09。
+3. **元数据逐字**：输出条目的每个字段与原始来源逐字段比对，缺值留空并进 `uncertainty`；填了原始没有的值即 C08，删掉原始有的值即 C09。**身份匹配先按"作者+年份+标题>0.9"，匹配不上再退回 DOI**——只改标题时按标题匹配会失败，旧写法会把它误诊成"凭空造条目(C07)"并整条跳过逐字段比对；C12 的身份判定是 `DOI相同 or 标题相同`（任一个强信号成立即同一篇），只有两者都变才算"编号指向另一篇"。
 4. **claim 映射**：正文每句引用 → `claim_source_map`，未覆盖即 C11；`source_ids` 用新编号、`from_ids` 保留原编号。
 5. **未引用条目**：不静默删除，写入 `unused` + `uncertainty`（A01）。
 6. **author-year 风格**：正文 `(Smith et al., 2020)` 按"作者姓+年份"解析到 key，重写后仍可审计。
@@ -44,4 +44,5 @@
 | claim_map_coverage | 1.0000 | 0.0000 |
 | 阻断 | 无 | C02/C09/C10/C11 |
 
-自检：`python examples/selftest.py` → 25 条全绿。
+自检：`python examples/selftest.py` → 28 条全绿。
+

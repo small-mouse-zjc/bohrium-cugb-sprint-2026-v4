@@ -56,11 +56,23 @@ def original_bib(case: dict) -> list:
 
 
 def _match_original(entry: dict, orig: list):
+    """先按"作者+年份+标题相似"匹配；匹配不上再退回 DOI。
+
+    DOI 是比标题强得多的身份信号：只改标题时若按标题匹配失败，就会被误诊成
+    "凭空造条目(C07)"并跳过逐字段比对，改动也漏进逐字率分母。所以两边 DOI 都非空
+    且归一后相等、且作者/年份也对得上时，认为就是同一篇，让标题改动走到 C08。
+    """
     for o in orig:
         if (renumber.author_norm(o) == renumber.author_norm(entry)
                 and str(o.get("year")) == str(entry.get("year"))
                 and renumber.similar_title(o.get("title", ""), entry.get("title", "")) > 0.9):
             return o
+    d = renumber.doi_norm(entry.get("doi"))
+    if d:
+        hit = [o for o in orig if renumber.doi_norm(o.get("doi")) == d
+               and renumber.author_norm(o) == renumber.author_norm(entry)]
+        if len(hit) == 1:
+            return hit[0]
     return None
 
 
@@ -137,9 +149,12 @@ def audit(result: dict, case: dict) -> dict:
         if not o or not b:
             continue
         identity_checked += 1
-        same_doi = renumber.doi_norm(o.get("doi")) == renumber.doi_norm(b.get("doi"))
+        d1, d2 = renumber.doi_norm(o.get("doi")), renumber.doi_norm(b.get("doi"))
+        same_doi = bool(d1) and d1 == d2   # 两边都没 DOI 不算"同 DOI"，否则改标题永远抓不到 C12
         same_title = renumber.similar_title(o.get("title", ""), b.get("title", "")) > 0.9
-        if same_doi and same_title:
+        # 身份只要一个强信号成立即可：DOI 相同而标题改了 = 标题被改写（C08 会报），
+        # 不是"编号指向另一篇"。两个信号都变才算指错篇。原写法用 and，改标题必然误报 C12。
+        if same_doi or same_title:
             identity_ok += 1
         else:
             blocking.append({"type": "renumber_mismatch", "from_id": fid, "bib_id": bid,

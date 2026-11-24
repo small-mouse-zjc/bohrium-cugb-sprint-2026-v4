@@ -58,7 +58,7 @@ python scripts/run.py --input examples/demo --output out
 | C10 | DOI 不同的会议版/期刊版被合并 |
 | A06 | 同作者同年、标题相似但非逐字相同（0.9<sim<1.0）且无同 DOI：不自动合并，记 merge_advisories 待人工确认（如同一作者 2020a/2020b） |
 | C11 | `claim_source_map` 没覆盖正文里的引用 |
-| C12 | 重排后编号指向了另一篇论文（DOI/标题身份变了） |
+| C12 | 重排后编号指向了另一篇论文（DOI 与标题**都**变了）；只改标题、DOI 仍相同属于 C08 字段被改写，不判 C12 |
 | C13 | DOI 出现 `urn:doi:urn:doi:` 之类重复前缀 |
 
 提示码：A01 `listed_not_cited`（原始条目未被引用，已保留并说明）、A02 `partial_metadata`。
@@ -73,10 +73,10 @@ python scripts/run.py --input examples/demo --output out
 ## 6. 自检
 
 ```bash
-python examples/selftest.py      # 25 条断言
+python examples/selftest.py      # 28 条断言
 ```
 
-覆盖（**28 条断言**）：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C13 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`；另加两条锁死作者名处理：逗号格式 `Smith, John` vs `Smith, Rebecca` 不误合并（key 分别为 `smith j` / `smith r`）、粒子/撇号姓 `(van der Berg, 2020)` 与 `(O'Brien, 2019)` 必须进闭合率分母（实测 2 条里 1 条可解析 → 0.50，悬空那条报 C01）。
+覆盖（**28 条断言**）：正例（真重复合并、会议版不合并、编号重排 1..3、claim 全覆盖）、C01–C13 十一类注入、author-year 风格、平台入口（engine / llm 两种模式）、降级、基线对照、缺基线数据记 `None`；另加两条锁死作者名处理：逗号格式 `Smith, John` vs `Smith, Rebecca` 不误合并（key 分别为 `smith j` / `smith r`）、粒子/撇号姓 `(van der Berg, 2020)` 与 `(O'Brien, 2019)` 必须进闭合率分母（实测 2 条里 1 条可解析 → 0.50，悬空那条报 C01）；再加两条锁死身份匹配：只改标题（作者/年/DOI 不变）必须报 **C08** 且不报 C07/C12，标题与 DOI 都变必须报 **C12**（不许被"任一信号成立即同一篇"放过）。
 
 ## 7. 基线（`examples/baseline.py`）
 

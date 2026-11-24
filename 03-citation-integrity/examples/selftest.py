@@ -130,6 +130,23 @@ def main():
     assert "C12" in codes(rep12), rep12["blocking"]
     ok.append("C12 [2] 重排后指向 chen2022 → renumber_mismatch（保序双射被破坏）")
 
+    # 只改标题（author/year/DOI 都不动）：诊断必须是 C08 字段被改写，
+    # 不能误报 C07"凭空造条目"，也不能误报 C12"编号指向另一篇"
+    bad = json.loads(json.dumps(good))
+    b1 = bad["result"]["bibliography"][1]
+    b1["title"] = b1["title"] + " revisited"
+    rep_t = cite_chain.audit(bad, case)
+    assert "C08" in codes(rep_t), rep_t["blocking"]
+    assert "C07" not in codes(rep_t) and "C12" not in codes(rep_t), rep_t["blocking"]
+    ok.append("改标题（DOI/作者/年不变）→ C08 字段改写，不误报 C07/C12（DOI 回退匹配）")
+
+    # 只有 DOI、标题都不对 → 仍必须是 C12，别被"任一信号成立即同一篇"放过
+    bad = json.loads(json.dumps(good))
+    b1 = bad["result"]["bibliography"][1]
+    b1["title"] = "A completely different paper on mantle xenoliths"
+    b1["doi"] = "10.1000/other.9"
+    assert "C12" in codes(cite_chain.audit(bad, case)), "标题+DOI 都变却未报 C12"
+
     # C13 DOI 双前缀
     bad = json.loads(json.dumps(good))
     bad["result"]["bibliography"][0]["doi"] = "urn:doi:urn:doi:10.1000/a1"
