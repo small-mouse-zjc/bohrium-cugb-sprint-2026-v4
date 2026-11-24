@@ -39,6 +39,10 @@ COMPARATIVES = ["more than", "less than", "higher than", "lower than", "greater 
                 "decline", "declines", "declined", "exceed", "exceeds", "exceeded",
                 "below", "above", "twice", "twofold", "threefold", "fold",
                 "rather than", "compared with", "compared to"]
+WEAK = ["find", "finds", "found", "observe", "observes", "observed", "report", "reports",
+        "reported", "show", "shows", "showed", "indicate", "indicates", "indicated",
+        "note", "notes", "noted", "see", "seen", "record", "records", "recorded",
+        "detect", "detects", "detected"]
 STRONG = ["prove", "proves", "proved", "demonstrate", "demonstrates", "demonstrated",
           "confirm", "confirms", "confirmed", "establish", "establishes", "established",
           "significant", "significantly", "definitively", "clearly", "undoubtedly",
@@ -51,7 +55,7 @@ UNIT_STOP = {"to", "and", "of", "in", "at", "by", "from", "with", "for", "is", "
 
 
 def _count(text: str, vocab) -> dict:
-    """按单词边界计数，不靠两侧空格。
+    r"""按单词边界计数，不靠两侧空格。
 
     旧实现 low.count(" may ") 只在词两侧都是空格时命中，于是 "may," / "not;"
     / "significantly." 这类紧跟标点的限定词、否定词、程度副词全被漏计，
@@ -121,6 +125,7 @@ def extract(text: str) -> dict:
         "comparatives": _count(text, COMPARATIVES),
         "intensity": _count(text, INTENSITY),
         "strong_claims": _count(text, STRONG),
+        "weak_claims": _count(text, WEAK),
     }
 
 

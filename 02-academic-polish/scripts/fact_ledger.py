@@ -158,9 +158,10 @@ def audit(original: str, polished: str, changes=None) -> dict:
                    "status": "removed" if k in hedge_drop else "kept"} for k in orig_f["hedges"]]
     strong_new = {k: v for k, v in pol_f["strong_claims"].items()
                   if v > orig_f["strong_claims"].get(k, 0)}
-    # 强弱升级与"原文有没有 hedge"无关：found→proved、observed→demonstrated
-    # 同样是把观察抬成结论；只在有 hedge 时才查会系统性放行这类改写。
-    if strong_new:
+    # 强弱升级要判方向：只有"弱断言减少 / 推测语气减少"同时新增强断言才算升级。
+    # 无条件阻断会把 proves→demonstrates、confirm→establish 这类强→强同义替换误伤。
+    weak_drop = _count_map_diff(orig_f.get("weak_claims", {}), pol_f.get("weak_claims", {}))
+    if strong_new and (hedge_drop or weak_drop):
         blocking.append({"type": "strength_upgrade", "tokens": strong_new})
 
     # 4) 否定与比较级
@@ -192,12 +193,23 @@ def audit(original: str, polished: str, changes=None) -> dict:
     orig_sents, pol_sents = sentences(original), sentences(polished)
     ledger = []
     if orig_sents and pol_sents:
+        # 一对一匹配：每个源句最多占一个润色句，每个润色句也只能被一个源句认领。
+        # 旧实现每句独立找最大相似度，两句近义源句会同时指向同一润色句，
+        # 被删掉的那句因"有人顶替"而 similarity 虚高，F08 整句丢失被掩盖。
+        cand = [(difflib.SequenceMatcher(None, o, p).ratio(), i, j)
+                for i, o in enumerate(orig_sents) for j, p in enumerate(pol_sents)]
+        cand.sort(reverse=True)
+        pick, used_pol = {}, set()
+        for r, i, j in cand:
+            if i in pick or j in used_pol:
+                continue
+            pick[i] = (j, r)
+            used_pol.add(j)
         for i, o in enumerate(orig_sents):
-            best, best_r = None, 0.0
-            for j, p in enumerate(pol_sents):
-                r = difflib.SequenceMatcher(None, o, p).ratio()
-                if r > best_r:
-                    best, best_r = j, r
+            if i in pick:
+                best, best_r = pick[i]
+            else:
+                best, best_r = None, 0.0
             rec = {"i": i, "original": o, "polished_index": best,
                    "polished": pol_sents[best] if best is not None else None,
                    "similarity": round(best_r, 3),
@@ -205,7 +217,8 @@ def audit(original: str, polished: str, changes=None) -> dict:
                    "facts_after": sorted(facts.fact_tokens(pol_sents[best]) if best is not None else [])}
             ledger.append(rec)
             if best_r < 0.45:
-                blocking.append({"type": "sentence_dropped", "index": i, "original": o[:80]})
+                blocking.append({"type": "sentence_dropped", "index": i, "original": o[:80],
+                                 "hint": "源句没有被任何润色句一对一认领"})
             elif best_r < 0.85:
                 advisory.append({"type": "sentence_rewritten", "index": i,
                                  "similarity": round(best_r, 3)})

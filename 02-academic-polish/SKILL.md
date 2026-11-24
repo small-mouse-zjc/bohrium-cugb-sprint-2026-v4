@@ -65,7 +65,7 @@ python scripts/run.py --input examples/demo --output out
 | F02 | 引用丢失 | 阻断 |
 | F03 | 凭空出现原文没有的引用 | 阻断 |
 | F04 | 限定词（may/might/could/suggest/approximately…）减少 | 阻断 |
-| F05 | 新增强断言（found→proved、observed→demonstrated 同样算），不要求原文先有 hedge | 阻断 |
+| F05 | 新增强断言且方向是弱→强（原文 weak/hedge 减少：found→proved）；强→强同义替换（proves→demonstrates）放行 | 阻断 |
 | F06 | 否定减少（did not observe → observed） | 阻断 |
 | F07 | 比较级/增减方向丢失（higher than、increase） | 阻断 |
 | F08 | 整句丢失（与所有润色句相似度 <0.45） | 阻断 |
@@ -111,10 +111,10 @@ python eval/metrics.py --out_dir out --base_dir base_out
 ## 7. 自检
 
 ```bash
-python examples/selftest.py      # 24 条断言
+python examples/selftest.py      # 26 条断言
 ```
 
-覆盖：正例、F01/F01b/F11（单位基准变化、编造数字）、F03 编造引用、F04+F05（may→proves 与 found→proved）、**D14/D15 标点紧跟的限定词/否定词（`may,`/`not,`）删除**、F06 否定反写、F10 未声明改事实、F09 凭空加句、T01 术语变体、合法归一（`3.5 wt%` ↔ `3.5 wt %` 放行）、平台入口（minimal-edit 与 LLM 稿两种模式）、降级（无正文/缺 case.json）、基线差值、缺基线数据记 `None`、零事实草稿记 `None`。
+覆盖：正例、F01/F01b/F11（单位基准变化、编造数字）、F03 编造引用、F04+F05（may→proves 与 found→proved；proves→demonstrates 反向放行）、**D14/D15 标点紧跟的限定词/否定词（`may,`/`not,`）删除、D17 强→强同义放行、D18 近义双句删一句**、F06 否定反写、F10 未声明改事实、F09 凭空加句、T01 术语变体、合法归一（`3.5 wt%` ↔ `3.5 wt %` 放行）、平台入口（minimal-edit 与 LLM 稿两种模式）、降级（无正文/缺 case.json）、基线差值、缺基线数据记 `None`、零事实草稿记 `None`。
 
 ## 8. 异常与降级
 

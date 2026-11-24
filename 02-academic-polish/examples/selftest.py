@@ -153,6 +153,19 @@ def main():
     assert "strength_upgrade" in codes(rep), rep["blocking"]
     ok.append("D16 found→proved（原文无 hedge）→ strength_upgrade，不再静默放行")
 
+    # 8l 强→强同义替换是合法润色，不能误判升级
+    rep = fact_ledger.audit("This proves the result.", "This demonstrates the result.", [])
+    assert "strength_upgrade" not in codes(rep), rep["blocking"]
+    ok.append("D17 proves→demonstrates（强→强同义）→ 不报 strength_upgrade，pass 放行")
+
+    # 8m 两句近义源句删掉一句：不能被同一润色句"顶替"
+    src = ("This result is consistent with previous work. "
+           "This result is also consistent with earlier studies.")
+    dst = "This result is consistent with previous work."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "sentence_dropped" in codes(rep), rep["blocking"]
+    ok.append("D18 近义双句删一句 → sentence_dropped（一对一匹配，不再被顶替）")
+
     # 8c 编造数字：原文没有 18 MPa
     rep = fact_ledger.audit(original, polished.replace("above 12 MPa", "above 18 MPa"), changes)
     assert {"number_added", "number_or_unit_loss"} & codes(rep), rep["blocking"]
