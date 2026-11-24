@@ -1,0 +1,66 @@
+# 06 文献总结与结构化笔记 —— 自评对照表（作者自建，非平台评分）
+#
+# 用法：按维度逐条对着 result.json / section_align.md / selftest 输出核，不给自己打分。
+
+meta:
+  question: 06
+  skill: note-archivist
+  scale: 100
+  note: 本文件是自查清单，不包含平台分数，也不替代平台评分。
+
+dimensions:
+  - name: 实际效果
+    weight: 40
+    checks:
+      - id: effect-structure
+        ask: 笔记小节名与顺序是否与原文一致（N02/N03 无阻断）
+        evidence: result.json#result.section_alignment
+      - id: effect-fields
+        ask: 六字段是否都有值或诚实的 not_reported（N06/N11 无阻断）
+        evidence: result.json#result.reading_card + card_support
+      - id: effect-anchor
+        ask: 每条笔记 quote == text[span]，且落在声明的小节内（N07/N08 无阻断）
+        evidence: section_align.md 的 anchor 列
+      - id: effect-numbers
+        ask: 笔记与卡片里的数字都能在原文找到同值（N09 无阻断）
+        evidence: audit.metrics.number_sourced_rate
+
+  - name: 使用增益
+    weight: 25
+    checks:
+      - id: gain-quality
+        ask: 同案例下五率相对裸 Agent 基线均不下降（metrics.pass_gap）
+        evidence: examples/expected/metrics.json
+      - id: gain-efficiency
+        ask: 一条命令出四份产物，无人工补写锚点
+        evidence: scripts/run.py
+
+  - name: 创新
+    weight: 15
+    checks:
+      - id: inno-extractive
+        ask: 笔记为抽取式原文句（非复述），角色化覆盖六类要素
+        evidence: result.notes[*].role / quote
+      - id: inno-span
+        ask: 锚点带字符区间并可被独立脚本反查（生成与审计解耦）
+        evidence: scripts/audit.py
+
+  - name: 可靠体验
+    weight: 10
+    checks:
+      - id: rel-trigger
+        ask: /input/case.json 三种形态都能跑；缺文件/坏 JSON 明确 rejected
+        evidence: examples/selftest.py
+      - id: rel-fallback
+        ask: 无标题全文 → 单节降级 + warning；空文本 → cannot_determine
+        evidence: examples/selftest.py
+
+  - name: 生态贡献
+    weight: 10
+    checks:
+      - id: eco-docs
+        ask: SKILL/README/method/output_contract 四份文档与代码一致（码表、比率、盲区）
+        evidence: 文档间交叉核对
+      - id: eco-reuse
+        ask: 可整包复制到别的项目复用（无绝对路径、无网络依赖）
+        evidence: scripts/ 全部标准库

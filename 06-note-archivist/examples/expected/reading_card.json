@@ -1,0 +1,35 @@
+{
+  "case_id": "demo-note-01",
+  "reading_card": {
+    "problem": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.",
+    "data": "Samples of 25 g wet sediment were collected from 3 gravity cores.",
+    "method": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.",
+    "findings": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.",
+    "limitations": "A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.",
+    "premises": "We assume a constant pore pressure of 12 MPa during each run."
+  },
+  "card_support": {
+    "problem": [
+      "S1-N1",
+      "S2-N1"
+    ],
+    "data": [
+      "S3-N1",
+      "S1-N2"
+    ],
+    "method": [
+      "S3-N2"
+    ],
+    "findings": [
+      "S4-N1",
+      "S5-N2"
+    ],
+    "limitations": [
+      "S6-N1",
+      "S2-N2"
+    ],
+    "premises": [
+      "S3-N3"
+    ]
+  }
+}

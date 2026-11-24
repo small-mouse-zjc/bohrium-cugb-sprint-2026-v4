@@ -1,0 +1,49 @@
+{
+  "real": {
+    "anchor_resolvability_rate": 1.0,
+    "section_coverage_rate": 1.0,
+    "verbatim_support_rate": 1.0,
+    "card_support_rate": 1.0,
+    "number_sourced_rate": 1.0
+  },
+  "baseline": {
+    "anchor_resolvability_rate": 0.0,
+    "section_coverage_rate": 0.0,
+    "verbatim_support_rate": 0.0,
+    "card_support_rate": 0.6667,
+    "number_sourced_rate": 0.0
+  },
+  "table": {
+    "anchor_resolvability_rate": {
+      "real": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "pass": true
+    },
+    "section_coverage_rate": {
+      "real": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "pass": true
+    },
+    "verbatim_support_rate": {
+      "real": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "pass": true
+    },
+    "card_support_rate": {
+      "real": 1.0,
+      "baseline": 0.6667,
+      "delta": 0.3333,
+      "pass": true
+    },
+    "number_sourced_rate": {
+      "real": 1.0,
+      "baseline": 0.0,
+      "delta": 1.0,
+      "pass": true
+    }
+  },
+  "pass_gap": true
+}

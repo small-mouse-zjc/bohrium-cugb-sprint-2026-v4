@@ -1,0 +1,36 @@
+{
+  "case_id": "demo-note-01",
+  "note": "自建演示案例（非平台案例）；主题与本次赛道相近，仅用于验证接口与审计逻辑可运行。",
+  "sections": [
+    {
+      "heading": "Abstract",
+      "page": 1,
+      "text": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment. Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C. Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase within 6 hours."
+    },
+    {
+      "heading": "Introduction",
+      "page": 1,
+      "text": "The research question is whether CO2 can be stored in hydrate reservoirs without destabilising the overlying sediment. Previous work examined pure methane hydrate only, and the effect of CO2 on phase equilibrium remains unclear. Here we examine the coupled effect of CO2 fraction and salinity."
+    },
+    {
+      "heading": "Materials and Methods",
+      "page": 2,
+      "text": "Samples of 25 g wet sediment were collected from 3 gravity cores. Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. Salinity was measured by refractometry. We assume a constant pore pressure of 12 MPa during each run."
+    },
+    {
+      "heading": "Results",
+      "page": 3,
+      "text": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours. Results indicate a mixed hydrate phase at CO2 fractions above 0.5."
+    },
+    {
+      "heading": "Discussion",
+      "page": 4,
+      "text": "The observed shift is consistent with a mixed hydrate stability field. Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt%. The comparison with pure methane runs shows a lower dissociation pressure at 0.7 CO2 fraction."
+    },
+    {
+      "heading": "Limitations",
+      "page": 4,
+      "text": "A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed. The model does not account for sediment compaction, and the temperature control remains uncertain at 4 °C. Further work should test natural cores."
+    }
+  ]
+}

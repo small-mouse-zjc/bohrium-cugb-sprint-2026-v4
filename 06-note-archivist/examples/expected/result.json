@@ -1,0 +1,574 @@
+{
+  "case_id": "demo-note-01",
+  "status": "success",
+  "result": {
+    "structured_notes": "# 结构化笔记\n\n## Abstract\n\n- [problem] We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.\n  - anchor: `§1 ¶1 / p.1 [9-109]`\n- [data] Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C.\n  - anchor: `§1 ¶1 / p.1 [110-188]`\n- [finding] Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase within 6 hours.\n  - anchor: `§1 ¶1 / p.1 [189-284]`\n\n## Introduction\n\n- [problem] The research question is whether CO2 can be stored in hydrate reservoirs without destabilising the overlying sediment.\n  - anchor: `§2 ¶1 / p.1 [299-417]`\n- [limitation] Previous work examined pure methane hydrate only, and the effect of CO2 on phase equilibrium remains unclear.\n  - anchor: `§2 ¶1 / p.1 [418-527]`\n- [problem] Here we examine the coupled effect of CO2 fraction and salinity.\n  - anchor: `§2 ¶1 / p.1 [528-592]`\n\n## Materials and Methods\n\n- [data] Samples of 25 g wet sediment were collected from 3 gravity cores.\n  - anchor: `§3 ¶1 / p.2 [616-681]`\n- [method] Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.\n  - anchor: `§3 ¶1 / p.2 [682-788]`\n- [premise] We assume a constant pore pressure of 12 MPa during each run.\n  - anchor: `§3 ¶1 / p.2 [829-890]`\n\n## Results\n\n- [finding] CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.\n  - anchor: `§4 ¶1 / p.3 [900-996]`\n- [background] The measured permeability dropped from 120 mD to 45 mD after 6 hours.\n  - anchor: `§4 ¶1 / p.3 [997-1066]`\n- [finding] Results indicate a mixed hydrate phase at CO2 fractions above 0.5.\n  - anchor: `§4 ¶1 / p.3 [1067-1133]`\n\n## Discussion\n\n- [finding] The observed shift is consistent with a mixed hydrate stability field.\n  - anchor: `§5 ¶1 / p.4 [1146-1216]`\n- [finding] Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt%.\n  - anchor: `§5 ¶1 / p.4 [1217-1299]`\n- [finding] The comparison with pure methane runs shows a lower dissociation pressure at 0.7 CO2 fraction.\n  - anchor: `§5 ¶1 / p.4 [1300-1394]`\n\n## Limitations\n\n- [limitation] A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.\n  - anchor: `§6 ¶1 / p.4 [1408-1511]`\n- [limitation] The model does not account for sediment compaction, and the temperature control remains uncertain at 4 °C.\n  - anchor: `§6 ¶1 / p.4 [1512-1618]`\n- [data] Further work should test natural cores.\n  - anchor: `§6 ¶1 / p.4 [1619-1658]`\n",
+    "notes": [
+      {
+        "note_id": "S1-N1",
+        "section": "Abstract",
+        "section_index": 0,
+        "role": "problem",
+        "quote": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.",
+        "anchor": "§1 ¶1 / p.1 [9-109]",
+        "span": [
+          9,
+          109
+        ],
+        "page": 1,
+        "para": 1
+      },
+      {
+        "note_id": "S1-N2",
+        "section": "Abstract",
+        "section_index": 0,
+        "role": "data",
+        "quote": "Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C.",
+        "anchor": "§1 ¶1 / p.1 [110-188]",
+        "span": [
+          110,
+          188
+        ],
+        "page": 1,
+        "para": 1
+      },
+      {
+        "note_id": "S1-N3",
+        "section": "Abstract",
+        "section_index": 0,
+        "role": "finding",
+        "quote": "Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase within 6 hours.",
+        "anchor": "§1 ¶1 / p.1 [189-284]",
+        "span": [
+          189,
+          284
+        ],
+        "page": 1,
+        "para": 1
+      },
+      {
+        "note_id": "S2-N1",
+        "section": "Introduction",
+        "section_index": 1,
+        "role": "problem",
+        "quote": "The research question is whether CO2 can be stored in hydrate reservoirs without destabilising the overlying sediment.",
+        "anchor": "§2 ¶1 / p.1 [299-417]",
+        "span": [
+          299,
+          417
+        ],
+        "page": 1,
+        "para": 1
+      },
+      {
+        "note_id": "S2-N2",
+        "section": "Introduction",
+        "section_index": 1,
+        "role": "limitation",
+        "quote": "Previous work examined pure methane hydrate only, and the effect of CO2 on phase equilibrium remains unclear.",
+        "anchor": "§2 ¶1 / p.1 [418-527]",
+        "span": [
+          418,
+          527
+        ],
+        "page": 1,
+        "para": 1
+      },
+      {
+        "note_id": "S2-N3",
+        "section": "Introduction",
+        "section_index": 1,
+        "role": "problem",
+        "quote": "Here we examine the coupled effect of CO2 fraction and salinity.",
+        "anchor": "§2 ¶1 / p.1 [528-592]",
+        "span": [
+          528,
+          592
+        ],
+        "page": 1,
+        "para": 1
+      },
+      {
+        "note_id": "S3-N1",
+        "section": "Materials and Methods",
+        "section_index": 2,
+        "role": "data",
+        "quote": "Samples of 25 g wet sediment were collected from 3 gravity cores.",
+        "anchor": "§3 ¶1 / p.2 [616-681]",
+        "span": [
+          616,
+          681
+        ],
+        "page": 2,
+        "para": 1
+      },
+      {
+        "note_id": "S3-N2",
+        "section": "Materials and Methods",
+        "section_index": 2,
+        "role": "method",
+        "quote": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.",
+        "anchor": "§3 ¶1 / p.2 [682-788]",
+        "span": [
+          682,
+          788
+        ],
+        "page": 2,
+        "para": 1
+      },
+      {
+        "note_id": "S3-N3",
+        "section": "Materials and Methods",
+        "section_index": 2,
+        "role": "premise",
+        "quote": "We assume a constant pore pressure of 12 MPa during each run.",
+        "anchor": "§3 ¶1 / p.2 [829-890]",
+        "span": [
+          829,
+          890
+        ],
+        "page": 2,
+        "para": 1
+      },
+      {
+        "note_id": "S4-N1",
+        "section": "Results",
+        "section_index": 3,
+        "role": "finding",
+        "quote": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.",
+        "anchor": "§4 ¶1 / p.3 [900-996]",
+        "span": [
+          900,
+          996
+        ],
+        "page": 3,
+        "para": 1
+      },
+      {
+        "note_id": "S4-N2",
+        "section": "Results",
+        "section_index": 3,
+        "role": "background",
+        "quote": "The measured permeability dropped from 120 mD to 45 mD after 6 hours.",
+        "anchor": "§4 ¶1 / p.3 [997-1066]",
+        "span": [
+          997,
+          1066
+        ],
+        "page": 3,
+        "para": 1
+      },
+      {
+        "note_id": "S4-N3",
+        "section": "Results",
+        "section_index": 3,
+        "role": "finding",
+        "quote": "Results indicate a mixed hydrate phase at CO2 fractions above 0.5.",
+        "anchor": "§4 ¶1 / p.3 [1067-1133]",
+        "span": [
+          1067,
+          1133
+        ],
+        "page": 3,
+        "para": 1
+      },
+      {
+        "note_id": "S5-N1",
+        "section": "Discussion",
+        "section_index": 4,
+        "role": "finding",
+        "quote": "The observed shift is consistent with a mixed hydrate stability field.",
+        "anchor": "§5 ¶1 / p.4 [1146-1216]",
+        "span": [
+          1146,
+          1216
+        ],
+        "page": 4,
+        "para": 1
+      },
+      {
+        "note_id": "S5-N2",
+        "section": "Discussion",
+        "section_index": 4,
+        "role": "finding",
+        "quote": "Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt%.",
+        "anchor": "§5 ¶1 / p.4 [1217-1299]",
+        "span": [
+          1217,
+          1299
+        ],
+        "page": 4,
+        "para": 1
+      },
+      {
+        "note_id": "S5-N3",
+        "section": "Discussion",
+        "section_index": 4,
+        "role": "finding",
+        "quote": "The comparison with pure methane runs shows a lower dissociation pressure at 0.7 CO2 fraction.",
+        "anchor": "§5 ¶1 / p.4 [1300-1394]",
+        "span": [
+          1300,
+          1394
+        ],
+        "page": 4,
+        "para": 1
+      },
+      {
+        "note_id": "S6-N1",
+        "section": "Limitations",
+        "section_index": 5,
+        "role": "limitation",
+        "quote": "A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.",
+        "anchor": "§6 ¶1 / p.4 [1408-1511]",
+        "span": [
+          1408,
+          1511
+        ],
+        "page": 4,
+        "para": 1
+      },
+      {
+        "note_id": "S6-N2",
+        "section": "Limitations",
+        "section_index": 5,
+        "role": "limitation",
+        "quote": "The model does not account for sediment compaction, and the temperature control remains uncertain at 4 °C.",
+        "anchor": "§6 ¶1 / p.4 [1512-1618]",
+        "span": [
+          1512,
+          1618
+        ],
+        "page": 4,
+        "para": 1
+      },
+      {
+        "note_id": "S6-N3",
+        "section": "Limitations",
+        "section_index": 5,
+        "role": "data",
+        "quote": "Further work should test natural cores.",
+        "anchor": "§6 ¶1 / p.4 [1619-1658]",
+        "span": [
+          1619,
+          1658
+        ],
+        "page": 4,
+        "para": 1
+      }
+    ],
+    "section_alignment": [
+      {
+        "section": "Abstract",
+        "section_index": 0,
+        "notes": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment. Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C. Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase within 6 hours.",
+        "note_ids": [
+          "S1-N1",
+          "S1-N2",
+          "S1-N3"
+        ],
+        "anchor": "§1 ¶1 / p.1 [9-109]"
+      },
+      {
+        "section": "Introduction",
+        "section_index": 1,
+        "notes": "The research question is whether CO2 can be stored in hydrate reservoirs without destabilising the overlying sediment. Previous work examined pure methane hydrate only, and the effect of CO2 on phase equilibrium remains unclear. Here we examine the coupled effect of CO2 fraction and salinity.",
+        "note_ids": [
+          "S2-N1",
+          "S2-N2",
+          "S2-N3"
+        ],
+        "anchor": "§2 ¶1 / p.1 [299-417]"
+      },
+      {
+        "section": "Materials and Methods",
+        "section_index": 2,
+        "notes": "Samples of 25 g wet sediment were collected from 3 gravity cores. Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9. We assume a constant pore pressure of 12 MPa during each run.",
+        "note_ids": [
+          "S3-N1",
+          "S3-N2",
+          "S3-N3"
+        ],
+        "anchor": "§3 ¶1 / p.2 [616-681]"
+      },
+      {
+        "section": "Results",
+        "section_index": 3,
+        "notes": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7. The measured permeability dropped from 120 mD to 45 mD after 6 hours. Results indicate a mixed hydrate phase at CO2 fractions above 0.5.",
+        "note_ids": [
+          "S4-N1",
+          "S4-N2",
+          "S4-N3"
+        ],
+        "anchor": "§4 ¶1 / p.3 [900-996]"
+      },
+      {
+        "section": "Discussion",
+        "section_index": 4,
+        "notes": "The observed shift is consistent with a mixed hydrate stability field. Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt%. The comparison with pure methane runs shows a lower dissociation pressure at 0.7 CO2 fraction.",
+        "note_ids": [
+          "S5-N1",
+          "S5-N2",
+          "S5-N3"
+        ],
+        "anchor": "§5 ¶1 / p.4 [1146-1216]"
+      },
+      {
+        "section": "Limitations",
+        "section_index": 5,
+        "notes": "A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed. The model does not account for sediment compaction, and the temperature control remains uncertain at 4 °C. Further work should test natural cores.",
+        "note_ids": [
+          "S6-N1",
+          "S6-N2",
+          "S6-N3"
+        ],
+        "anchor": "§6 ¶1 / p.4 [1408-1511]"
+      }
+    ],
+    "reading_card": {
+      "problem": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bearing marine sediment.",
+      "data": "Samples of 25 g wet sediment were collected from 3 gravity cores.",
+      "method": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a CO2 fraction of 0.3 to 0.9.",
+      "findings": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 fraction of 0.7.",
+      "limitations": "A limitation of this study is that only 3 cores were tested, so spatial variability cannot be assessed.",
+      "premises": "We assume a constant pore pressure of 12 MPa during each run."
+    },
+    "card_support": {
+      "problem": [
+        "S1-N1",
+        "S2-N1"
+      ],
+      "data": [
+        "S3-N1",
+        "S1-N2"
+      ],
+      "method": [
+        "S3-N2"
+      ],
+      "findings": [
+        "S4-N1",
+        "S5-N2"
+      ],
+      "limitations": [
+        "S6-N1",
+        "S2-N2"
+      ],
+      "premises": [
+        "S3-N3"
+      ]
+    },
+    "anchor_verification": [
+      {
+        "note_id": "S1-N1",
+        "anchor": "§1 ¶1 / p.1 [9-109]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S1-N2",
+        "anchor": "§1 ¶1 / p.1 [110-188]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S1-N3",
+        "anchor": "§1 ¶1 / p.1 [189-284]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S2-N1",
+        "anchor": "§2 ¶1 / p.1 [299-417]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S2-N2",
+        "anchor": "§2 ¶1 / p.1 [418-527]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S2-N3",
+        "anchor": "§2 ¶1 / p.1 [528-592]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S3-N1",
+        "anchor": "§3 ¶1 / p.2 [616-681]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S3-N2",
+        "anchor": "§3 ¶1 / p.2 [682-788]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S3-N3",
+        "anchor": "§3 ¶1 / p.2 [829-890]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S4-N1",
+        "anchor": "§4 ¶1 / p.3 [900-996]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S4-N2",
+        "anchor": "§4 ¶1 / p.3 [997-1066]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S4-N3",
+        "anchor": "§4 ¶1 / p.3 [1067-1133]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S5-N1",
+        "anchor": "§5 ¶1 / p.4 [1146-1216]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S5-N2",
+        "anchor": "§5 ¶1 / p.4 [1217-1299]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S5-N3",
+        "anchor": "§5 ¶1 / p.4 [1300-1394]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S6-N1",
+        "anchor": "§6 ¶1 / p.4 [1408-1511]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S6-N2",
+        "anchor": "§6 ¶1 / p.4 [1512-1618]",
+        "verified": true,
+        "check": "quote==text[span]"
+      },
+      {
+        "note_id": "S6-N3",
+        "anchor": "§6 ¶1 / p.4 [1619-1658]",
+        "verified": true,
+        "check": "quote==text[span]"
+      }
+    ],
+    "artifacts": {
+      "notes_md": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06c\\notes.md",
+      "reading_card_json": "C:\\Users\\86198\\AppData\\Local\\Temp\\e06c\\reading_card.json"
+    }
+  },
+  "evidence": [
+    {
+      "anchor": "§1 ¶1 / p.1 [9-109]",
+      "note": "We investigate how CO2 injection changes the phase behaviour of gas hydrate-bear"
+    },
+    {
+      "anchor": "§1 ¶1 / p.1 [110-188]",
+      "note": "Core samples from 3 sites in the Qionghai area were tested at 12 MPa and 4 °C."
+    },
+    {
+      "anchor": "§1 ¶1 / p.1 [189-284]",
+      "note": "Results show that CO2 displaces methane hydrate and forms a mixed hydrate phase "
+    },
+    {
+      "anchor": "§2 ¶1 / p.1 [299-417]",
+      "note": "The research question is whether CO2 can be stored in hydrate reservoirs without"
+    },
+    {
+      "anchor": "§2 ¶1 / p.1 [418-527]",
+      "note": "Previous work examined pure methane hydrate only, and the effect of CO2 on phase"
+    },
+    {
+      "anchor": "§2 ¶1 / p.1 [528-592]",
+      "note": "Here we examine the coupled effect of CO2 fraction and salinity."
+    },
+    {
+      "anchor": "§3 ¶1 / p.2 [616-681]",
+      "note": "Samples of 25 g wet sediment were collected from 3 gravity cores."
+    },
+    {
+      "anchor": "§3 ¶1 / p.2 [682-788]",
+      "note": "Experiments were performed in a high-pressure cell at 12 MPa and 4 °C, using a C"
+    },
+    {
+      "anchor": "§3 ¶1 / p.2 [829-890]",
+      "note": "We assume a constant pore pressure of 12 MPa during each run."
+    },
+    {
+      "anchor": "§4 ¶1 / p.3 [900-996]",
+      "note": "CO2 injection increased the hydrate dissociation temperature by 2.4 °C at a CO2 "
+    },
+    {
+      "anchor": "§4 ¶1 / p.3 [997-1066]",
+      "note": "The measured permeability dropped from 120 mD to 45 mD after 6 hours."
+    },
+    {
+      "anchor": "§4 ¶1 / p.3 [1067-1133]",
+      "note": "Results indicate a mixed hydrate phase at CO2 fractions above 0.5."
+    },
+    {
+      "anchor": "§5 ¶1 / p.4 [1146-1216]",
+      "note": "The observed shift is consistent with a mixed hydrate stability field."
+    },
+    {
+      "anchor": "§5 ¶1 / p.4 [1217-1299]",
+      "note": "Our data suggest that CO2 storage capacity is limited at salinities above 3.5 wt"
+    },
+    {
+      "anchor": "§5 ¶1 / p.4 [1300-1394]",
+      "note": "The comparison with pure methane runs shows a lower dissociation pressure at 0.7"
+    },
+    {
+      "anchor": "§6 ¶1 / p.4 [1408-1511]",
+      "note": "A limitation of this study is that only 3 cores were tested, so spatial variabil"
+    },
+    {
+      "anchor": "§6 ¶1 / p.4 [1512-1618]",
+      "note": "The model does not account for sediment compaction, and the temperature control "
+    },
+    {
+      "anchor": "§6 ¶1 / p.4 [1619-1658]",
+      "note": "Further work should test natural cores."
+    }
+  ],
+  "uncertainty": [],
+  "audit": {
+    "blocking": [],
+    "advisory": [],
+    "rates": {
+      "anchor_resolvability_rate": 1.0,
+      "section_coverage_rate": 1.0,
+      "verbatim_support_rate": 1.0,
+      "card_support_rate": 1.0,
+      "number_sourced_rate": 1.0,
+      "notes_count": 18,
+      "sections": 6
+    },
+    "pass": true,
+    "codes": []
+  },
+  "metrics": {
+    "anchor_resolvability_rate": 1.0,
+    "section_coverage_rate": 1.0,
+    "verbatim_support_rate": 1.0,
+    "card_support_rate": 1.0,
+    "number_sourced_rate": 1.0,
+    "notes_count": 18,
+    "sections": 6
+  }
+}

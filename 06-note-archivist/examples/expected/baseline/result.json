@@ -1,0 +1,89 @@
+{
+  "case_id": "demo-note-01",
+  "status": "success",
+  "result": {
+    "structured_notes": "Introduction：复述该节主要内容，未保留原文句。\n\nMethods：复述该节主要内容，未保留原文句。\n\nResults：复述该节主要内容，未保留原文句。\n\nConclusion：复述该节主要内容，未保留原文句。",
+    "notes": [
+      {
+        "note_id": "B1",
+        "section": "Introduction",
+        "quote": "Introduction 部分的主要内容（复述，非原文）。",
+        "anchor": "全文"
+      },
+      {
+        "note_id": "B2",
+        "section": "Methods",
+        "quote": "Methods 部分的主要内容（复述，非原文）。",
+        "anchor": "全文"
+      },
+      {
+        "note_id": "B3",
+        "section": "Results",
+        "quote": "Results 部分的主要内容（复述，非原文）。",
+        "anchor": "全文"
+      },
+      {
+        "note_id": "B4",
+        "section": "Conclusion",
+        "quote": "Conclusion 部分的主要内容（复述，非原文）。",
+        "anchor": "全文"
+      }
+    ],
+    "section_alignment": [
+      {
+        "section": "Introduction",
+        "notes": "复述",
+        "anchor": "全文"
+      },
+      {
+        "section": "Methods",
+        "notes": "复述",
+        "anchor": "全文"
+      },
+      {
+        "section": "Results",
+        "notes": "复述",
+        "anchor": "全文"
+      },
+      {
+        "section": "Conclusion",
+        "notes": "复述",
+        "anchor": "全文"
+      }
+    ],
+    "reading_card": {
+      "problem": "研究 CO2 对水合物储层相态的影响。",
+      "data": "共 30 个样品，重复 3 次。",
+      "method": "高压反应釜实验加数值模拟。",
+      "findings": "CO2 注入显著改变了水合物相态。",
+      "limitations": "",
+      "premises": ""
+    },
+    "card_support": {},
+    "anchor_verification": [
+      {
+        "note_id": "B1",
+        "anchor": "全文",
+        "verified": true
+      },
+      {
+        "note_id": "B2",
+        "anchor": "全文",
+        "verified": true
+      },
+      {
+        "note_id": "B3",
+        "anchor": "全文",
+        "verified": true
+      },
+      {
+        "note_id": "B4",
+        "anchor": "全文",
+        "verified": true
+      }
+    ],
+    "artifacts": {}
+  },
+  "evidence": [],
+  "uncertainty": []
+}
