@@ -32,9 +32,9 @@ description: 把论文结论拆成"一句一断言"，每条绑逐字证据，�
 | `assertions.json` | 校验后的断言清单（含 `evidence` 与 `confidence/derivation`） |
 | `nanopub.jsonld` | `@context` + 四层结构 |
 | `nanopub.trig` | 每条断言一个命名图 |
-| `validation.json` | 原子率/逐字率/来源率/回解析 + 逐条违规码 |
+| `validation.json` | 原子率/逐字率/来源率/回解析/序列化一致性 + 逐条违规码 |
 
-`status` 只能取 `success / partial / cannot_determine / rejected`，全部由 `scripts/run.py` 按产物判定：`success` 需 `pass=true`、断言 ≥3 条、TriG 回解析成功；有违规 → `partial`；缺断言文件 → `rejected`。
+`status` 只能取 `success / partial / cannot_determine / rejected`，全部由 `scripts/run.py` 按产物判定：`success` 需 `pass=true`、断言 ≥3 条、TriG 通过真语法解析、JSON-LD 与 TriG 标识一致；有违规 → `partial`；缺断言文件 → `rejected`。
 
 ## 3. 流程（4 步）
 
@@ -49,7 +49,7 @@ description: 把论文结论拆成"一句一断言"，每条绑逐字证据，�
 ```
 python scripts/nanopub.py build --assertions work/assertions.json --sources work/sources.json --out /app/output
 ```
-违规码：N01 非原子、N02 引文非连续子串、N03 长度越界、N04 证据不含主体/客体、N05 来源不全、N06 关系词越界、N07 重复断言、N08 回解析不一致。
+违规码：N01 非原子、N02 引文非连续子串、N03 长度越界、N04 证据不含主体/客体、N05 来源不全、N06 关系词越界、N07 重复断言、N08 TriG 语法/计数不通过、N09 JSON-LD 与 TriG 标识不一致。
 
 **第 4 步 修到全绿再交付**
 逐条修 `validation.json` 的违规后重跑；任一硬指标 < 1.00 时 `status` 最多 `partial`，并在 `result.json` 写清剩余问题。
@@ -85,4 +85,5 @@ python examples/selftest.py
 
 - 不做数字签名，不声称已发布到 Nanopub 网络。
 - 不伪造 DOI、页码、引文。
-- 回解析通过只证明结构可读，不证明结论为真。
+- 回解析通过只证明结构可读（语法与标识层面），不证明结论为真。
+- 本 Skill 的 TriG 解析器只覆盖自己产出的语法子集；遇到带 blank node、集合、命名图嵌套的外部 TriG，会报语法错而不是误判为通过。

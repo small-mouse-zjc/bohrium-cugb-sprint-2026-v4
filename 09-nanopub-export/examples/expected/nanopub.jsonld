@@ -23,13 +23,19 @@
       "@id": "https://example.org/np/demo-nanopub-01/A1/assertion",
       "@type": "np:Assertion",
       "rel:subject": {
-        "label": "gas hydrate",
-        "type": "material"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/gas-hydrate",
+        "@type": "rel:Entity",
+        "rel:label": "gas hydrate",
+        "rel:entityType": "material"
       },
-      "rel:relation": "located_in",
+      "rel:relation": {
+        "@id": "https://example.org/rel/located_in"
+      },
       "rel:object": {
-        "label": "marine sediment",
-        "type": "environment"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/marine-sediment",
+        "@type": "rel:Entity",
+        "rel:label": "marine sediment",
+        "rel:entityType": "environment"
       },
       "rel:qualifier": "site CUG-3",
       "rel:text": "Gas hydrate occurs in marine sediment at site CUG-3."
@@ -70,13 +76,19 @@
       "@id": "https://example.org/np/demo-nanopub-01/A2/assertion",
       "@type": "np:Assertion",
       "rel:subject": {
-        "label": "hydrate stability zone",
-        "type": "boundary"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/hydrate-stability-zone",
+        "@type": "rel:Entity",
+        "rel:label": "hydrate stability zone",
+        "rel:entityType": "boundary"
       },
-      "rel:relation": "located_in",
+      "rel:relation": {
+        "@id": "https://example.org/rel/located_in"
+      },
       "rel:object": {
-        "label": "seafloor",
-        "type": "boundary"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/seafloor",
+        "@type": "rel:Entity",
+        "rel:label": "seafloor",
+        "rel:entityType": "boundary"
       },
       "rel:qualifier": "base at 12 m",
       "rel:text": "The hydrate stability zone extends 12 m below the seafloor."
@@ -117,13 +129,19 @@
       "@id": "https://example.org/np/demo-nanopub-01/A3/assertion",
       "@type": "np:Assertion",
       "rel:subject": {
-        "label": "dissociation pressure",
-        "type": "property"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/dissociation-pressure",
+        "@type": "rel:Entity",
+        "rel:label": "dissociation pressure",
+        "rel:entityType": "property"
       },
-      "rel:relation": "increases",
+      "rel:relation": {
+        "@id": "https://example.org/rel/increases"
+      },
       "rel:object": {
-        "label": "salinity",
-        "type": "property"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/salinity",
+        "@type": "rel:Entity",
+        "rel:label": "salinity",
+        "rel:entityType": "property"
       },
       "rel:qualifier": "4 °C; 0→3.5 wt%; +0.9 MPa",
       "rel:text": "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C."
@@ -164,13 +182,19 @@
       "@id": "https://example.org/np/demo-nanopub-01/A4/assertion",
       "@type": "np:Assertion",
       "rel:subject": {
-        "label": "permeability of the sandy layer",
-        "type": "property"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/permeability-of-the-sandy-layer",
+        "@type": "rel:Entity",
+        "rel:label": "permeability of the sandy layer",
+        "rel:entityType": "property"
       },
-      "rel:relation": "exceeds",
+      "rel:relation": {
+        "@id": "https://example.org/rel/exceeds"
+      },
       "rel:object": {
-        "label": "permeability of the clay",
-        "type": "property"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/permeability-of-the-clay",
+        "@type": "rel:Entity",
+        "rel:label": "permeability of the clay",
+        "rel:entityType": "property"
       },
       "rel:qualifier": "by one order of magnitude",
       "rel:text": "Permeability of the sandy layer is one order of magnitude higher than that of the clay."
@@ -211,13 +235,19 @@
       "@id": "https://example.org/np/demo-nanopub-01/A5/assertion",
       "@type": "np:Assertion",
       "rel:subject": {
-        "label": "pore-water salinity",
-        "type": "property"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/pore-water-salinity",
+        "@type": "rel:Entity",
+        "rel:label": "pore-water salinity",
+        "rel:entityType": "property"
       },
-      "rel:relation": "has_value",
+      "rel:relation": {
+        "@id": "https://example.org/rel/has_value"
+      },
       "rel:object": {
-        "label": "3.5 wt% NaCl equivalent",
-        "type": "value"
+        "@id": "https://example.org/np/demo-nanopub-01/ent/3.5-wt%25-nacl-equivalent",
+        "@type": "rel:Entity",
+        "rel:label": "3.5 wt% NaCl equivalent",
+        "rel:entityType": "value"
       },
       "rel:qualifier": "site CUG-3",
       "rel:text": "Pore-water salinity is 3.5 wt% NaCl equivalent."

@@ -10,6 +10,8 @@ import json
 import re
 from pathlib import Path
 
+import trig as triglib
+
 VOCAB = ["increases", "decreases", "supports", "contradicts", "uses", "measured_by",
          "located_in", "composed_of", "exceeds", "has_value"]
 CONNECT = ["并且", "而且", "以及", "；", ";", " and ", "此外"]
@@ -115,6 +117,14 @@ def build(assertions, sources, paper):
     return out, viol
 
 
+def node_of(ent, case_id):
+    """JSON-LD 里主体/客体统一写成 IRI 节点，与 TriG 的 ent_iri 完全同一标识。"""
+    return {"@id": ent_iri(str(ent.get("label", "")), case_id),
+            "@type": "rel:Entity",
+            "rel:label": ent.get("label"),
+            "rel:entityType": ent.get("type")}
+
+
 def export_jsonld(asserts, paper, case_id):
     base = f"https://example.org/np/{case_id}/"
     ctx = {"np": "http://www.nanopub.org/nschema#", "rel": "https://example.org/rel/",
@@ -127,8 +137,10 @@ def export_jsonld(asserts, paper, case_id):
                       "np:hasProvenance": {"@id": gid + "/provenance"},
                       "np:hasPublicationInfo": {"@id": gid + "/pubinfo"}})
         graph.append({"@id": gid + "/assertion", "@type": "np:Assertion",
-                      "rel:subject": a["subject"], "rel:relation": a["relation"],
-                      "rel:object": a["object"], "rel:qualifier": a["qualifier"],
+                      "rel:subject": node_of(a["subject"], case_id),
+                      "rel:relation": {"@id": rel_iri(a["relation"])},
+                      "rel:object": node_of(a["object"], case_id),
+                      "rel:qualifier": a["qualifier"],
                       "rel:text": a["text"]})
         graph.append({"@id": gid + "/provenance", "@type": "np:Provenance",
                       "prov:wasDerivedFrom": {"@id": doi_iri(paper.get("doi"), case_id)},
@@ -159,7 +171,11 @@ def export_trig(asserts, paper, case_id):
              f"  <{gid}/assertion> a np:Assertion ;\n"
              f"      rel:relation <{rel_iri(a['relation'])}> ;\n"
              f"      rel:subject <{ent_iri(str(a['subject'].get('label','')), case_id)}> ;\n"
+             f"      rel:subjectLabel {lit(str(a['subject'].get('label','')))} ;\n"
+             f"      rel:subjectType {lit(str(a['subject'].get('type') or ''))} ;\n"
              f"      rel:object <{ent_iri(str(a['object'].get('label','')), case_id)}> ;\n"
+             f"      rel:objectLabel {lit(str(a['object'].get('label','')))} ;\n"
+             f"      rel:objectType {lit(str(a['object'].get('type') or ''))} ;\n"
              f"      rel:qualifier {lit(a['qualifier'])} ;\n"
              f"      rel:text {lit(a['text'])} .\n"
              f"  <{gid}/provenance> a np:Provenance ;\n"
@@ -176,11 +192,46 @@ def export_trig(asserts, paper, case_id):
 
 
 def reparse(trig_text, n_asserts):
-    graphs = re.findall(r"<([^>]+)>\s*\{", trig_text)
-    quotes = re.findall(r"rel:quote ", trig_text)
-    nested = re.findall(r"<([^>]+/assertion)> a np:Assertion", trig_text)
-    ok = len(graphs) == n_asserts and len(quotes) == n_asserts and len(nested) == n_asserts
-    return {"named_graphs": len(graphs), "assertion_nodes": len(nested), "quotes": len(quotes), "ok": ok}
+    """真解析：语法错就 ok=False（不是数出现次数）。"""
+    try:
+        parsed = triglib.parse(trig_text)
+    except triglib.TrigError as exc:
+        return {"named_graphs": 0, "assertion_nodes": 0, "quotes": 0, "ok": False,
+                "error": exc.msg, "pos": exc.pos}
+    s = triglib.summarize(parsed)
+    s["ok"] = (s["named_graphs"] == n_asserts and s["assertion_nodes"] == n_asserts
+               and s["quotes"] == n_asserts)
+    return s
+
+
+def compare_serializations(jsonld, parsed, asserts, case_id):
+    """JSON-LD 与 TriG 必须对同一断言给出同一组 IRI（主/客/关系）。"""
+    base = f"https://example.org/np/{case_id}/"
+    rel = "https://example.org/rel/"
+    ld_nodes = {}
+    for node in jsonld.get("@graph", []):
+        nid = node.get("@id")
+        if isinstance(nid, str) and nid.endswith("/assertion"):
+            ld_nodes[nid] = node
+    tri = {}
+    for t in parsed["triples"]:
+        if t["s"].endswith("/assertion") and t["p"].startswith(rel) and t["kind"] == "iri":
+            tri.setdefault(t["s"], {})[t["p"][len(rel):]] = t["o"]
+    checked, mismatch = 0, []
+    for a in asserts:
+        nid = base + a["id"] + "/assertion"
+        ld, tg = ld_nodes.get(nid), tri.get(nid)
+        if not ld or not tg:
+            mismatch.append({"id": a["id"], "field": "*", "why": "missing_node_in_one_serialization"})
+            continue
+        for field, key in (("subject", "subject"), ("object", "object"), ("relation", "relation")):
+            checked += 1
+            lv = (ld.get("rel:" + field) or {}).get("@id") if isinstance(ld.get("rel:" + field), dict) else None
+            if lv != tg.get(key):
+                mismatch.append({"id": a["id"], "field": field, "jsonld": lv, "trig": tg.get(key)})
+    rate = round((checked - len([m for m in mismatch if m["field"] != "*"])) / checked, 4) if checked else None
+    return {"checked": checked, "mismatch": mismatch, "consistency_rate": rate,
+            "ok": not mismatch}
 
 
 def main():
@@ -207,6 +258,17 @@ def main():
     if not rt["ok"]:
         viol.append({"code": "N08", "detail": f"导出回解析失败: {rt}"})
 
+    jsonld = export_jsonld(asserts, paper, case_id)
+    try:
+        parsed = triglib.parse(trig)
+        ser = compare_serializations(jsonld, parsed, asserts, case_id)
+    except triglib.TrigError as exc:
+        ser = {"checked": 0, "mismatch": [], "consistency_rate": None, "ok": False,
+               "error": exc.msg}
+    if not ser["ok"] and asserts:
+        viol.append({"code": "N09", "detail": f"JSON-LD 与 TriG 标识不一致: {ser['mismatch'][:3]}",
+                     "rate": ser["consistency_rate"]})
+
     # 按"受影响的断言 id"算比率，而不是按违规条数（一条断言可能同时触发 2 条 N01，
     # 旧写法 1 - 条数/断言数 会算出负数或把 0 断言记成 1.00）
     n = len(asserts)
@@ -218,7 +280,7 @@ def main():
     if n == 0:
         viol.append({"code": "N00", "detail": "断言文件里没有断言，无法导出（比率记 null，不记 1.00）"})
         rates = {"assertions": 0, "atomic_rate": None, "verbatim_rate": None, "provenance_rate": None,
-                 "export_roundtrip": False, "violations": len(viol)}
+                 "export_roundtrip": False, "serialization_consistency_rate": None, "violations": len(viol)}
         trig = ""
         rt = {"named_graphs": 0, "assertion_nodes": 0, "quotes": 0, "ok": False}
     else:
@@ -226,14 +288,17 @@ def main():
                  "atomic_rate": round((n - len(atomic_bad)) / n, 4),
                  "verbatim_rate": round((n - len(verbatim_bad)) / n, 4),
                  "provenance_rate": round((n - len(prov_bad)) / n, 4),
-                 "export_roundtrip": rt["ok"], "violations": len(viol)}
+                 "export_roundtrip": rt["ok"],
+                 "serialization_consistency_rate": ser["consistency_rate"],
+                 "violations": len(viol)}
 
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "assertions.json").write_text(json.dumps({"case_id": case_id, "paper": paper, "assertions": asserts}, ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "nanopub.jsonld").write_text(json.dumps(export_jsonld(asserts, paper, case_id), ensure_ascii=False, indent=2), encoding="utf-8")
     (out / "nanopub.trig").write_text(trig, encoding="utf-8")
-    (out / "validation.json").write_text(json.dumps({"rates": rates, "roundtrip": rt, "violations": viol,
+    (out / "validation.json").write_text(json.dumps({"rates": rates, "roundtrip": rt,
+                                                     "serialization": ser, "violations": viol,
                                                      "pass": not viol}, ensure_ascii=False, indent=2), encoding="utf-8")
     print(json.dumps({"assertions": len(asserts), "violations": len(viol), "roundtrip": rt["ok"],
                       "codes": sorted({v["code"] for v in viol})}, ensure_ascii=False))

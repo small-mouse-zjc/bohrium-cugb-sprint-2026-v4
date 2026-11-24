@@ -19,7 +19,9 @@
 | 命名图 | 每条断言一个 `<.../np/An>` 图 | TriG `{ ... }` |
 
 ## 4. 为什么要回解析
-导出"看起来像 RDF"不等于可被下游读。`build` 写完 TriG 立刻重解析：命名图数、`np:Assertion` 节点数、`rel:quote` 数都必须等于断言数，否则 N08。这样"读得懂"有可执行判据，而不是作者自述。
+导出"看起来像 RDF"不等于可被下游读。`build` 写完 TriG 立刻交给 `scripts/trig.py` 真解析（tokenizer + 递归下降，不是正则计数）：括号必须闭合、每条三元组以 `.` 结束、字面量必须闭合且转义合法、主语不得是字面量；语法失败抛 `TrigSyntaxError`（带字符位置）→ N08。解析通过后再数命名图、`np:Assertion` 节点、`rel:quote` 字面量，三者都等于断言数才算 `export_roundtrip=true`。
+
+同一断言在两种序列化里必须是同一组 IRI：JSON-LD 的 `rel:subject`/`rel:object` 写成 `{"@id": ent_iri, "rel:label":…, "rel:entityType":…}`，`rel:relation` 写成 `{"@id": rel_iri}`；TriG 对应写成 `<ent_iri>` 与 `<rel_iri>`，并额外带 `rel:subjectLabel` 等字面量保留人读标签。`compare_serializations()` 逐断言比对主/客/关系三项，任何一项不同即 N09，并给出 `serialization_consistency_rate`。
 
 ## 5. 已知边界
 - 不做数字签名与 Nanopub 网络发布，只做结构对齐。

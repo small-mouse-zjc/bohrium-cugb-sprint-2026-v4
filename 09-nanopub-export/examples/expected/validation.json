@@ -5,12 +5,20 @@
     "verbatim_rate": 1.0,
     "provenance_rate": 1.0,
     "export_roundtrip": true,
+    "serialization_consistency_rate": 1.0,
     "violations": 0
   },
   "roundtrip": {
     "named_graphs": 5,
     "assertion_nodes": 5,
     "quotes": 5,
+    "triples": 110,
+    "ok": true
+  },
+  "serialization": {
+    "checked": 15,
+    "mismatch": [],
+    "consistency_rate": 1.0,
     "ok": true
   },
   "violations": [],

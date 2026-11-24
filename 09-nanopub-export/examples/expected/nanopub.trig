@@ -11,7 +11,11 @@
   <https://example.org/np/demo-nanopub-01/A1/assertion> a np:Assertion ;
       rel:relation <https://example.org/rel/located_in> ;
       rel:subject <https://example.org/np/demo-nanopub-01/ent/gas-hydrate> ;
+      rel:subjectLabel "gas hydrate" ;
+      rel:subjectType "material" ;
       rel:object <https://example.org/np/demo-nanopub-01/ent/marine-sediment> ;
+      rel:objectLabel "marine sediment" ;
+      rel:objectType "environment" ;
       rel:qualifier "site CUG-3" ;
       rel:text "Gas hydrate occurs in marine sediment at site CUG-3." .
   <https://example.org/np/demo-nanopub-01/A1/provenance> a np:Provenance ;
@@ -32,7 +36,11 @@
   <https://example.org/np/demo-nanopub-01/A2/assertion> a np:Assertion ;
       rel:relation <https://example.org/rel/located_in> ;
       rel:subject <https://example.org/np/demo-nanopub-01/ent/hydrate-stability-zone> ;
+      rel:subjectLabel "hydrate stability zone" ;
+      rel:subjectType "boundary" ;
       rel:object <https://example.org/np/demo-nanopub-01/ent/seafloor> ;
+      rel:objectLabel "seafloor" ;
+      rel:objectType "boundary" ;
       rel:qualifier "base at 12 m" ;
       rel:text "The hydrate stability zone extends 12 m below the seafloor." .
   <https://example.org/np/demo-nanopub-01/A2/provenance> a np:Provenance ;
@@ -53,7 +61,11 @@
   <https://example.org/np/demo-nanopub-01/A3/assertion> a np:Assertion ;
       rel:relation <https://example.org/rel/increases> ;
       rel:subject <https://example.org/np/demo-nanopub-01/ent/dissociation-pressure> ;
+      rel:subjectLabel "dissociation pressure" ;
+      rel:subjectType "property" ;
       rel:object <https://example.org/np/demo-nanopub-01/ent/salinity> ;
+      rel:objectLabel "salinity" ;
+      rel:objectType "property" ;
       rel:qualifier "4 °C; 0→3.5 wt%; +0.9 MPa" ;
       rel:text "Dissociation pressure increases by 0.9 MPa when salinity rises from 0 to 3.5 wt% at 4 °C." .
   <https://example.org/np/demo-nanopub-01/A3/provenance> a np:Provenance ;
@@ -74,7 +86,11 @@
   <https://example.org/np/demo-nanopub-01/A4/assertion> a np:Assertion ;
       rel:relation <https://example.org/rel/exceeds> ;
       rel:subject <https://example.org/np/demo-nanopub-01/ent/permeability-of-the-sandy-layer> ;
+      rel:subjectLabel "permeability of the sandy layer" ;
+      rel:subjectType "property" ;
       rel:object <https://example.org/np/demo-nanopub-01/ent/permeability-of-the-clay> ;
+      rel:objectLabel "permeability of the clay" ;
+      rel:objectType "property" ;
       rel:qualifier "by one order of magnitude" ;
       rel:text "Permeability of the sandy layer is one order of magnitude higher than that of the clay." .
   <https://example.org/np/demo-nanopub-01/A4/provenance> a np:Provenance ;
@@ -95,7 +111,11 @@
   <https://example.org/np/demo-nanopub-01/A5/assertion> a np:Assertion ;
       rel:relation <https://example.org/rel/has_value> ;
       rel:subject <https://example.org/np/demo-nanopub-01/ent/pore-water-salinity> ;
+      rel:subjectLabel "pore-water salinity" ;
+      rel:subjectType "property" ;
       rel:object <https://example.org/np/demo-nanopub-01/ent/3.5-wt%25-nacl-equivalent> ;
+      rel:objectLabel "3.5 wt% NaCl equivalent" ;
+      rel:objectType "value" ;
       rel:qualifier "site CUG-3" ;
       rel:text "Pore-water salinity is 3.5 wt% NaCl equivalent." .
   <https://example.org/np/demo-nanopub-01/A5/provenance> a np:Provenance ;

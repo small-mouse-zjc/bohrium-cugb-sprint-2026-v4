@@ -137,6 +137,38 @@ def main():
         assert 'rel:subject "' not in tg and 'rel:relation "' not in tg, "TriG 仍有字面量主客体"
         ok.append("TriG 主语/关系为 IRI 节点（无裸字面量）")
 
+        # 11) 真解析：坏 TriG 必须解析失败（旧的计数法在这些输入上是 ok=True）
+        import trig as triglib
+        good = tg
+        assert npb.reparse(good, len(as5))["ok"], npb.reparse(good, len(as5))
+        bads = {
+            "括号不闭合": good[: good.rfind("}")] + "\n",
+            "字面量未转义引号": good.replace('rel:text "', 'rel:text "bad"quote', 1),
+            "三元组缺 .": good.replace(" .\n", " ;\n", 1),
+            "谓语位置裸写": good.replace("a np:Assertion", "np:Assertion", 1),
+        }
+        for name, bad in bads.items():
+            r = npb.reparse(bad, len(as5))
+            assert r["ok"] is False and r.get("error"), (name, r)
+        ok.append("真解析：坏 TriG（括号/引号/缺./裸谓语）四种全部解析失败并给出行号")
+
+        # 12) 序列化对齐：正确导出 JSON-LD/TriG 逐字段一致，改坏一处必报 N09
+        parsed_good = triglib.parse(good)
+        ser_ok = npb.compare_serializations(jl, parsed_good, as5, "demo-09")
+        assert ser_ok["ok"] and ser_ok["consistency_rate"] == 1.0, ser_ok
+        ld_broken = json.loads(json.dumps(jl))
+        for node in ld_broken["@graph"]:
+            if node.get("@type") == "np:Assertion":
+                node["rel:relation"] = {"@id": "https://example.org/rel/bogus"}
+                break
+        ser_bad = npb.compare_serializations(ld_broken, parsed_good, as5, "demo-09")
+        assert not ser_bad["ok"] and ser_bad["mismatch"], ser_bad
+        ok.append(f"序列化对齐：正确导出 15 项全一致({ser_ok['checked']})，关系 IRI 改坏即 {len(ser_bad['mismatch'])} 处不一致")
+
+        # 13) 基线：无 TriG、无一致性 → 指标为 None
+        assert sb.get("export_roundtrip") is None or sb.get("export_roundtrip") is False, sb
+        ok.append("基线：不产出 TriG/JSON-LD 对照 → roundtrip 与一致性均不可评（None）")
+
         print("SELFTEST OK")
         for line in ok:
             print("  ✓", line)

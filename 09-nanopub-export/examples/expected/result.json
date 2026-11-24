@@ -1,5 +1,5 @@
 {
-  "case_id": "demo-09",
+  "case_id": "unknown",
   "status": "success",
   "metrics": {
     "build_rc": 0,
@@ -8,6 +8,7 @@
     "verbatim_rate": 1.0,
     "provenance_rate": 1.0,
     "export_roundtrip": true,
+    "serialization_consistency_rate": 1.0,
     "violations": 0,
     "codes": [],
     "pass": true

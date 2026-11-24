@@ -109,19 +109,23 @@ def main():
               "atomic_rate": rates.get("atomic_rate"), "verbatim_rate": rates.get("verbatim_rate"),
               "provenance_rate": rates.get("provenance_rate"),
               "export_roundtrip": rates.get("export_roundtrip"),
+              "serialization_consistency_rate": rates.get("serialization_consistency_rate"),
               "violations": rates.get("violations"),
               "codes": sorted({x.get("code") for x in (v.get("violations") or [])}),
               "pass": bool(v.get("pass"))})
 
     n = m.get("assertions") or 0
-    if v.get("pass") and n >= 3 and m.get("export_roundtrip"):
+    if (v.get("pass") and n >= 3 and m.get("export_roundtrip")
+            and (m.get("serialization_consistency_rate") in (None, 1.0))):
         result["status"] = "success"
     elif v:
         result["status"] = "partial"
         if n == 0:
             result["notes"].append("断言数为 0，比率不应记 1.00；无法判 success")
         if not m.get("export_roundtrip"):
-            result["notes"].append("TriG 回解析失败（命名图/断言节点/引文数不一致）")
+            result["notes"].append("TriG 回解析失败（语法不通过或命名图/断言节点/引文数不一致）")
+        elif m.get("serialization_consistency_rate") not in (None, 1.0):
+            result["notes"].append(f"JSON-LD 与 TriG 标识不一致（一致性 {m.get('serialization_consistency_rate')}）")
     else:
         result["status"] = "cannot_determine"
 
