@@ -67,7 +67,9 @@ python scripts/run.py --input examples/demo --output out
 | F04 | 限定词（may/might/could/suggest/approximately…）减少 | 阻断 |
 | F05 | 新增强断言且方向是弱→强（原文 weak/hedge 减少：found→proved）；强→强同义替换（proves→demonstrates）放行 | 阻断 |
 | F06 | 否定减少（did not observe → observed） | 阻断 |
+| F06b | 否定**增加**（thickens → does not thicken，结论被反转成反义） | 阻断 |
 | F07 | 比较级/增减方向丢失（higher than、increase） | 阻断 |
+| F07b | 比较级**凭空增加**（rises → rises more than expected） | 阻断 |
 | F08 | 整句丢失（与所有润色句相似度 <0.45） | 阻断 |
 | F09 | 出现无记录的新句子（与原文相似度 <0.6 且不在 changes.revised 里） | 阻断 |
 | F10 | changes 里改了数字/引用却没 `fact_changed: true` | 阻断 |
@@ -111,7 +113,7 @@ python eval/metrics.py --out_dir out --base_dir base_out
 ## 7. 自检
 
 ```bash
-python examples/selftest.py      # 32 条断言
+python examples/selftest.py      # 36 条断言
 ```
 
 覆盖：正例、F01/F01b/F11（单位基准变化、编造数字）、F03 编造引用、F04+F05（may→proves 与 found→proved；proves→demonstrates 反向放行）、**D14/D15 标点紧跟的限定词/否定词（`may,`/`not,`）删除、D17 强→强同义放行、D18 近义双句删一句、D19 两句合并为一句（记 A02 不记 F08）**、F06 否定反写、F10 未声明改事实、F09 凭空加句、T01 术语变体、合法归一（`3.5 wt%` ↔ `3.5 wt %` 放行）、平台入口（minimal-edit 与 LLM 稿两种模式）、降级（无正文/缺 case.json）、基线差值、缺基线数据记 `None`、零事实草稿记 `None`。
@@ -129,7 +131,7 @@ python examples/selftest.py      # 32 条断言
 ## 9. 不能造假
 
 - 新增原文没有的事实、数据、引用或结论（F03/F09）；
-- 把 `may / 可能` 改成 `证明 / 显著`（F05），翻转否定（F06），删比较方向（F07）；
+- 把 `may / 可能` 改成 `证明 / 显著`（F05），翻转否定（F06/F06b），删比较方向（F07），凭空加比较（F07b）；
 - 删改数字、单位、引用编号（F01/F02）；
 - 只给润色片段不给完整正文；
 - `status` 手写、`pass` 不看保留率。
@@ -145,4 +147,5 @@ python examples/selftest.py      # 32 条断言
 - 跨句逻辑：合并句子、调换因果顺序，只给 A02 提示。
 
 详见 `references/method.md`。
+
 

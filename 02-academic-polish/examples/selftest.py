@@ -114,6 +114,31 @@ def main():
     assert "strength_upgrade" not in codes(rep), rep["blocking"]
     ok.append("D6d proved→demonstrated（强→强）仍放行，不误伤同义替换")
 
+    # 7e 加法侧：加一个 not 把结论反转，必须阻断（旧实现只抓删否定）
+    rep = fact_ledger.audit("The hydrate layer thickens over time.",
+                            "The hydrate layer does not thicken over time.", [])
+    assert "negation_added" in codes(rep) or "negation_flip" in codes(rep), rep["blocking"]
+    ok.append("D6e 凭空加 not（增厚→不增厚）→ negation_added，不再 0 阻断")
+
+    # 7f 加法侧：凭空加比较级
+    rep = fact_ledger.audit("The pressure rises.", "The pressure rises more than expected.", [])
+    assert "comparative_added" in codes(rep), rep["blocking"]
+    ok.append("D6f 凭空加 more than expected → comparative_added")
+
+    # 7g 反转 + 谎报 fact_changed=false：条目级 F10 也必须抓
+    ch6g = [{"original": "Salinity raises the pressure.", "revised": "Salinity does not raise the pressure.",
+             "reason": "润色", "fact_changed": False}]
+    rep = fact_ledger.audit("Salinity raises the pressure.", "Salinity does not raise the pressure.", ch6g)
+    assert "undeclared_fact_change" in codes(rep), rep["blocking"]
+    ok.append("D6g 反转却声明 fact_changed=false → F10（neg 已计入 fact_delta）")
+
+    # 7h 回归：情态收敛 can→may 仍不误报 F10
+    ch6h = [{"original": "It can raise pressure.", "revised": "It may raise pressure.",
+             "reason": "情态收敛", "fact_changed": False}]
+    rep = fact_ledger.audit("It can raise pressure.", "It may raise pressure.", ch6h)
+    assert "undeclared_fact_change" not in codes(rep), rep["blocking"]
+    ok.append("D6h can→may 情态收敛仍不误报 F10（hedge 仍算软标记）")
+
     # 8 术语变体
     t = term_check.check(case["terms"],
                          polished.replace("dissociation pressure", "disassociation pressure", 1))

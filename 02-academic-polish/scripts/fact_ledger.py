@@ -30,7 +30,9 @@ CODES = {
     "hedge_loss": "F04",
     "strength_upgrade": "F05",
     "negation_flip": "F06",
+    "negation_added": "F06b",
     "comparative_loss": "F07",
+    "comparative_added": "F07b",
     "sentence_dropped": "F08",
     "unlogged_new_sentence": "F09",
     "undeclared_fact_change": "F10",
@@ -177,13 +179,21 @@ def audit(original: str, polished: str, changes=None) -> dict:
         blocking.append({"type": "strength_upgrade", "tokens": strong_new,
                          "hint": "新增强断言而原文没有对应的强断言被替换，主张强度被抬高"})
 
-    # 4) 否定与比较级
+    # 4) 否定与比较级（减法 + 加法都要抓：加一个 not 就把结论反转成反义）
     neg_drop = _count_map_diff(orig_f["negations"], pol_f["negations"])
     if neg_drop:
         blocking.append({"type": "negation_flip", "tokens": neg_drop})
+    neg_new = {k: v for k, v in pol_f["negations"].items() if v > orig_f["negations"].get(k, 0)}
+    if neg_new:
+        blocking.append({"type": "negation_added", "tokens": neg_new,
+                         "hint": "原文没有的否定被加上，结论可能被反转成反义"})
     cmp_drop = _count_map_diff(orig_f["comparatives"], pol_f["comparatives"])
     if cmp_drop:
         blocking.append({"type": "comparative_loss", "tokens": cmp_drop})
+    cmp_new = {k: v for k, v in pol_f["comparatives"].items() if v > orig_f["comparatives"].get(k, 0)}
+    if cmp_new:
+        blocking.append({"type": "comparative_added", "tokens": cmp_new,
+                         "hint": "原文没有的比较级被加上（more than / higher than …），结论强度被抬高"})
     fact_rows += [{"type": "negation", "token": k,
                    "status": "removed" if k in neg_drop else "kept"} for k in orig_f["negations"]]
     fact_rows += [{"type": "comparative", "token": k,

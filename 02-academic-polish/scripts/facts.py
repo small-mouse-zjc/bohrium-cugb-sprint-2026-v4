@@ -149,7 +149,8 @@ def fact_tokens(text: str) -> set:
     return out
 
 
-SOFT_TAGS = ("hedge", "neg", "cmp", "int")
+SOFT_TAGS = ("hedge", "int")   # 只有"限定/程度措辞的措辞性差异"算情态规范化；
+                              # neg/cmp 必须计入事实变化，加一个 not 就是把结论反转成反义
 
 
 def fact_delta(before: str, after: str) -> dict:
