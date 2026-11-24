@@ -47,6 +47,8 @@ python scripts/param_align.py --draft work/methods.md --params work/params.json 
 ```
 判定：
 
+来源写法不限于 YAML `key: value`：`--lr 0.001`、`--lr=0.001`、空格分隔的 `lr 0.001`、带引号的 JSON 键都能被索引到同一个参数；正文里的并列句"学习率与批大小分别为 0.001 与 32"按一对一把第 N 个数配给第 N 个别名（不是每个别名都取最近的那个数，否则会误报冲突）。
+
 | status | 条件 | 处理 |
 |---|---|---|
 | `sourced` | 正文值与来源一致 | 保留，写 `source_locator`（file:line） |
@@ -102,4 +104,4 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 ```
 python examples/selftest.py
 ```
-自检 **14 条**：正例六项全过；注入四类缺陷（正文改值造成冲突、删清单字段、步骤缺判断、正文凭空加温度）全部命中；再加反向用例锁死粗判据——① limitations 清空 → `limitation_specificity=None` + `limitation_missing` + pass=False（不虚报 1.00）；② 裸小数 0.85 被抓、章节编号 3.1–3.4 不误判；③ `200 epochs / 128 channels / 3 blocks` 全部命中且章节编号不误判；④ 限制小节比较式阈值 `2 μm` 免溯源、同节 `25 °C` 仍被抓；⑤ 套话限制"数据规模变化时可能失效" → 0.00 + `limitation_vague`；⑥ 正文零参数 → `sourced_rate=None` + `no_params_declared`。
+自检 **16 条**：正例六项全过；注入四类缺陷（正文改值造成冲突、删清单字段、步骤缺判断、正文凭空加温度）全部命中；再加反向用例锁死粗判据——① limitations 清空 → `limitation_specificity=None` + `limitation_missing` + pass=False（不虚报 1.00）；② 裸小数 0.85 被抓、章节编号 3.1–3.4 不误判；③ `200 epochs / 128 channels / 3 blocks` 全部命中且章节编号不误判；④ 限制小节比较式阈值 `2 μm` 免溯源、同节 `25 °C` 仍被抓；⑤ 套话限制"数据规模变化时可能失效" → 0.00 + `limitation_vague`；⑥ 来源只有 CLI 写法（`--lr 0.001` / `--batch-size 32` / `seed 42` / `weight_decay=0.01`）时 4 参数仍全 `sourced`；⑦ 并列句"学习率与批大小分别为 0.001 与 32"一对一配值，`batch_size=32`、`conflicts=0`；⑧ 正文零参数 → `sourced_rate=None` + `no_params_declared`。

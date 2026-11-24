@@ -147,6 +147,29 @@ def main():
             any(v["type"] == "limitation_vague" for v in vl["violations"]), vl
         ok.append("套话限制（含\"规模\"但无数值阈值）→ limitation_specificity=0.0 + limitation_vague + pass=False")
 
+        # 来源只有 CLI 日志（--lr 0.001 / --batch-size 32 / seed 42 / weight_decay=0.01 / epochs 50）
+        cli = tmp / "cli.log"
+        cli.write_text("python train.py --lr 0.001 --batch-size 32 seed 42 weight_decay=0.01 epochs 50\n",
+                       encoding="utf-8")
+        run([ROOT / "scripts/param_align.py", "--draft", DEMO / "methods.md", "--params", DEMO / "params.json",
+             "--sources", cli, "--out", tmp / "cli", "--no-fail"])
+        ca = json.loads((tmp / "cli/audit.json").read_text(encoding="utf-8"))
+        assert ca["pass"] is True and ca["rates"]["sourced_rate"] == 1.0, ca
+        assert not ca["violations"], ca["violations"]
+        ok.append("来源只含 CLI 写法（--lr / --batch-size / seed / weight_decay= / epochs）→ 4 参数全 sourced、pass=True")
+
+        # 并列句"学习率与批大小分别为 0.001 与 32"：一对一配值，不许把批大小误配成 0.001
+        t3 = (DEMO / "methods.md").read_text(encoding="utf-8").replace(
+            "学习率为 0.001，批大小为 32", "学习率与批大小分别为 0.001 与 32")
+        dp3 = tmp / "parallel.md"
+        dp3.write_text(t3, encoding="utf-8")
+        align(dp3, tmp / "parallel")
+        pa = json.loads((tmp / "parallel/audit.json").read_text(encoding="utf-8"))
+        row = next(r for r in pa["rows"] if r["key"] == "batch_size")
+        assert row["value"] == "32" and row["status"] == "sourced", row
+        assert pa["rates"]["conflicts"] == 0 and pa["pass"] is True, pa["violations"]
+        ok.append("并列句 学习率与批大小分别为 0.001 与 32 → batch_size=32 sourced、conflicts=0、pass=True")
+
         # 正文零参数：sourced_rate 记 None（旧版记 1.0），并报 no_params_declared
         empty = tmp / "empty.md"
         empty.write_text("# 3 方法\n\n我们训练了一个模型，效果不错。\n", encoding="utf-8")

@@ -73,7 +73,14 @@ def same(a: str, b: str) -> bool:
     return a.strip().lower() == b.strip().lower()
 
 
+KV_RE = re.compile(rf"""["']?([A-Za-z_][A-Za-z0-9_]{{1,30}})["']?\s*(?::|=|,)\s*({NUM})""")
+CLI_RE = re.compile(rf"--([A-Za-z_][A-Za-z0-9_-]{{1,30}})[= ]({NUM})")
+SPACE_RE = re.compile(rf"\b([A-Za-z_][A-Za-z0-9_]{{1,30}})\s+({NUM})\b")
+
+
 def index_sources(files):
+    """来源索引：YAML/JSON 键值（含引号键、嵌套叶子键）、`--lr 0.001` / `--lr=0.001`、
+    空格分隔的 `lr 0.001`（CLI 日志常见写法）都要收，否则值就在文件里却被判无源。"""
     idx = {}
     generic = []
     for f in files:
@@ -81,11 +88,42 @@ def index_sources(files):
         if not p.exists():
             continue
         for i, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), start=1):
-            for m in re.finditer(rf"([A-Za-z_][A-Za-z0-9_]{{1,30}})\s*[:=]\s*({NUM})", line):
-                idx.setdefault(m.group(1).lower(), []).append((m.group(2), f"{p.name}:{i}"))
+            span = f"{p.name}:{i}"
+            for rx in (KV_RE, CLI_RE, SPACE_RE):
+                for m in rx.finditer(line):
+                    idx.setdefault(m.group(1).lower().lstrip("-").replace("-", "_"), []).append((m.group(2), span))
             for m in re.finditer(NUM, line):
-                generic.append((m.group(0), f"{p.name}:{i}"))
+                generic.append((m.group(0), span))
     return idx, generic
+
+
+def parallel_pins(text, params):
+    """并列句"学习率与批大小分别为 0.001 与 32"：第 N 个别名配第 N 个数，不都取最近的那个。
+
+    values_in_draft 逐别名向后抓第一个数，在并列句里会把所有别名都配成第一个数（0.001 被当成批大小，
+    误报 conflict）。这里先识别并列结构并钉住一对一的映射。
+    """
+    pins = {}
+    for sent in re.split(r"[。\n；;]", text):
+        if not re.search(r"分别|各自|依次", sent):
+            continue
+        m = re.search(r"(?:分别|各自|依次)(?:为|是|取|设|采用)?", sent)
+        if not m:
+            continue
+        left, right = sent[:m.start()], sent[m.end():]
+        right = re.split(r"[，,]", right)[0]  # 只取并列项所在的那一小句，后面"共训练 50 轮"不参与配对
+        hits = []
+        for p in params:
+            for al in [p["key"]] + [x for x in p.get("aliases", []) if x]:
+                pos = left.lower().find(al.lower())
+                if pos >= 0:
+                    hits.append((pos, p["key"]))
+        keys = [k for _, k in sorted(hits)]
+        nums = re.findall(NUM, right)
+        if len(keys) >= 2 and len(keys) == len(nums):
+            for k, v in zip(keys, nums):
+                pins.setdefault(k, v)
+    return pins
 
 
 def values_in_draft(text, alias):
@@ -113,6 +151,7 @@ def main():
     text = Path(a.draft).read_text(encoding="utf-8")
     params = json.loads(Path(a.params).read_text(encoding="utf-8"))["params"]
     src_idx, generic = index_sources(a.sources)
+    pins = parallel_pins(text, params)
 
     rows, viol = [], []
     declared_numbers = set()
@@ -120,11 +159,14 @@ def main():
         key = p["key"]
         aliases = [key] + [x for x in p.get("aliases", []) if x]
         found = []
-        for al in aliases:
-            found += values_in_draft(text, al)
+        if key in pins:
+            found = [(pins[key], text.lower().find(key.lower()))]
+        else:
+            for al in aliases:
+                found += values_in_draft(text, al)
         src_hits = []
         for al in aliases:
-            src_hits += src_idx.get(al.lower(), [])
+            src_hits += src_idx.get(al.lower().replace("-", "_"), [])
         if not found:
             if src_hits:
                 viol.append({"type": "param_omitted", "detail": f"来源有 {key}，正文未写", "key": key})
