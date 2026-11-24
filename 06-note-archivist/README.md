@@ -6,7 +6,7 @@
 
 ```bash
 python scripts/run.py --input /input/case.json --output /app/output
-python examples/selftest.py          # 31 条断言
+python examples/selftest.py          # 32 条断言
 ```
 
 产物：`result.json`、`notes.md`、`reading_card.json`、`section_align.md`。
@@ -49,7 +49,7 @@ examples/expected/   真跑产物快照 + 指标表
 
 基线阻断码：N01/N02/N03/N06/N07/N09/N11/N12（模板四节与原文 6 节不符、复述句无锚点、卡片编造"30 个样品 / 重复 3 次"）。
 
-**本轮补强（2026-11-25，评审指出的三处空转）**：① `pages` 形态以前算完 `page_map` 从不落地，section/para 的 `page` 恒为 None、锚点没有 `p.N`——现在逐页检测并带页码，锚点真出现 `p.3/p.4`；② `anchor_verification` 以前无条件写 `verified: true`——现在由 `_verify()` 拿 `span` 回 `doc.text` 切片与 `quote` 逐字比对（有页码时再核对该段页码），篡改 quote 或 span 越界即 `false`；③ `PRIORITY_SECTION` 以前用复数键（findings/limitations/premises），与角色名（finding/limitation/premise）不同口径，导致 6 个角色里 3 个的节位加权恒为 0——现在同键，`Results` 里的 finding、`Limitations` 里的 limitation、`Methods` 里的 premise 都拿得到 +2。自检相应 +3 条（31 条）。
+**本轮补强（2026-11-25，评审指出的三处空转）**：① `pages` 形态以前算完 `page_map` 从不落地，section/para 的 `page` 恒为 None、锚点没有 `p.N`——现在逐页检测并带页码，锚点真出现 `p.3/p.4`；② `anchor_verification` 以前无条件写 `verified: true`——现在由 `_verify()` 拿 `span` 回 `doc.text` 切片与 `quote` 逐字比对（有页码时再核对该段页码），篡改 quote 或 span 越界即 `false`；③ `PRIORITY_SECTION` 以前用复数键（findings/limitations/premises），与角色名（finding/limitation/premise）不同口径，导致 6 个角色里 3 个的节位加权恒为 0——现在同键，`Results` 里的 finding、`Limitations` 里的 limitation、`Methods` 里的 premise 都拿得到 +2。自检相应 +3 条。**再补一条（硬换行）**：`extract.unwrap()` 把段内硬换行归一为空格、只留空行作段落分隔——`notes.py` 的切句器是 `[^\n]`，PDF 抽取的"句中断行"会把一句切成两截、含数据的前半截被静默丢掉且无任何审计码兜住；归一后 `We measured the samples at 12 MPa and\nobserved ...` 抽回完整一句，`text[span]==quote` 不变量不变（32 条）。
 
 ## 边界（脚本查不了什么）
 
@@ -58,3 +58,4 @@ examples/expected/   真跑产物快照 + 指标表
 ## 依赖与许可
 
 Python 3.9+ 标准库；无网络、无第三方包、无外部模型调用。可整包复制复用。
+

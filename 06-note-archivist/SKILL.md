@@ -95,10 +95,11 @@ python eval/metrics.py --result /app/output/result.json --case /input/case.json 
 
 ## 方法要点
 
-1. **句子边界用正则扫描而不是 `split`**：句子的 `start/end` 直接来自 `finditer`，`quote = text[start:end]`，从构造上保证逐字。
-2. **角色靠标记词打分，不靠语义模型**：每类角色一组标记词（`we investigate` / `samples` / `performed` / `results show` / `limitation` / `assume`），加上"小节优先级"加成；同一节先覆盖不同角色，再按分数补足。
-3. **卡片只搬运不复述**：每个字段取"角色匹配 + 小节优先级最高"的那条笔记，另挂一条跨节同角色笔记做对照；取不到就 `not_reported` 并进 `uncertainty`。
-4. **审计与生成解耦**：`audit.py` 只吃 `result.json` + `case.json`，不 import 生成逻辑，任何人可独立复跑。
+1. **换行先归一，再算偏移**：`extract.unwrap()` 把段内硬换行（PDF 抽取常见）折成空格、只保留空行作段落分隔，然后在归一后的 `doc.text` 上算 `span`——切句器是 `[^\n]`，不归一的话"句中断行"会把一句切成两截、含数据的前半截被静默丢掉，且 `anchor_verification` 也无从发现。
+2. **句子边界用正则扫描而不是 `split`**：句子的 `start/end` 直接来自 `finditer`，`quote = text[start:end]`，从构造上保证逐字。
+3. **角色靠标记词打分，不靠语义模型**：每类角色一组标记词（`we investigate` / `samples` / `performed` / `results show` / `limitation` / `assume`），加上"小节优先级"加成；同一节先覆盖不同角色，再按分数补足。
+4. **卡片只搬运不复述**：每个字段取"角色匹配 + 小节优先级最高"的那条笔记，另挂一条跨节同角色笔记做对照；取不到就 `not_reported` 并进 `uncertainty`。
+5. **审计与生成解耦**：`audit.py` 只吃 `result.json` + `case.json`，不 import 生成逻辑，任何人可独立复跑。
 
 详见 `references/method.md`（抽取规则、角色标记表、锚点格式、审计判据）与 `references/output_contract.md`。
 
@@ -113,3 +114,5 @@ python eval/metrics.py --result /app/output/result.json --case /input/case.json 
 ## 依赖
 
 Python 3.9+ 标准库（`re`/`json`/`argparse`）。无第三方包、无网络、无外部模型调用。
+
+

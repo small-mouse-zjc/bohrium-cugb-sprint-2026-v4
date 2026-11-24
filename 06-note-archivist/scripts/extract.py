@@ -71,6 +71,23 @@ def detect_sections(raw):
     return blocks, None
 
 
+def unwrap(body: str) -> str:
+    r"""把 PDF 抽取常见的"句中断行"归一成空格，只保留空行作为段落分隔。
+
+    pdftotext 产出的正文几乎每行都硬换行；notes.py 的切句器是 `[^\n]`，句子被
+    换行切断后只抽出后半截，前半截（常含 12 MPa 这类数据）会被静默丢掉。归一
+    之后 doc["text"] 内部不再有横跨句子的 \n，text[span]==quote 的不变量不变。
+    """
+    chunks = re.split(r"\n[ \t]*\n", body or "")
+    out = []
+    for ch in chunks:
+        lines = [ln.strip() for ln in ch.split("\n")]
+        joined = " ".join(ln for ln in lines if ln)
+        if joined:
+            out.append(joined)
+    return "\n\n".join(out)
+
+
 def build_doc(case):
     """返回 doc：{text, sections:[{index,heading,start,end,page}], paras:[...], warnings}"""
     warns = []
@@ -117,7 +134,7 @@ def build_doc(case):
 
     text, sections, paras = "", [], []
     for h, body, pg in blocks:
-        body = body.strip()
+        body = unwrap(body.strip())
         if not body and not h:
             continue
         head_txt = (h + "\n") if h else ""

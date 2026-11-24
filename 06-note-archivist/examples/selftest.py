@@ -210,6 +210,17 @@ def main():
           good["verified"] is True and runmod._verify(pdoc, bad_quote)["verified"] is False
           and runmod._verify(pdoc, bad_span)["verified"] is False,
           str((good["verified"], runmod._verify(pdoc, bad_quote)["verified"])))
+
+    # 硬换行（PDF 常见）：句中被 \n 截断，前半截数据不许静默丢失
+    hard = ("Methods\n\nWe measured the samples at 12 MPa and\n"
+            "observed the phase change within 6 hours.")
+    hdoc = extract.build_doc({"case_id": "h", "text": hard})
+    hns, _ = noteslib.build_notes(hdoc, per_section=3)
+    joined = " ".join(n["quote"] for n in hns)
+    check("硬换行：整句不断裂（12 MPa 前半截仍在，anchor 可反查）",
+          any("12 MPa" in n["quote"] for n in hns) and any("observed the phase change" in n["quote"] for n in hns)
+          and all(hdoc["text"][n["span"][0]:n["span"][1]] == n["quote"] for n in hns),
+          joined[:80])
     # 节位加权键必须与角色名同口径（单数）：finding/limitation/premise 都有加权
     check("PRIORITY_SECTION 与 ROLE_MARKERS 同键：finding/limitation/premise 节位加权生效",
           set(noteslib.PRIORITY_SECTION) == set(noteslib.ROLE_MARKERS)
