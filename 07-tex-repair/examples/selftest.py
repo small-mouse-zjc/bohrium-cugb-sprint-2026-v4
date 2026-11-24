@@ -54,14 +54,34 @@ def main():
         ok.append("真实日志：E10×2 / E01×2 / E02×1，警告 E05/E06，行号 13/19/30 定位正确")
 
         bd = tmp / "build"
-        run([ROOT / "scripts/build.py", "--project", DEMO / "fixed", "--out", bd])
+        run([ROOT / "scripts/build.py", "--project", DEMO / "fixed", "--out", bd], rc=(0, 1))
         m = json.loads((bd / "build_manifest.json").read_text(encoding="utf-8"))
-        assert m["status"] in ("compiled", "static_only"), m["status"]
+        assert m["status"] in ("success", "partial", "static_only", "failed"), m["status"]
         if m["status"] == "static_only":
             assert "未执行真实编译" in m["note"]
             ok.append("本机无 TeX：切到 static_only 并明确未编译（未谎称通过）")
         else:
-            ok.append(f"本机有 TeX：编译状态 {m['status']}，轮次 {m['rounds']}")
+            assert m["status"] in ("success", "partial"), f"有 TeX 却 failed：{m.get('note')}"
+            assert m.get("rerun_required") is not None and m.get("converged") is not None, "manifest 缺收敛字段"
+            ok.append(f"本机有 TeX：status={m['status']} converged={m['converged']} "
+                      f"bibtex_runs={m['bibtex_runs']} errors={m['errors']} pages={m['pages']}")
+
+        # 平台入口：/input/case.json → /app/output/result.json
+        rp = tmp / "run"
+        rp.mkdir()
+        (rp / "case.json").write_text(json.dumps({"case_id": "selftest-07",
+                                                  "project": "fixed", "template": "template.yaml"},
+                                                 ensure_ascii=False), encoding="utf-8")
+        shutil.copytree(DEMO / "fixed", rp / "fixed")
+        shutil.copy(DEMO / "template.yaml", rp / "template.yaml")
+        ro = tmp / "run_out"
+        run([ROOT / "scripts/run.py", "--input", rp, "--output", ro], rc=(0, 1, 2))
+        rj = json.loads((ro / "result.json").read_text(encoding="utf-8"))
+        assert rj["case_id"] == "selftest-07", rj
+        assert rj["status"] in ("success", "partial", "cannot_determine"), rj["status"]
+        assert "metrics" in rj and "artifacts" in rj, rj
+        ok.append(f"平台入口：case.json→result.json，status={rj['status']}，"
+                  f"violations={rj['metrics'].get('violations')}，build={rj['metrics'].get('build_status')}")
 
         print("SELFTEST OK")
         for line in ok:

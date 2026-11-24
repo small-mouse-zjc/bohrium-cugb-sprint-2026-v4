@@ -23,8 +23,8 @@ CATALOG = {
 }
 
 HEAD = re.compile(r"(?:(?P<file>[^\s:()]+\.(?:tex|sty|cls|bib)):)?(?P<line>\d+)?\s*:\s*(?P<msg>.*)")
-UNDEF_REF = re.compile(r"Reference `([^']+)' .*undefined")
-UNDEF_CITE = re.compile(r"Citation `([^']+)' .*undefined")
+UNDEF_REF = re.compile(r"Reference `([^']+)' .*undefined(?: on input line (\d+))?")
+UNDEF_CITE = re.compile(r"Citation `([^']+)' .*undefined(?: on input line (\d+))?")
 OVERFULL = re.compile(r"Overfull \\hbox \(([0-9.]+)pt too wide\)(?: in paragraph at lines (\d+)--(\d+))?")
 NOFILE = re.compile(r"File `([^']+)' not found")
 PKGERR = re.compile(r"Package ([^ ]+) Error: (.+)")
@@ -47,12 +47,14 @@ def parse_log(text: str):
             continue
         mr = UNDEF_REF.search(raw)
         if mr:
-            warns.append({"code": "E05", "file": "", "line": 0, "message": raw.strip()[:160],
+            warns.append({"code": "E05", "file": "", "line": int(mr.group(2) or 0),
+                          "message": raw.strip()[:160], "key": mr.group(1),
                           "root_cause": CATALOG["E05"][1], "fix": CATALOG["E05"][2]})
             continue
         mc = UNDEF_CITE.search(raw)
         if mc:
-            warns.append({"code": "E06", "file": "", "line": 0, "message": raw.strip()[:160],
+            warns.append({"code": "E06", "file": "", "line": int(mc.group(2) or 0),
+                          "message": raw.strip()[:160], "key": mc.group(1),
                           "root_cause": CATALOG["E06"][1], "fix": CATALOG["E06"][2]})
             continue
 

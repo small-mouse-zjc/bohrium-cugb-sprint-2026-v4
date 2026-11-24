@@ -23,12 +23,18 @@ def load(d):
         "converged": bool(lg.get("converged", False)),
         "build_status": bm.get("status", "no_manifest"),
         "rounds": bm.get("rounds", 0),
-        "pass": bool(tf.get("pass")) and (bm.get("status") == "compiled") and (len(lg.get("errors") or []) == 0),
+        "bibtex_runs": bm.get("bibtex_runs", 0),
+        "pages": bm.get("pages"),
+        # 只有 success（errors=0 且不再需要重编且 PDF 存在）才算通过；
+        # partial = 有 PDF 但引文/交叉引用未收敛，不算 pass。
+        "pass": bool(tf.get("pass")) and bm.get("status") == "success"
+        and bool(bm.get("converged")) and (len(lg.get("errors") or []) == 0),
     }
 
 
 ROWS = [("模板违规", "template_violations"), ("命中规则", "rules_hit"), ("编译错误", "errors"),
-        ("编译警告", "warnings"), ("收敛", "converged"), ("构建状态", "build_status"), ("编译轮次", "rounds")]
+        ("编译警告", "warnings"), ("收敛", "converged"), ("构建状态", "build_status"),
+        ("编译轮次", "rounds"), ("bib 处理次数", "bibtex_runs"), ("页数", "pages")]
 
 
 def main():
