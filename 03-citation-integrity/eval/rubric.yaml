@@ -1,0 +1,18 @@
+# 03 评分口径（本包自用，非官方）
+
+| 维度 | 关注点 | 本包证据 |
+|---|---|---|
+| 实际效果 40 | 正文可编辑、编号闭环、去重正确、元数据真实 | `run.py` 一次产出正文+文献表+映射；C01–C11 全实现 |
+| 使用增益 25 | 比裸 Agent 强在哪 | baseline：claim 覆盖 1.0 vs 0.0、元数据逐字率 1.0 vs 0.8519、阻断 C02/C09/C10/C11 |
+| 创新 15 | 连锁重排与元数据逐字审计 | `renumber.py` 首次出现排序；`cite_chain` 逐字段比对原始来源 |
+| 可靠体验 10 | 状态与降级 | status 由审计判定；缺正文/文献表→cannot_determine；缺 case→rejected；零分母 None |
+| 生态贡献 10 | 可复用 | `number_mapping` / `claim_source_map` / `unused` 固定 schema；method.md 可复现 |
+
+## 通过线（自定）
+
+- `status=success`、三项比率全 1.0、零阻断、无未解析引用。
+- 自检 18 条全绿。
+
+## 已知盲区
+
+同名不同文献、预印本/正式版、以及"文献是否真实存在"（需外部检索），见 `references/method.md` §5。

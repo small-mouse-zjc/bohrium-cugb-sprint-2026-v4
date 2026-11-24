@@ -1,0 +1,24 @@
+{
+  "case_id": "demo-citation-01",
+  "note": "自建演示稿（非平台案例）：正文 4 处数字引用；原始文献表含 1 组真重复（同 DOI）、1 组会议版/期刊版（DOI 不同不许合并）、1 条未被引用条目、1 个重复 key。",
+  "style": "numeric",
+  "manuscript": "Gas hydrate occurs in marine sediment at site CUG-3 [1]. Salinity raises the dissociation pressure [2]. Permeability of the sandy layer is high [4]. Site CUG-3 again shows gas hydrate under the same conditions [1].",
+  "bibliography": [
+    {"id": "1", "key": "smith2020", "author": "Smith J., Li K.", "year": "2020",
+     "title": "Gas hydrate stability in marine sediment", "source": "Journal of Geoscience",
+     "doi": "10.1000/a1", "volume": "12", "pages": "101-110"},
+    {"id": "2", "key": "li2019", "author": "Li K.", "year": "2019",
+     "title": "Salinity effects on dissociation pressure", "source": "Marine Geology",
+     "doi": "10.1000/b2", "volume": "9", "pages": "55-64"},
+    {"id": "3", "key": "smith2020", "author": "Smith J., Li K.", "year": "2020",
+     "title": "Gas hydrate stability in marine sediments", "source": "Journal of Geoscience",
+     "doi": "10.1000/a1", "volume": "12", "pages": "101-110",
+     "note": "同 DOI 的重复条目，应合并"},
+    {"id": "4", "key": "chen2022", "author": "Chen L.", "year": "2022",
+     "title": "Permeability of sandy layers", "source": "Sedimentology",
+     "doi": "10.1000/c3"},
+    {"id": "5", "key": "li2019c", "author": "Li K.", "year": "2019",
+     "title": "Salinity effects on dissociation pressure: conference version",
+     "source": "Proceedings of the Conference", "doi": "10.1000/b2c"}
+  ]
+}

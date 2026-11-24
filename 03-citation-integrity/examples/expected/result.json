@@ -1,0 +1,195 @@
+{
+  "case_id": "demo-citation-01",
+  "status": "success",
+  "result": {
+    "editable_manuscript": "Gas hydrate occurs in marine sediment at site CUG-3 [1]. Salinity raises the dissociation pressure [2]. Permeability of the sandy layer is high [3]. Site CUG-3 again shows gas hydrate under the same conditions [1].",
+    "bibliography": [
+      {
+        "author": "Smith J., Li K.",
+        "year": "2020",
+        "title": "Gas hydrate stability in marine sediment",
+        "source": "Journal of Geoscience",
+        "doi": "10.1000/a1",
+        "volume": "12",
+        "pages": "101-110",
+        "publisher": null,
+        "url": null,
+        "id": "1",
+        "key": "smith2020",
+        "cited": true
+      },
+      {
+        "author": "Li K.",
+        "year": "2019",
+        "title": "Salinity effects on dissociation pressure",
+        "source": "Marine Geology",
+        "doi": "10.1000/b2",
+        "volume": "9",
+        "pages": "55-64",
+        "publisher": null,
+        "url": null,
+        "id": "2",
+        "key": "li2019",
+        "cited": true
+      },
+      {
+        "author": "Chen L.",
+        "year": "2022",
+        "title": "Permeability of sandy layers",
+        "source": "Sedimentology",
+        "doi": "10.1000/c3",
+        "volume": null,
+        "pages": null,
+        "publisher": null,
+        "url": null,
+        "id": "3",
+        "key": "chen2022",
+        "cited": true
+      }
+    ],
+    "number_mapping": [
+      {
+        "citation": "[1]",
+        "key": "smith2020",
+        "bib_id": "1",
+        "from_id": "1"
+      },
+      {
+        "citation": "[2]",
+        "key": "li2019",
+        "bib_id": "2",
+        "from_id": "2"
+      },
+      {
+        "citation": "[3]",
+        "key": "chen2022",
+        "bib_id": "3",
+        "from_id": "4"
+      }
+    ],
+    "claim_source_map": [
+      {
+        "claim": "Gas hydrate occurs in marine sediment at site CUG-3 [1].",
+        "source_ids": [
+          "1"
+        ],
+        "from_ids": [
+          "1"
+        ],
+        "source_keys": [
+          "smith2020"
+        ]
+      },
+      {
+        "claim": "Salinity raises the dissociation pressure [2].",
+        "source_ids": [
+          "2"
+        ],
+        "from_ids": [
+          "2"
+        ],
+        "source_keys": [
+          "li2019"
+        ]
+      },
+      {
+        "claim": "Permeability of the sandy layer is high [4].",
+        "source_ids": [
+          "3"
+        ],
+        "from_ids": [
+          "4"
+        ],
+        "source_keys": [
+          "chen2022"
+        ]
+      },
+      {
+        "claim": "Site CUG-3 again shows gas hydrate under the same conditions [1].",
+        "source_ids": [
+          "1"
+        ],
+        "from_ids": [
+          "1"
+        ],
+        "source_keys": [
+          "smith2020"
+        ]
+      }
+    ],
+    "merged_ids": [
+      "3"
+    ],
+    "merge_groups": [
+      [
+        0,
+        2
+      ]
+    ],
+    "version_conflicts": [],
+    "unused": [
+      {
+        "id": "5",
+        "key": "li2019c",
+        "title": "Salinity effects on dissociation pressure: conference version",
+        "reason": "listed_not_cited"
+      }
+    ],
+    "unresolved": [],
+    "uncertainty": [
+      {
+        "issue": "文献表条目 5 未被正文引用，保留并标注 listed_not_cited"
+      },
+      {
+        "issue": "条目 3 缺 volume,pages：按原样留空，不补全"
+      }
+    ],
+    "style": "numeric",
+    "cited_order": [
+      "1",
+      "2",
+      "4"
+    ],
+    "artifacts": {
+      "manuscript": "C:\\Users\\86198\\AppData\\Local\\Temp\\e03\\manuscript.md",
+      "bibliography": "C:\\Users\\86198\\AppData\\Local\\Temp\\e03\\bibliography.json"
+    }
+  },
+  "evidence": [
+    {
+      "anchor": "citation [1]",
+      "note": "from_id=1 → bib_id=1"
+    },
+    {
+      "anchor": "citation [2]",
+      "note": "from_id=2 → bib_id=2"
+    },
+    {
+      "anchor": "citation [3]",
+      "note": "from_id=4 → bib_id=3"
+    }
+  ],
+  "uncertainty": [
+    {
+      "issue": "文献表条目 5 未被正文引用，保留并标注 listed_not_cited"
+    },
+    {
+      "issue": "条目 3 缺 volume,pages：按原样留空，不补全"
+    }
+  ],
+  "metrics": {
+    "cited": 3,
+    "bib": 3,
+    "mapping": 3,
+    "claim_map": 4,
+    "occurrences": 4,
+    "citation_closure_rate": 1.0,
+    "metadata_verbatim_rate": 1.0,
+    "claim_map_coverage": 1.0,
+    "dedup_groups": 0,
+    "mode": "engine",
+    "blocking": 0,
+    "pass": true
+  },
+  "notes": []
+}

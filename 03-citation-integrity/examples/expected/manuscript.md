@@ -1,0 +1,1 @@
+Gas hydrate occurs in marine sediment at site CUG-3 [1]. Salinity raises the dissociation pressure [2]. Permeability of the sandy layer is high [3]. Site CUG-3 again shows gas hydrate under the same conditions [1].

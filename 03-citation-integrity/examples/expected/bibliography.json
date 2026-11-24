@@ -1,0 +1,44 @@
+[
+  {
+    "author": "Smith J., Li K.",
+    "year": "2020",
+    "title": "Gas hydrate stability in marine sediment",
+    "source": "Journal of Geoscience",
+    "doi": "10.1000/a1",
+    "volume": "12",
+    "pages": "101-110",
+    "publisher": null,
+    "url": null,
+    "id": "1",
+    "key": "smith2020",
+    "cited": true
+  },
+  {
+    "author": "Li K.",
+    "year": "2019",
+    "title": "Salinity effects on dissociation pressure",
+    "source": "Marine Geology",
+    "doi": "10.1000/b2",
+    "volume": "9",
+    "pages": "55-64",
+    "publisher": null,
+    "url": null,
+    "id": "2",
+    "key": "li2019",
+    "cited": true
+  },
+  {
+    "author": "Chen L.",
+    "year": "2022",
+    "title": "Permeability of sandy layers",
+    "source": "Sedimentology",
+    "doi": "10.1000/c3",
+    "volume": null,
+    "pages": null,
+    "publisher": null,
+    "url": null,
+    "id": "3",
+    "key": "chen2022",
+    "cited": true
+  }
+]
