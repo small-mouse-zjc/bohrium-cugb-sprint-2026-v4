@@ -19,3 +19,24 @@
 3. 各挑战配额（limit 10）均未超限：01 used 4、04 used 7、05 used 4、07 used 5、08 used 6、09 used 7、10 used 4。
 4. 提交流程里没有修改旧版本、没有覆盖历史 attempt；本文件只记录本次 7 条。
 5. 分数尚未回写（`scoring_state=queued`），出分后另记；此处不预填任何分数。
+
+## 第二轮（2026-11-24 22:25，文档深化 + 实编清单，GitHub v4）
+
+代码与结论未变；本轮只改了 README（每包 3.5–5.4k 字符）、补了 01/04/05/08 的契约 `result.json`、把 07 的构建清单换成云主机实编结果（旧 `static_only` 清单保留为对照），`GITHUB_URL.txt` 指向新仓 `bohrium-cugb-sprint-2026-v4`。
+
+| 题 | attempt | 提交后状态 | 该题配额（used/10，本轮后） | 剩余 |
+|---|---|---|---|---|
+| 01 | 104967 | submitted / queued | 5 | 5 |
+| 04 | 104968 | submitted / queued | 8 | 2 |
+| 05 | 104969 | submitted / queued | 5 | 5 |
+| 07 | 104970 | submitted / queued | 6 | 4 |
+| 08 | 104971 | submitted / queued | 7 | 3 |
+| 09 | 104972 | submitted / queued | 8 | 2 |
+| 10 | 104973 | submitted / queued | 5 | 5 |
+
+第二轮说明：
+
+1. 第一轮的 7 条（104857/104862–104867）仍在队列中，未被修改、未被覆盖；第二轮是**新 attempt**，不是 retry。
+2. 轨迹复用同一份脱敏记录（4,431 条事件，`trace validate: valid`）。
+3. 每道题本轮只交一次；余量最少的两题（04、09）仍有 2 次。
+4. 这一轮的分数尚未回写，出分后另记。
