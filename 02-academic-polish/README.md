@@ -34,7 +34,7 @@
 
 1. **两种执行模式**：`case.json` 给了 `polished_text` 就只审计不改写（`mode=llm`）；没给就由最小编辑引擎产出（`mode=minimal-edit`）。两条路径共用同一套台账。
 2. **数字+单位成对比较**：`3.5 wt%` 与 `3.5%` 是两个不同标记，改单位判 F01；`0 to` 这类普通词不会被误当单位（STOP 表）。
-3. **限定/否定按计数比**：`may/might/could/suggest/approximately` 数量减少即 F04；`may` 换成 `proves` 同时触发 F05。
+3. **限定/否定按词边界计数**：`may/might/could/suggest/approximately` 数量减少即 F04；计数用 `(?<!\w)…(?!\w)` 边界，`may,` / `not;` / `significantly.` 这类紧跟标点的词同样计入。新增强断言（`found→proved`、`observed→demonstrated`）不论原文是否有 hedge 都触发 F05。
 4. **改动必须可回指**：`changes.original` 要在原文里找得到，`revised` 要在润色稿里找得到；改了数字/引用必须 `fact_changed: true`，否则 F10。
 5. **逐句对齐防偷句**：每句原文对润色稿做相似度对齐，<0.45 判整句丢失（F08），孤立的润色句判凭空加句（F09）。
 6. **事实状态**：`kept/normalized/changed/removed/added` 五类，`fact_preservation_rate` 与 `fact_unchanged` 由脚本反推，"原文无需修改"不由 LLM 手填。
@@ -51,4 +51,4 @@
 | fact_preservation_rate | 1.0000 | 0.6667 |
 | status | success | pass=false（4 项阻断） |
 
-自检：`python examples/selftest.py` → 21 条全绿。
+自检：`python examples/selftest.py` → 24 条全绿。

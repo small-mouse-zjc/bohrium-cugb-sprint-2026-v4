@@ -8,7 +8,7 @@
 |---|---|---|
 | 数字+单位 | `(?<![A-Za-z0-9_.])\d+(\.\d+)?` + 紧随的字母/`%`/`°` 词 | `wt %`→`wt%`、`℃`/`ºc`→`°c`、`weight%`/`pct`→`%`；后接 `to/and/of/in/at/...` 等普通词时不当作单位 |
 | 引用 | `[12]`、`[3-5]`、`(Smith et al., 2020)`、`(Smith, 2020)` | 去空格 |
-| 限定词 | may/might/could/possibly/likely/suggest/appear/seem/tend to/presumably/arguably/approximately/rather/up to | 按小写词计数 |
+| 限定词 | may/might/could/possibly/likely/suggest/appear/seem/tend to/presumably/arguably/approximately/rather/up to | 按小写词边界计数（`(?<!\w)…(?!\w)`，标点紧跟不丢；多词短语内部空格放宽为 `\s+`） |
 | 否定 | not/never/none/neither/nor/cannot/without/lack/fail/unable/hardly/barely/rarely | 按小写词计数 |
 | 比较级 | more than/less than/higher than/lower than/increase/decrease/rise/decline/exceed/above/below/twice/fold/rather than/compared with | 按小写词计数 |
 | 强断言 | prove/demonstrate/confirm/establish/significant/definitively/clearly/undoubtedly/always/conclusively | 只用于"是否新增" |
@@ -25,7 +25,7 @@
 | `removed` | 数字或单位整体消失 | 是（F01）。**不做单位换算后放行**：kPa 与 MPa 数值不同即换单位，需人工确认 |
 | `added` | 润色稿里出现原文没有的数字 | 是（F11 `number_added`） |
 
-引用同理：丢一条 F02，凭空多一条 F03。限定词数量减少 F04；原文有推测语气而润色稿新增强断言 F05。否定减少 F06，比较方向丢失 F07。
+引用同理：丢一条 F02，凭空多一条 F03。限定词数量减少 F04；润色稿新增强断言即 F05（不再要求原文先有推测语气，`found→proved` 也算）。否定减少 F06，比较方向丢失 F07。
 
 ## 3. 句子对齐
 

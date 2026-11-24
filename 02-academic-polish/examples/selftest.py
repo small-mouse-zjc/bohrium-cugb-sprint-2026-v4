@@ -132,6 +132,27 @@ def main():
     assert "intensity_added" in codes(rep), rep["blocking"]
     ok.append("D13 凭空加 significantly → intensity_added（结论强度被抬高）")
 
+    # 8i 限定词紧跟标点：旧实现靠两侧空格计数，会整类漏检
+    src = "The result may, however, be wrong under high salinity."
+    dst = "The result, however, be wrong under high salinity."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "hedge_loss" in codes(rep), rep["blocking"]
+    ok.append("D14 删「may,」（逗号紧跟）→ hedge_loss（边界计数修正）")
+
+    # 8j 否定词紧跟逗号
+    src = "This is not, in fact, proven by the data."
+    dst = "This is, in fact, proven by the data."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "negation_flip" in codes(rep), rep["blocking"]
+    ok.append("D15 删「not,」（逗号紧跟）→ negation_flip")
+
+    # 8k 无 hedge 的强弱升级：found → proved
+    src = "We found that the permeability increases with depth."
+    dst = "We proved that the permeability increases with depth."
+    rep = fact_ledger.audit(src, dst, [])
+    assert "strength_upgrade" in codes(rep), rep["blocking"]
+    ok.append("D16 found→proved（原文无 hedge）→ strength_upgrade，不再静默放行")
+
     # 8c 编造数字：原文没有 18 MPa
     rep = fact_ledger.audit(original, polished.replace("above 12 MPa", "above 18 MPa"), changes)
     assert {"number_added", "number_or_unit_loss"} & codes(rep), rep["blocking"]

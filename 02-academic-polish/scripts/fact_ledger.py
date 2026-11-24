@@ -158,8 +158,9 @@ def audit(original: str, polished: str, changes=None) -> dict:
                    "status": "removed" if k in hedge_drop else "kept"} for k in orig_f["hedges"]]
     strong_new = {k: v for k, v in pol_f["strong_claims"].items()
                   if v > orig_f["strong_claims"].get(k, 0)}
-    if strong_new and (hedge_drop or any(
-            h in original.lower() for h in ("may", "might", "could", "suggest", "likely"))):
+    # 强弱升级与"原文有没有 hedge"无关：found→proved、observed→demonstrated
+    # 同样是把观察抬成结论；只在有 hedge 时才查会系统性放行这类改写。
+    if strong_new:
         blocking.append({"type": "strength_upgrade", "tokens": strong_new})
 
     # 4) 否定与比较级

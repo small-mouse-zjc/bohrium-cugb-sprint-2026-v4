@@ -51,13 +51,21 @@ UNIT_STOP = {"to", "and", "of", "in", "at", "by", "from", "with", "for", "is", "
 
 
 def _count(text: str, vocab) -> dict:
-    low = " " + (text or "").lower() + " "
+    """按单词边界计数，不靠两侧空格。
+
+    旧实现 low.count(" may ") 只在词两侧都是空格时命中，于是 "may," / "not;"
+    / "significantly." 这类紧跟标点的限定词、否定词、程度副词全被漏计，
+    删掉它们不会触发 hedge_loss / negation_flip / intensity_loss。
+    改用 (?<!\w)…(?!\w) 边界（多词短语内部空格放宽为 \s+）。
+    """
+    low = (text or "").lower()
     out = {}
     for w in vocab:
         key = w.strip()
-        n = low.count(" " + key + " ") if key and " " not in key else low.count(" " + key + " ")
-        if key in ("no ", "no"):
-            n = len(re.findall(r"\bno\b", low))
+        if not key:
+            continue
+        pat = r"(?<!\w)" + re.escape(key).replace(r"\ ", r"\s+") + r"(?!\w)"
+        n = len(re.findall(pat, low))
         if n:
             out[key] = n
     return out
