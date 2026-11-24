@@ -83,7 +83,7 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 | 冲突值数 | `conflict` 条数（全部转"待确认"可放行） | = 0 |
 | 复现九项覆盖 | 九项中非空项比例 | = 1.00 |
 | 步骤四要素完整率 | 四要素齐全的步骤比例 | = 1.00 |
-| 限制条件具体率 | 含条件/数值/失效场景的限制比例 | = 1.00 |
+| 限制条件具体率 | 每条限制含具体数值 + 条件/失效场景（只含"规模/条件"字样而无数值判 vague） | = 1.00 |
 
 ## 6. 实测证据（构造演示，非平台案例）
 
@@ -105,7 +105,7 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 | F3 删清单字段 | `repro_field_missing` |
 | F4 步骤缺判断条件 | `step_incomplete` |
 
-自检 **11 条**全绿，另覆盖：平台入口（`case.json → result.json`，`status=success`、4 参数全溯源）、`limitations` 置空时 `limitation_specificity=None` + `limitation_missing` + `pass=false`（旧版记 `0.0` 却放过）、裸小数 `0.85` 被抓而章节编号 `3.1–3.4` 不误判、正文零参数时 `sourced_rate=None` + `no_params_declared`、基线对照（Skill `pass` vs 裸 Agent `fail`，九项差 +0.6667、步骤 +1.0、限制 +1.0）、缺 `audit.json`/`repro.json` 的基线段记 `None` 不崩溃。
+自检 **14 条**全绿，另覆盖：英文单位裸整数 `200 epochs / 128 channels / 3 blocks` 全部命中且章节编号不误判；限制小节比较式阈值 `2 μm` 免溯源、同节无源实测值 `25 °C` 仍被抓；套话限制"数据规模变化时可能失效"判 `limitation_specificity=0.00` + `limitation_vague`；平台入口（`case.json → result.json`，`status=success`、4 参数全溯源）、`limitations` 置空时 `limitation_specificity=None` + `limitation_missing` + `pass=false`（旧版记 `0.0` 却放过）、裸小数 `0.85` 被抓而章节编号 `3.1–3.4` 不误判、正文零参数时 `sourced_rate=None` + `no_params_declared`、基线对照（Skill `pass` vs 裸 Agent `fail`，九项差 +0.6667、步骤 +1.0、限制 +1.0）、缺 `audit.json`/`repro.json` 的基线段记 `None` 不崩溃。
 
 **上岗入口**：`python scripts/run.py --input /input --output /app/output`，读 `case.json` 的 `draft / params / sources / manifest / steps`，串 `param_align.py → repro_check.py`，写 `result.json`；`status` 由产物判定：`success` 需 `audit.pass` 且 `repro.pass`；有产物未过门槛为 `partial`；完全没给来源文件为 `cannot_determine`（只交待核草稿）；缺方法章节或参数声明为 `rejected`。
 

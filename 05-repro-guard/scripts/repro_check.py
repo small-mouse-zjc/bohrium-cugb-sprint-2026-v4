@@ -11,6 +11,19 @@ import json
 from pathlib import Path
 
 COND_WORDS = ["压力", "温度", "规模", "分辨率", "样本", "范围", "条件", "场景", "仅", "低于", "高于", "少于", "大于", "当"]
+FAIL_WORDS = ["失效", "不可用", "不适用", "无法", "退化", "波动", "偏差", "溢出", "超出", "误差", "发散", "不可复现",
+              "无法复现", "不成立", "需复核", "偏差增大", "精度下降"]
+
+
+def limitation_is_specific(x: str) -> bool:
+    """SKILL §4：每条限制要落到"条件/阈值 + 失效场景"，只含关键词的套话不算。
+
+    判据：句内必须有具体数值（阈值/范围/量级），且同时点名条件或失效方式。
+    只有"规模/条件"这类词而无任何数值 → 判 vague（旧版按"含关键词"即放行，是 false-pass）。
+    """
+    if not any(ch.isdigit() for ch in x):
+        return False
+    return any(w in x for w in COND_WORDS) or any(w in x for w in FAIL_WORDS)
 
 
 def nonempty(v):
@@ -58,7 +71,7 @@ def main():
             bad_steps.append({"step": s.get("id"), "name": s.get("name"), "lack": lack})
 
     limits = m.get("limitations") or []
-    vague = [x for x in limits if not (any(w in x for w in COND_WORDS) or any(ch.isdigit() for ch in x))]
+    vague = [x for x in limits if not limitation_is_specific(x)]
 
     unsourced = [r for r in prows if r.get("status") != "sourced"]
     rates = {

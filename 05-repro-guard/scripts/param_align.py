@@ -13,7 +13,50 @@ import re
 from pathlib import Path
 
 NUM = r"[0-9]+(?:\.[0-9]+)?(?:[eE][+-]?\d+)?"
-UNIT = r"(?:%|MPa|GPa|kPa|°C|K|s|ms|h|min|GB|MB|TB|轮|层|维|次|个)"
+UNIT = (r"(?:%|MPa|GPa|kPa|°C|K|s|ms|h|min|GB|MB|TB|轮|层|维|次|个|条|张|幅|μm|um|mm|cm|"
+        r"epochs|epoch|iterations|steps|samples|images|channels|blocks|layers|fps|tokens|batches|"
+        r"params|cores|threads|hours|minutes|seconds|days|GPUs|GPU)")
+EN_UNITS = {"epochs", "epoch", "iterations", "steps", "samples", "images", "channels", "blocks", "layers", "fps",
+            "tokens", "batches", "params", "cores", "threads", "hours", "minutes", "seconds", "days", "gpus", "gpu",
+            "mb", "gb", "tb", "ms", "min", "h", "s", "k"}
+# 数字后紧跟的英文词：不在停用词里就当作单位（epochs/blocks 这类白名单外的写法不再漏网）
+UNIT_EN_STOP = {"and", "or", "of", "to", "the", "in", "on", "for", "per", "vs", "at", "is", "are", "by",
+                "with", "as", "from", "than", "each", "respectively", "approximately", "about", "over"}
+
+
+def limitation_spans(text: str):
+    """「限制/局限性」小节的字符区间：里面的数值是作者给的失效阈值，不是实验参数。
+
+    这些阈值不与 config/log 对齐（本来就不在配置里），但必须写进 manifest.limitations，
+    由 repro_check 的 limitation_specificity 复核，所以这里跳过、不记无源。
+    """
+    spans = []
+    for m in re.finditer(r"(?m)^#{1,6}\s*[^\n]*?(限制|局限)[^\n]*$", text):
+        start = m.start()
+        nxt = re.search(r"(?m)^#{1,6}\s", text[m.end():])
+        end = m.end() + (nxt.start() if nxt else len(text))
+        spans.append((start, end))
+    return spans
+
+
+CMP = ("超过", "高于", "低于", "少于", "大于", "小于", "不低于", "不超过", "不少于", "不多于", "±", "约为",
+       "≥", "≤", ">", "<")
+
+
+def in_spans(pos, spans):
+    return any(a <= pos < b for a, b in spans)
+
+
+def threshold_in_limit(text, pos, spans):
+    """限制小节里以比较式给出的阈值（"不低于 2 μm"/"超过 0.005"）才免于溯源。
+
+    这样"实验环境温度为 25 °C"这类混进限制小节的无源实测值仍会被抓；
+    阈值本身是否写进 manifest.limitations 由 repro_check 的 limitation_specificity 复核。
+    """
+    if not in_spans(pos, spans):
+        return False
+    head = text[max(0, pos - 15):pos]
+    return any(w in head for w in CMP)
 
 
 def parse_num(s: str):
@@ -103,17 +146,35 @@ def main():
                              "note": f"来源值为 {src_hits[0][0]}"})
                 viol.append({"type": "param_conflict", "detail": f"{key}: 正文 {val} vs 来源 {src_hits[0][0]}", "key": key})
 
-    # 带单位的数值：全库找不到即视为无源
+    # 带单位的数值：全库找不到即视为无源（限制小节里的失效阈值除外，那部分由 repro_check 复核）
+    lim_spans = limitation_spans(text)
     for m in re.finditer(rf"({NUM})\s*{UNIT}", text):
         val = m.group(1)
         if val in declared_numbers:
+            continue
+        if threshold_in_limit(text, m.start(), lim_spans):
             continue
         if not any(same(val, g[0]) for g in generic):
             viol.append({"type": "unsourced_number", "detail": f"带单位数值 {m.group(0)} 在全部来源里找不到",
                          "span": [m.start(), m.end()]})
 
+    # 白名单外的英文单位（200 epochs / 3 blocks）：数字 + 空格 + 英文词，词不在停用表里就按"带单位数值"核
+    for m in re.finditer(rf"(?<![A-Za-z0-9_.])({NUM})\s+([A-Za-zμ][A-Za-zμ]{{1,14}})", text):
+        val, word = m.group(1), m.group(2)
+        if word.lower() in UNIT_EN_STOP:
+            continue
+        if re.fullmatch(UNIT, word):
+            continue  # 已在上面白名单那句核过，不重复报
+        if val in declared_numbers:
+            continue
+        if threshold_in_limit(text, m.start(), lim_spans):
+            continue
+        if not any(same(val, g[0]) for g in generic):
+            viol.append({"type": "unsourced_number",
+                         "detail": f"英文单位数值 {m.group(0)}（{word}）在全部来源里找不到",
+                         "span": [m.start(), m.end()]})
+
     # 裸小数（如 dropout 0.7）：不带单位也不在前述参数别名里，仍是可复现性漏洞；阈值类句子除外
-    CMP = ("超过", "高于", "低于", "少于", "大于", "小于", "不低于", "不超过", "不少于", "不多于", "±", "约为")
     for m in re.finditer(r"(?<![A-Za-z0-9.])(\d+\.\d+)(?![0-9])", text):
         val = m.group(1)
         if val in declared_numbers:
@@ -155,3 +216,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+

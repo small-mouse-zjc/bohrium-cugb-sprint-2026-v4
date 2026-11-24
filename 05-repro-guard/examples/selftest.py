@@ -113,6 +113,40 @@ def main():
         assert not any("3." in v["detail"] for v in ba["violations"]), "章节编号被误判"
         ok.append("裸小数 0.85 被捕获、章节编号 3.1–3.4 不误判")
 
+        # 英文单位 + 裸整数必须抓（旧版 UNIT 只认中文单位、只抓 \d+.\d+，200 epochs / 3 blocks 漏网）
+        t = (DEMO / "methods.md").read_text(encoding="utf-8") + "\n\n## 3.5 补充\n\n训练共 200 epochs，使用 128 channels 与 3 blocks。\n"
+        dp = tmp / "enunit.md"
+        dp.write_text(t, encoding="utf-8")
+        align(dp, tmp / "enunit")
+        eu = json.loads((tmp / "enunit/audit.json").read_text(encoding="utf-8"))
+        det = " ".join(v["detail"] for v in eu["violations"])
+        assert "200 epochs" in det and "128 channels" in det and "3 blocks" in det, eu["violations"]
+        assert eu["pass"] is False, "英文单位无源数值未卡 pass"
+        assert not any("3." in v["detail"] for v in eu["violations"]), "章节编号被英文单位规则误判"
+        ok.append("英文单位裸整数：200 epochs / 128 channels / 3 blocks 全部命中，章节编号不误判")
+
+        # 限制小节里的比较式阈值（"不低于 2 μm"）不溯源；混进同一节的无源实测值（25 °C）仍要抓
+        t2 = (DEMO / "methods.md").read_text(encoding="utf-8") + "\n实验环境温度为 25 °C。\n"
+        dp2 = tmp / "limnum.md"
+        dp2.write_text(t2, encoding="utf-8")
+        align(dp2, tmp / "limnum")
+        ln = json.loads((tmp / "limnum/audit.json").read_text(encoding="utf-8"))
+        assert any("25 °C" in v["detail"] for v in ln["violations"]), ln["violations"]
+        assert not any("2 μm" in v["detail"] for v in ln["violations"]), "限制阈值被当成无源参数"
+        ok.append("限制小节：比较式阈值 2 μm 不溯源，同节无源实测值 25 °C 仍被捕获")
+
+        # 套话限制（只含关键词、无任何数值阈值）必须判 vague，不许拿 1.00
+        m = json.loads((DEMO / "manifest.json").read_text(encoding="utf-8"))
+        m["limitations"] = ["方法在数据规模变化时可能失效"]
+        mp = tmp / "vaguelimit.json"
+        mp.write_text(json.dumps(m, ensure_ascii=False), encoding="utf-8")
+        check(mp, DEMO / "steps.json", eout / "params.csv", tmp / "vaguelimit")
+        vl = json.loads((tmp / "vaguelimit/repro.json").read_text(encoding="utf-8"))
+        assert vl["rates"]["limitation_specificity"] == 0.0 and vl["vague_limits"], vl["rates"]
+        assert vl["pass"] is False and "limitation_specificity" in vl["failed_gates"] and \
+            any(v["type"] == "limitation_vague" for v in vl["violations"]), vl
+        ok.append("套话限制（含\"规模\"但无数值阈值）→ limitation_specificity=0.0 + limitation_vague + pass=False")
+
         # 正文零参数：sourced_rate 记 None（旧版记 1.0），并报 no_params_declared
         empty = tmp / "empty.md"
         empty.write_text("# 3 方法\n\n我们训练了一个模型，效果不错。\n", encoding="utf-8")

@@ -74,6 +74,11 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 | 步骤四要素完整率 | = 1.00 |
 | 限制条件具体率 | = 1.00（每条限制含条件/数值/失效场景，不是套话） |
 
+两条容易被"粗判据"放过的门槛，脚本按下面口径卡：
+
+- **限制具体率**：句内必须有具体数值（阈值/范围/量级），**且**同时点名条件（压力/规模/分辨率/仅/低于…）或失效方式（失效/不可用/偏差/不可复现…）。只出现"规模""条件"这类词而无任何数值，判 `vague`（`limitation_specificity` < 1.00、`limitation_vague` 违规、pass=False）。
+- **无源数值 = 0**：单位白名单含中文单位与英文单位（epochs / channels / blocks / samples …），白名单外的"数字 + 空格 + 英文词"（非停用词）也按带单位数值核，`200 epochs`、`3 blocks` 不会漏网。**例外**：限制小节里以比较式写出的阈值（`不低于 2 μm`、`超过 0.005`）不与 config/log 对齐——它们由限制具体率复核；但同一节里混进的实测值（`温度为 25 °C`）仍按无源报。
+
 **第 5 步 回填**
 按 `audit.json` 的 `violations` 改：补来源、删无源值、补清单字段、把限制写到具体失效条件。
 
@@ -89,7 +94,7 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 | 配置与日志数值不一致 | 两处都列，标 `conflict`，正文用"待确认"占位 |
 | 只有代码默认值、无运行配置 | 用代码默认值但注明"默认值，实际运行配置未提供" |
 | 数据集版本不明 | 只写名称与规模，版本标"未提供" |
-| 随机种子未固定 | 在限制里写"结果不可逐位复现" |
+| 随机种子未固定 | 限制里写"未固定种子，重复实验差值与 x 同量级"这类带数值的失效描述（只写"不可逐位复现"会被判 vague） |
 | 参数无单位 | `unit` 留空并在 `params.csv` 备注，不猜单位 |
 
 ## 6. 自检
@@ -97,4 +102,4 @@ python scripts/repro_check.py --manifest work/manifest.json --steps work/steps.j
 ```
 python examples/selftest.py
 ```
-要求：正例六项全过；注入四类缺陷（正文改值造成冲突、删清单字段、步骤缺判断、正文凭空加温度）全部命中。
+自检 **14 条**：正例六项全过；注入四类缺陷（正文改值造成冲突、删清单字段、步骤缺判断、正文凭空加温度）全部命中；再加反向用例锁死粗判据——① limitations 清空 → `limitation_specificity=None` + `limitation_missing` + pass=False（不虚报 1.00）；② 裸小数 0.85 被抓、章节编号 3.1–3.4 不误判；③ `200 epochs / 128 channels / 3 blocks` 全部命中且章节编号不误判；④ 限制小节比较式阈值 `2 μm` 免溯源、同节 `25 °C` 仍被抓；⑤ 套话限制"数据规模变化时可能失效" → 0.00 + `limitation_vague`；⑥ 正文零参数 → `sourced_rate=None` + `no_params_declared`。
