@@ -112,7 +112,7 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 | F2 整段漏译（删掉一段 `target`） | 报覆盖率不足 |
 | F3 数字与引用同时丢失 | 同时报 `number_lost` 与 `citation_lost` |
 
-自检 **13 条**断言全绿。除三类注入外，重点锁两条「存在性检查抓不到」的错：**数值互换**（`3.5 wt%` ↔ `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94 并报硬违规 `number_unit_mismatch`）与 **`basis` 全删**（12 段 `missing_basis`、`basis_coverage=0.00`，`pass=false`）。另覆盖：平台入口（`case.json → result.json`，12 段含 5 标题）、缺译文草稿时 `status=partial`、硬违规卡 `pass`（`number_unit_mismatch` + `dup_target` 同时命中时 `hard_violations>0`、`pass=false`）、基线对照（Skill `pass=true` vs 基线 `pass=false`，术语一致率差 +80.00%）、缺 `qc.json` 的基线段记 `None` 而不崩溃。演示输入是纯文本，`paras.jsonl.meta.json` 明确记录 `warnings: 纯文本输入无版面信息，页码为估算`——不把估算页码当真实页码。
+自检 **15 条**断言全绿。除三类注入外，重点锁两条「存在性检查抓不到」的错：**数值互换**（`3.5 wt%` ↔ `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94 并报硬违规 `number_unit_mismatch`）与 **`basis` 全删**（12 段 `missing_basis`、`basis_coverage=0.00`，`pass=false`）。第二轮再补两条口径修正：**降级段覆盖率**（`untranslatable` + 非空原文片段仍计入 coverage）与**父子术语遮蔽**（只出现 `天然气水合物` 时不误判 `水合物`）。另覆盖：平台入口（`case.json → result.json`，12 段含 5 标题）、缺译文草稿时 `status=partial`、硬违规卡 `pass`（`number_unit_mismatch` + `dup_target` 同时命中时 `hard_violations>0`、`pass=false`）、基线对照（Skill `pass=true` vs 基线 `pass=false`，术语一致率差 +80.00%）、缺 `qc.json` 的基线段记 `None` 而不崩溃。演示输入是纯文本，`paras.jsonl.meta.json` 明确记录 `warnings: 纯文本输入无版面信息，页码为估算`——不把估算页码当真实页码。
 
 **上岗入口**：`python scripts/run.py --input /input --output /app/output`。它读 `case.json` 的 `source / glossary / bilingual`（字段名容错），依次跑取段 → 术语锁定 → 质检，写 `result.json`；`status` 由实际产物判定：`success` 需 `qc.pass=true`；有译文但未过门槛为 `partial`；无文字层为 `cannot_determine`；缺原文/`case.json` 为 `rejected`。**没有译文草稿时不冒充成功**，只交 `paras.jsonl` 与 `glossary.csv` 并写 `partial`。
 

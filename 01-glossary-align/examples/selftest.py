@@ -138,6 +138,37 @@ def main():
         assert nd2["rates"]["basis_coverage"] == 0.0, nd2["rates"]
         ok.append(f"basis 全删 → missing_basis={nd2['violation_counts']['missing_basis']}、basis_coverage=0.00，不再静默通过")
 
+        # 降级段（untranslatable + 保留原文片段）不该被剔出覆盖率分子
+        cr = json.loads((ROOT / "examples/demo/bilingual.json").read_text(encoding="utf-8"))
+        for p in cr["paragraphs"]:
+            if p["id"] == "P0002":
+                p["status"] = "untranslatable"
+                p["target"] = p.get("source") or p.get("target") or "原文片段"
+                p["risk"] = ["原文残缺，保留片段"]
+        cp = tmp / "untrans.json"
+        cp.write_text(json.dumps(cr, ensure_ascii=False), encoding="utf-8")
+        run([ROOT / "scripts/qc.py", "--paras", paras, "--bi", cp, "--glossary", glos,
+             "--out", tmp / "untrans", "--no-fail"])
+        cd = json.loads((tmp / "untrans/qc.json").read_text(encoding="utf-8"))
+        assert cd["rates"]["coverage"] == 1.0 and cd["pass"] is True, cd["rates"]
+        ok.append("untranslatable 段保留非空片段 → coverage 仍 1.00（不再把降级段当漏译）")
+
+        # 父子术语：只出现"天然气水合物"时不要求"水合物"的译名
+        sub = tmp / "subterm"
+        sub.mkdir()
+        (sub / "paras.jsonl").write_text(json.dumps({"id": "P9001", "type": "body", "page": 1,
+            "section": "x", "text": "天然气水合物稳定带分布于深海。"}, ensure_ascii=False) + "\n", encoding="utf-8")
+        (sub / "bi.json").write_text(json.dumps({"case_id": "subterm", "paragraphs": [{"id": "P9001", "type": "body",
+            "source": "天然气水合物稳定带分布于深海。", "target": "天然气水合物稳定带分布于深海。",
+            "status": "ok", "basis": "专名照抄"}]}, ensure_ascii=False), encoding="utf-8")
+        (sub / "g.csv").write_text("source,translation\n天然气水合物,天然气水合物\n水合物,水合物X\n", encoding="utf-8")
+        run([ROOT / "scripts/qc.py", "--paras", sub / "paras.jsonl", "--bi", sub / "bi.json",
+             "--glossary", sub / "g.csv", "--out", sub / "out", "--no-fail"])
+        subd = json.loads((sub / "out/qc.json").read_text(encoding="utf-8"))
+        assert subd["pass"] is True and not any(v["type"] == "term_drift" for v in subd["violations"]), subd
+        assert subd["rates"]["term_consistency"] == 1.0, subd["rates"]
+        ok.append("父子术语遮蔽：只出现「天然气水合物」时不误判「水合物」→ 无 term_drift，一致率 1.00")
+
         # 基线对照：同一套指标下 Skill 优于裸 Agent
         bo = tmp / "base_out"
         run([ROOT / "examples/baseline.py", "--paras", paras, "--glossary", glos, "--out", bo])

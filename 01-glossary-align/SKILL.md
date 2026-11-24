@@ -63,8 +63,8 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 
 | 指标 | 门槛 | 算法 |
 |---|---|---|
-| 段落覆盖率 | ≥ 0.98 | 有非空 `target` 的源段落 / 源段落总数 |
-| 术语一致率 | = 1.00 | 段落内出现锁定术语时，译文含其锁定译名的比例 |
+| 段落覆盖率 | ≥ 0.98 | 有非空 `target` 的源段落 / 源段落总数；`status=untranslatable` 但保留原文片段的段仍计入（它是降级不是漏译） |
+| 术语一致率 | = 1.00 | 段落内出现锁定术语时，译文含其锁定译名的比例；中文按最长匹配遮蔽，`天然气水合物` 出现处不再顺带要求 `水合物` 的译名 |
 | 数字保真率 | ≥ 0.95 | 源段 `(数值, 紧邻单位)` 多重集与译文多重集的计数匹配比例：只查「数字出现过」会放过 3.5 wt% ↔ 4 °C 互换和重复数值丢一份 |
 | 引用标记保真率 | = 1.00 | `[n]`/`Fig.`/`Table`/`Eq.` 标记保留比例 |
 | 未确定标注率 | = 1.00 | `status != ok` 的段落必须带 `risk` 说明 |
@@ -94,10 +94,12 @@ python scripts/qc.py --paras /app/work/paras.jsonl --bi /app/output/bilingual.js
 ```
 python examples/selftest.py
 ```
-自检共 **13 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁两类「存在性检查抓不到」的错：
+自检共 **15 条**。除三类注入缺陷（术语漂移、整段漏译、数字与引用丢失）外，还锁四类「存在性检查/口径偏差抓不到」的错：
 
 - **数值互换**：把 P0002 的 `3.5 wt%` 与 `4 °C` 对调，数字与单位一个不少，`number_preservation` 掉到 0.94、报 `number_unit_mismatch`（硬违规）→ `pass=false`；
-- **`basis` 全删**：12 段 `missing_basis`、`basis_coverage=0.00` → `pass=false`。
+- **`basis` 全删**：12 段 `missing_basis`、`basis_coverage=0.00` → `pass=false`；
+- **降级段覆盖率**：`status=untranslatable` + 非空原文片段仍计入覆盖率（1.00），不把降级当漏译；
+- **父子术语**：术语表同时有 `天然气水合物` 与 `水合物` 时，只出现长术语的段落不误判 `term_drift`（遮蔽式最长匹配）。
 
 未命中即视为质检器失效，不得提交。
 

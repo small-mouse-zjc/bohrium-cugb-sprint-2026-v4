@@ -65,6 +65,22 @@ def load_glossary(p: Path):
     return rows
 
 
+def masked_present(text: str, term: str, longer) -> bool:
+    """先遮蔽更长的术语再判短术语，避免"水合物"命中"天然气水合物"。
+
+    中文没有词边界，纯 `term in text` 会让父子术语互相误触发：一篇只谈
+    "天然气水合物"的段落被强行要求出现"水合物"的译名，term_checks 虚高。
+    用等长全角空格遮蔽长术语（保持偏移不变），再对剩余文本做一次匹配。
+    """
+    if not longer:
+        return find_term(text, term)
+    masked = text
+    for L in sorted(longer, key=len, reverse=True):
+        if L in masked:
+            masked = masked.replace(L, "\u3000" * len(L))
+    return find_term(masked, term)
+
+
 def find_term(text: str, term: str) -> bool:
     if re.search(r"[\u4e00-\u9fa5]", term):
         return term in text
@@ -103,21 +119,27 @@ def main():
         if not tgt:
             viol.append({"id": i, "type": "empty_target", "detail": "段落无译文"})
             continue
-        if r.get("status") == "untranslatable":
-            continue
+        # untranslatable 段按 SKILL §4 的定义仍属"有非空 target 的源段落"：
+        # 它是"保留原文片段、不补写"，不是漏译，不能从覆盖率分子里被剔掉。
         covered += 1
 
     # 2 术语一致（锁定术语只在出现于源段时要求）
     checks = hits = 0
+    src_all = [g["source"] for g in glos]
+    tgt_all = [g["target"] for g in glos]
     for i, s in src.items():
         r = rows.get(i) or {}
         if not r:
             continue
+        tgt = r.get("target") or ""
         for g in glos:
-            if not find_term(s["text"], g["source"]):
+            longer_src = [x for x in src_all if len(x) > len(g["source"]) and g["source"] in x]
+            if not masked_present(s["text"], g["source"], longer_src):
                 continue
             checks += 1
-            if find_term((r.get("target") or ""), g["target"]):
+            # 目标侧只判"译名是否出现"：长译名里含短译名是合法包含关系，
+            # 遮蔽只用于源侧，避免把"盐度"被"地层水盐度"遮蔽后误判缺失。
+            if find_term(tgt, g["target"]):
                 hits += 1
             else:
                 viol.append({"id": i, "type": "term_drift", "detail": f"'{g['source']}' 未按术语表译为 '{g['target']}'"})
@@ -230,9 +252,13 @@ def main():
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     (out / "qc.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
+    def pct(v):
+        return "n/a" if v is None else f"{v:.2%}"
+
     lines = ["# 译文质检", "", f"- 源段落 {len(src)} / 有译文 {len(rows)} / 术语 {len(glos)}",
-             f"- 覆盖率 {rates['coverage']:.2%} | 术语一致率 {rates['term_consistency']:.2%} | "
-             f"数字保真 {rates['number_preservation']:.2%} | 引用保真 {rates['citation_preservation']:.2%}",
+             f"- 覆盖率 {pct(rates['coverage'])} | 术语一致率 {pct(rates['term_consistency'])} | "
+             f"数字保真 {pct(rates['number_preservation'])} | 引用保真 {pct(rates['citation_preservation'])} | "
+             f"依据覆盖 {pct(rates.get('basis_coverage'))}",
              f"- 结论: {'通过' if report['pass'] else '未通过: ' + ','.join(failed) if failed else '未通过: 覆盖率类问题'}", ""]
     if viol:
         lines.append("| 段落 | 类型 | 说明 |")
