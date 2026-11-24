@@ -87,6 +87,20 @@ def audit(result: dict, case: dict) -> dict:
         else:
             cited.add(m.group(0))
     bib_ids = {str(b.get("id")) for b in bib}
+    ay_resolved, ay_unresolved = set(), []
+    if style != "numeric":
+        for m in renumber.AUTH_YEAR.finditer(ms):
+            surname, year = m.group(1).lower(), m.group(2)
+            hit = next((b for b in bib if renumber.author_norm(b).split(" ")[0] == surname
+                        and str(b.get("year")) == year), None)
+            if hit:
+                ay_resolved.add(str(hit.get("id")))
+            else:
+                ay_unresolved.append({"token": m.group(0), "surname": m.group(1), "year": year})
+        if ay_unresolved:
+            blocking.append({"type": "dangling_citation", "tokens": [u["token"] for u in ay_unresolved],
+                             "hint": "作者-年份引用在文献表里找不到同姓同年条目"})
+
     dangling = sorted(cited - bib_ids, key=lambda x: (len(x), x)) if style == "numeric" else []
     if dangling:
         blocking.append({"type": "dangling_citation", "ids": dangling})
@@ -198,8 +212,15 @@ def audit(result: dict, case: dict) -> dict:
             blocking.append({"type": "claim_map_gap", "ids": sorted(cited - mapped_ids)})
     else:
         mapped_keys = {k for c in claim_map for k in c.get("source_keys", [])}
+        mapped_ids_ay = set()
+        for c in claim_map:
+            mapped_ids_ay.update(str(i) for i in c.get("source_ids", []))
+        missing_ay = ay_resolved - mapped_ids_ay
         if occ and not mapped_keys:
             blocking.append({"type": "claim_map_gap", "hint": "author-year 正文有引用但 claim_source_map 为空"})
+        elif missing_ay:
+            blocking.append({"type": "claim_map_gap", "ids": sorted(missing_ay),
+                             "hint": "author-year 有引用未被 claim_source_map 覆盖"})
 
     unused = [str(b.get("id")) for b in bib if not b.get("cited", True)]
     if unused:
@@ -208,9 +229,12 @@ def audit(result: dict, case: dict) -> dict:
     totals = {
         "cited": len(cited), "bib": len(bib), "mapping": len(mapping),
         "claim_map": len(claim_map), "occurrences": occ,
-        "citation_closure_rate": rate(len(cited) - len(dangling), len(cited)) if style == "numeric" and cited else None,
+        "citation_closure_rate": (rate(len(cited) - len(dangling), len(cited)) if style == "numeric" and cited
+                                  else rate(occ - len(ay_unresolved), occ) if occ else None),
         "metadata_verbatim_rate": rate(verbatim_ok, checked),
-        "claim_map_coverage": rate(len(mapped_ids & cited), len(cited)) if style == "numeric" and cited else None,
+        "claim_map_coverage": (rate(len(mapped_ids & cited), len(cited)) if style == "numeric" and cited
+                               else rate(len(ay_resolved) - len(ay_resolved - mapped_ids_ay), len(ay_resolved))
+                               if ay_resolved else None),
         "dedup_groups": len(groups),
         "renumber_identity_rate": rate(identity_ok, identity_checked),
     }

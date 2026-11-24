@@ -35,10 +35,20 @@ def expand(spec: str) -> list:
 
 
 def author_norm(entry: dict) -> str:
+    """姓 + 首字母（Smith J. → 'smith j'）；同姓不同名不得合并。"""
     a = str(entry.get("author") or "")
     a = a.split(",")[0].split(" and ")[0].split(" & ")[0]
-    a = re.sub(r"[^A-Za-z\- ]", "", a).strip().split(" ")[0]
-    return a.lower()
+    a = re.sub(r"[^A-Za-z\- .]", "", a).strip()
+    parts = [p for p in a.split() if p and p != "."]
+    if not parts:
+        return ""
+    surname = parts[0].lower()
+    initial = ""
+    if len(parts) > 1 and len(parts[1]) == 1:
+        initial = parts[1].lower()
+    elif len(parts) > 1 and parts[1].endswith(".") and len(parts[1]) == 2:
+        initial = parts[1][0].lower()
+    return f"{surname} {initial}".strip()
 
 
 def title_norm(t: str) -> str:
@@ -126,7 +136,7 @@ def renumber(manuscript: str, bib: list, style: str = "numeric") -> dict:
     def resolve_author_year(m: re.Match) -> str | None:
         surname, year = m.group(1).lower(), m.group(2)
         for b in bib:
-            if author_norm(b) == surname and str(b.get("year")) == year:
+            if author_norm(b).split(" ")[0] == surname and str(b.get("year")) == year:
                 return merged_into.get(str(b.get("id")), str(b.get("id")))
         return None
 

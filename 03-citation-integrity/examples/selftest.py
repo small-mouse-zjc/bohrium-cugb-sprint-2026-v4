@@ -153,6 +153,27 @@ def main():
     assert ay["editable_manuscript"].count("(Smith") == 1
     ok.append("author-year：正文与文献表按 作者+年份 对齐，重写后仍可审计")
 
+    # author-year 悬空：正文年份与文献表不符
+    ay_bad = {"editable_manuscript": "Gas hydrate occurs at CUG-3 (Smith et al., 2021).",
+              "bibliography": [dict(case["bibliography"][0], id="1", cited=True)],
+              "number_mapping": [], "claim_source_map": [], "style": "author-year"}
+    rep_aybad = cite_chain.audit(wrap(ay_bad, "ayb"), ay_case)
+    assert "C01" in codes(rep_aybad), rep_aybad["blocking"]
+    assert rep_aybad["rates"]["citation_closure_rate"] == 0.0
+    ok.append("author-year 悬空：(Smith et al., 2021) 文献表只有 2020 → C01，闭合率 0.0")
+
+    # 同姓不同首字母不合并
+    bib_ab = [
+        {"id": "1", "key": "smithj2020", "author": "Smith J.", "year": "2020",
+         "title": "Gas hydrate stability in marine sediment", "source": "J1", "doi": "10.1000/x1"},
+        {"id": "2", "key": "smithr2020", "author": "Smith R.", "year": "2020",
+         "title": "Gas hydrate stability in marine sediments", "source": "J2", "doi": None},
+    ]
+    groups, _ = renumber.merge_candidates(bib_ab)
+    assert not groups, groups
+    assert renumber.author_norm(bib_ab[0]) != renumber.author_norm(bib_ab[1])
+    ok.append("同姓不同首字母（Smith J. vs Smith R.）不合并 → 作者 key 含首字母")
+
     tmp = Path(tempfile.mkdtemp(prefix="t03-"))
     try:
         o1 = tmp / "out"
