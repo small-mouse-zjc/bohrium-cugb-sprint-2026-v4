@@ -1,0 +1,93 @@
+{
+  "paper": "arXiv:2407.20541v4",
+  "pages": 49,
+  "checks_total": 12,
+  "checks_found": 12,
+  "note": "Text-level citation check only; reservoir simulations were NOT rerun.",
+  "results": [
+    {
+      "check": "p1",
+      "page": 1,
+      "quote": "from several hours to minutes",
+      "found": true,
+      "context": " recon- struction came with significantly reduced runtimes, from several hours to minutes. Two operation cases were considered: 1. CO2 injection and "
+    },
+    {
+      "check": "p1-cells",
+      "page": 1,
+      "quote": "over 130,000 cells",
+      "found": true,
+      "context": "-scale, offshore, highly heterogeneous reservoir model with over 130,000 cells. DMDc/DMDspc snapshot recon- struction came with significan"
+    },
+    {
+      "check": "p8",
+      "page": 8,
+      "quote": "5200 seven days",
+      "found": true,
+      "context": "mperature and pressure of 56oC and 241 bars, respectively • 5200 seven days (weekly) 𝛥𝑡 time-steps • 780 injection/production time-step"
+    },
+    {
+      "check": "p8-pressure",
+      "page": 8,
+      "quote": "241 bars",
+      "found": true,
+      "context": "2) • Initial reservoir temperature and pressure of 56oC and 241 bars, respectively • 5200 seven days (weekly) 𝛥𝑡 time-steps • 78"
+    },
+    {
+      "check": "p12",
+      "page": 12,
+      "quote": "runs 2, 5, 7, and 10",
+      "found": true,
+      "context": "th regards to training DMDc and DMDspc, we used ECLIPSE 300 runs 2, 5, 7, and 10 individually. Regarding validation, the reconstructed snaps"
+    },
+    {
+      "check": "p15-eclipse",
+      "page": 15,
+      "quote": "~223 mins for case A and ~140 mins for case B",
+      "found": true,
+      "context": "as shown in Table 1. ECLIPSE 300 average simulation time is ~223 mins for case A and ~140 mins for case B. In contrast, for the entire simulation period, the largest"
+    },
+    {
+      "check": "p15-pressure",
+      "page": 15,
+      "quote": "~1.28 mins and ~1.4 mins",
+      "found": true,
+      "context": "entire simulation period, the largest pressure DMDc time is ~1.28 mins and ~1.4 mins for case A and case B, respectively, while the largest "
+    },
+    {
+      "check": "p16-saturation",
+      "page": 16,
+      "quote": "~33 mins and ~31 mins",
+      "found": true,
+      "context": "16 saturation time is ~33 mins and ~31 mins for case A and case B, respectively. Both DMDc times are le"
+    },
+    {
+      "check": "p3-citation",
+      "page": 3,
+      "quote": "279 to 28 seconds",
+      "found": true,
+      "context": "million grid blocks drops from 6766 to 177 seconds and from 279 to 28 seconds for one hundred thousand grid blocks [20]. Holanda et al. ("
+    },
+    {
+      "check": "p16-table",
+      "page": 16,
+      "quote": "Average reconstruction times",
+      "found": true,
+      "context": "precision values or 12,992,888 Bytes or ~12.39 MB Table 1 – Average reconstruction times across forecast DMDc and DMDspc models for pressure and CO2"
+    },
+    {
+      "check": "p36-average",
+      "page": 36,
+      "quote": "Average saturation times are 31.61",
+      "found": true,
+      "context": "ins, monthly 0.29 (0.16) mins, and yearly 0.02 (0.01) mins. Average saturation times are 31.61 (20.37) mins, monthly 6.87 (6.41) mins, and yearly 0.08 (0."
+    },
+    {
+      "check": "p36-limit",
+      "page": 36,
+      "quote": "needs to be applied to multiple reservoirs",
+      "found": true,
+      "context": "ke the procedure we suggest in this study more reliable, it needs to be applied to multiple reservoirs. Two cases were considered: case A, which uses a single wel"
+    }
+  ]
+}

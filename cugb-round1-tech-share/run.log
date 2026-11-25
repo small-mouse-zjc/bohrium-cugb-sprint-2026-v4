@@ -1,0 +1,17 @@
+reproduce: pinned source arXiv:2407.20541v4
+reproduce: PDF bytes = 3198338
+reproduce: pages = 49
+  p1               p1   FOUND  from several hours to minutes
+  p1-cells         p1   FOUND  over 130,000 cells
+  p8               p8   FOUND  5200 seven days
+  p8-pressure      p8   FOUND  241 bars
+  p12              p12  FOUND  runs 2, 5, 7, and 10
+  p15-eclipse      p15  FOUND  ~223 mins for case A and ~140 mins for case B
+  p15-pressure     p15  FOUND  ~1.28 mins and ~1.4 mins
+  p16-saturation   p16  FOUND  ~33 mins and ~31 mins
+  p3-citation      p3   FOUND  279 to 28 seconds
+  p16-table        p16  FOUND  Average reconstruction times
+  p36-average      p36  FOUND  Average saturation times are 31.61
+  p36-limit        p36  FOUND  needs to be applied to multiple reservoirs
+reproduce: 12/12 checks found -> D:\WorkBuddy\2026-11-25-18-08-17\techshare\verification\result.json
+reproduce: all UTF-8 text files total = 38871 bytes (< 245760 limit)
