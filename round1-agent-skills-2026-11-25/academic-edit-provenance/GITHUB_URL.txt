@@ -1,0 +1,2 @@
+https://github.com/small-mouse-zjc/bohrium-cugb-sprint-2026-v4/tree/main/round1-agent-skills-2026-11-25/academic-edit-provenance
+SKILL.md
